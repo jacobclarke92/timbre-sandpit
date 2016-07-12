@@ -25,6 +25,8 @@ let reactive = false;
 let showGuides = false;
 let guideDivisions = 8;
 let guideSubdivisions = 4;
+let radialDivisions = 4;
+let radialSubdivisions = 3;
 const adsr = {
 	a: 2,
 	h: 100,
@@ -59,7 +61,7 @@ stage.addChild(clickZone);
 
 const ripples = [];
 const fxRipples = [];
-const anchors = [];
+let anchors = [];
 
 let idCounter = 0;
 function newId() {
@@ -131,6 +133,13 @@ function init() {
 		showGuides = $(this).prop('checked');
 		drawnGuides = false;
 		if(!showGuides) guidesGraphic.clear();
+	});
+
+	$('[data-reset]').on('click', function() {
+		for(let anchor of anchors) {
+			anchorsContainer.removeChild(anchor);
+		}
+		anchors = [];
 	});
 
 	
@@ -213,12 +222,22 @@ function playNote(volume = 1, pan = 0) {
 function animate() {
 
 	if(showGuides && !drawnGuides) {
-		const totalDivisions = guideDivisions*guideSubdivisions;
-		const radialSegment = maxRadius/totalDivisions;
+		let totalDivisions = guideDivisions*guideSubdivisions;
+		let radialSegment = maxRadius/totalDivisions;
 		guidesGraphic.clear();
 		for(let i=0; i<totalDivisions; i++) {
 			guidesGraphic.lineStyle(1, (i%guideSubdivisions === 0) ? 0x222222 : 0x111111);
 			guidesGraphic.drawCircle(width/2, height/2, i*radialSegment);
+		}
+		totalDivisions = radialDivisions*radialSubdivisions;
+		radialSegment = Math.PI*2/totalDivisions;
+		for(let i=0; i<totalDivisions; i++) {
+			guidesGraphic.lineStyle(1, 0x111111);
+			guidesGraphic.moveTo(width/2, height/2);
+			guidesGraphic.lineTo(
+				width/2 + Math.cos(i*radialSegment)*maxRadius,
+				height/2 + Math.sin(i*radialSegment)*maxRadius
+			);
 		}
 		drawnGuides = true;
 	}

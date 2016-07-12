@@ -27,6 +27,14 @@ html,body {
 	display: flex;
 	justify-content: space-between;
 }
+.ui-right-checks {
+	padding-left: 5px;
+	padding-bottom: 5px;
+	display: flex;
+	flex-direction: column;
+	text-align: left;
+	justify-content: space-between;
+}
 .canvas {
     flex-grow: 1;
 }
@@ -61,4 +69,7 @@ input[type='range'] {
 	-webkit-appearance: slider-vertical;
 	width: 8px;
 	height: 70px;
+}
+button {
+	padding: 5 8px;
 }
