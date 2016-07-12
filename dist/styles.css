@@ -51,10 +51,8 @@ label {
 	display: inline-block;
 	margin: 0 5px 5px 5px;
 }
-label select, label input {
-	display: block;
-}
 input[type='range'] {
+	display: block;
 	-webkit-appearance: slider-vertical;
 	width: 8px;
 	height: 80px;

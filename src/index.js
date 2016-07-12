@@ -21,6 +21,7 @@ let mode =  new sc.Scale.lydian();
 let notes = mode.degrees();
 let scale = 0;
 let wave = 'sin';
+let reactive = false;
 const adsr = {
 	a: 2,
 	h: 100,
@@ -53,6 +54,11 @@ stage.addChild(clickZone);
 const ripples = [];
 const fxRipples = [];
 const anchors = [];
+
+let idCounter = 0;
+function newId() {
+	return ++idCounter;
+}
 
 function updateSize() {
 	width = $container.width();
@@ -104,15 +110,19 @@ function init() {
 		const key = $elem.data('adsr-key');
 		$elem.attr('max', 1).attr('step', 0.001);
 		$elem.val(adsr[key]/1000);
-		$elem.on('change', function() {
+		$elem.on('change input', function() {
 			adsr[key] = $(this).val()*1000;//getSliderLog($(this).val());
 		})
+	});
+
+	$('[data-reactive]').on('change', function() {
+		reactive = $(this).prop('checked');
 	});
 
 	
 
 	ripples.push({
-		id: 1,
+		id: newId(),
 		x: 0.5,
 		y: 0.5,
 		radius: 0,
@@ -122,6 +132,7 @@ function init() {
 
 	clickZone.on('mousedown', event => {
 		const anchor = new Graphics();
+		anchor.id = newId();
 		anchor.beginFill(0x000000);
 		anchor.drawCircle(0,0,5);
 		anchor.position.set(event.data.originalEvent.clientX, event.data.originalEvent.clientY - offsetY);
@@ -170,17 +181,19 @@ function getSliderPosition(value, min = 0.00001, max = 1000) {
 	return (Math.log(value) - minV) / (maxV - minV);
 }
 
+function playNote(volume = 0.1) {
+	const note = getRandomNote();
+	const freq = mode.degreeToFreq(note, (48+scale).midicps(), 1);
+	const sound = T(wave, {freq, mul: volume})
+	T('adshr', adsr, sound).on('ended', function() {
+		this.pause();
+	}).bang().play();
+	return note;
+}
+
 function animate() {
 
 	ripplesGraphic.clear();
-
-	for(let ripple of fxRipples) {
-		ripplesGraphic.lineStyle(4, ripple.color || 0xff8200, ripple.alpha);
-		ripple.radius += 5;
-		ripple.alpha -= 0.02;
-		if(ripple.alpha <= 0) fxRipples.splice(fxRipples.indexOf(ripple), 1);
-		ripplesGraphic.drawCircle(ripple.x, ripple.y, ripple.radius);
-	}
 
 	ripplesGraphic.lineStyle(2, 0x000000);
 	for(let ripple of ripples) {
@@ -199,22 +212,55 @@ function animate() {
 			 && ripple.radius >= dist(new Point(width*ripple.x, height*ripple.y), anchor)) {
 				anchor.counters[ripple.id] = ripple.count;
 
-				const note = getRandomNote();
-				const freq = mode.degreeToFreq(note, (48+scale).midicps(), 1);
-				const sound = T(wave, {freq, mul: 0.1})
-				T('adshr', adsr, sound).on('ended', function() {
-					this.pause();
-				}).bang().play();
+				const note = playNote();
 
 				fxRipples.push({
+					id: newId(),
 					x: anchor.x,
 					y: anchor.y,
 					radius: 0,
 					speed: 1,
 					alpha: 1,
+					count: 0,
+					parent: anchor.id,
 					color: noteColors[note % noteColors.length],
 				});
 
+			}
+		}
+	}
+
+
+	for(let ripple of fxRipples) {
+		ripplesGraphic.lineStyle(4, ripple.color || 0xff8200, ripple.alpha);
+		ripple.radius += 5;
+		ripple.alpha -= 0.02;
+		if(ripple.alpha <= 0) fxRipples.splice(fxRipples.indexOf(ripple), 1);
+		ripplesGraphic.drawCircle(ripple.x, ripple.y, ripple.radius);
+
+		if(reactive) {
+			for(let anchor of anchors) {
+				if(ripple.parent !== anchor.id
+				 && !anchor.counters[ripple.id]
+				 && ripple.radius >= dist(ripple, anchor)) {
+					
+					anchor.counters[ripple.id] = ripple.id;
+
+					const note = playNote(0.1 * ripple.alpha);
+
+					fxRipples.push({
+						id: newId(),
+						x: anchor.x,
+						y: anchor.y,
+						radius: 0,
+						speed: 1,
+						count: 0,
+						alpha: ripple.alpha/1.5,
+						parent: anchor.id,
+						color: noteColors[note % noteColors.length],
+					});
+
+				}
 			}
 		}
 	}
