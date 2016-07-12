@@ -22,6 +22,9 @@ let notes = mode.degrees();
 let scale = 0;
 let wave = 'sin';
 let reactive = false;
+let showGuides = false;
+let guideDivisions = 8;
+let guideSubdivisions = 4;
 const adsr = {
 	a: 2,
 	h: 100,
@@ -34,11 +37,14 @@ let animating = true;
 let width = $container.width();
 let height = $container.height() - offsetY;
 let maxRadius = Math.sqrt(width*width + height*height)/2;
+let drawnGuides = false;
 
 let renderer = null;
 let canvas = null;
 const stage = new Container();
 
+const guidesGraphic = new Graphics();
+stage.addChild(guidesGraphic);
 
 const ripplesGraphic = new Graphics();
 stage.addChild(ripplesGraphic);
@@ -63,6 +69,8 @@ function newId() {
 function updateSize() {
 	width = $container.width();
 	height = $container.height();
+	maxRadius = Math.sqrt(width*width + height*height)/2;
+	drawnGuides = false;
 }
 
 function updateModeColors() {
@@ -117,6 +125,12 @@ function init() {
 
 	$('[data-reactive]').on('change', function() {
 		reactive = $(this).prop('checked');
+	});
+
+	$('[data-guides]').on('change', function() {
+		showGuides = $(this).prop('checked');
+		drawnGuides = false;
+		if(!showGuides) guidesGraphic.clear();
 	});
 
 	
@@ -181,17 +195,33 @@ function getSliderPosition(value, min = 0.00001, max = 1000) {
 	return (Math.log(value) - minV) / (maxV - minV);
 }
 
-function playNote(volume = 0.1) {
+function playNote(volume = 1, pan = 0) {
 	const note = getRandomNote();
 	const freq = mode.degreeToFreq(note, (48+scale).midicps(), 1);
-	const sound = T(wave, {freq, mul: volume})
+	const synth = T(wave, {freq, mul: volume/10});
+	const sound = T('pan', {pos: pan}, synth);
+	// const sound = T('reverb', {room:1, damp:0.2, mix:0.7}, synth);
+	// const sound = T('delay', {time:250, fb:0.8, mix:0.33}, synth);
+
 	T('adshr', adsr, sound).on('ended', function() {
 		this.pause();
+		delete this;
 	}).bang().play();
 	return note;
 }
 
 function animate() {
+
+	if(showGuides && !drawnGuides) {
+		const totalDivisions = guideDivisions*guideSubdivisions;
+		const radialSegment = maxRadius/totalDivisions;
+		guidesGraphic.clear();
+		for(let i=0; i<totalDivisions; i++) {
+			guidesGraphic.lineStyle(1, (i%guideSubdivisions === 0) ? 0x222222 : 0x111111);
+			guidesGraphic.drawCircle(width/2, height/2, i*radialSegment);
+		}
+		drawnGuides = true;
+	}
 
 	ripplesGraphic.clear();
 
@@ -212,7 +242,7 @@ function animate() {
 			 && ripple.radius >= dist(new Point(width*ripple.x, height*ripple.y), anchor)) {
 				anchor.counters[ripple.id] = ripple.count;
 
-				const note = playNote();
+				const note = playNote(1, (anchor.x-width/2)/(width/2));
 
 				fxRipples.push({
 					id: newId(),
@@ -246,7 +276,7 @@ function animate() {
 					
 					anchor.counters[ripple.id] = ripple.id;
 
-					const note = playNote(0.1 * ripple.alpha);
+					const note = playNote(ripple.alpha, (anchor.x-width/2)/(width/2));
 
 					fxRipples.push({
 						id: newId(),
