@@ -22,9 +22,9 @@ let notes = mode.degrees();
 let scale = 0;
 let wave = 'sin';
 const adsr = {
-	a: 80,
+	a: 2,
+	h: 100,
 	d: 0,
-	h: 0,
 	r: 500,
 };
 
@@ -62,8 +62,9 @@ function updateSize() {
 function updateModeColors() {
 	$scaleColors.html('');
 	for(let note of notes) {
-		const noteColor = noteColors[(note+scale) % 12];
-		const $block = $('<div class="scale-color"></div>').css('background-color', '#' + noteColor.toString(16));
+		const noteInScale = (note+scale) % 12;
+		const noteColor = noteColors[noteInScale];
+		const $block = $('<div class="scale-color">'+noteStrings[noteInScale]+'</div>').css('background-color', '#' + noteColor.toString(16));
 		$scaleColors.append($block);
 	}
 }
