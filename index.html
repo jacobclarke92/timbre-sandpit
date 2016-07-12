@@ -9,40 +9,43 @@
         <link rel="stylesheet" href="dist/styles.css">
     </head>
     <body>
-        <div class="ui">
-            <select data-mode-select></select>
-            <div class="scale-colors" data-scale-colors></div>
+        <div class="app">
+            <div class="ui">
+                <div class="ui-left">
+                    <div>
+                        <label>
+                            Mode
+                            <select data-mode-select></select>
+                        </label>
+                        <label>
+                            Scale
+                            <select data-scale-select></select>
+                        </label>
+                        <label>
+                            Wave
+                            <select data-wave-select>
+                                <option value="sin">Sine</option>
+                                <option value="tri">Triangle</option>
+                                <option value="pulse">Pulse</option>
+                                <option value="saw">Saw</option>
+                                <option value="pulse">Fami</option>
+                                <option value="pulse">Konami</option>
+                            </select>
+                        </label>
+                    </div>
+                    <div class="scale-colors" data-scale-colors></div>
+                </div>
+                <div class="ui-right">
+                    <div class="adsr" data-adsr>
+                        <label>A<input type="range" data-adsr-key="a" /></label>
+                        <label>H<input type="range" data-adsr-key="h" /></label>
+                        <label>D<input type="range" data-adsr-key="d" /></label>
+                        <label>R<input type="range" data-adsr-key="r" /></label>
+                    </div>
+                </div>
+            </div>
+            <div class="canvas" id="canvas"></div>
         </div>
-        <div class="canvas" id="canvas"></div>
         <script src="dist/scripts.js"></script>
-        <style>
-            .ui {
-                position: absolute;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 80px;
-            }
-            .canvas {
-                position: absolute;
-                top: 80px;
-                left: 0;
-                bottom: 0;
-                width: 100%;
-            }
-            .scale-colors {
-                display: flex;
-                justify-content: space-between;
-            }
-            .scale-color {
-                height: 65px;
-                min-width: 50px;
-                flex-grow: 1;
-            }
-            select {
-                height: 30px;
-                width: 200px;
-            }
-        </style>
     </body>
 </html>

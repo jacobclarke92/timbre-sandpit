@@ -4,73 +4,38 @@ import sc from 'subcollider'
 import PIXI, { Container, Graphics, Sprite, Point } from 'pixi.js'
 
 import noteColors from './constants/note-colors'
+import noteStrings from './constants/note-strings'
+import modes from './constants/modes'
 
-const scales = {
-	major: new sc.Scale.major(),
-	minor: new sc.Scale.major(),
-	whole: new sc.Scale.whole(),
-	
-	augmented: new sc.Scale.augmented(),
-	augmented2: new sc.Scale.augmented2(),
-	ionian: new sc.Scale.ionian(),
-	dorian: new sc.Scale.dorian(),
-	phrygian: new sc.Scale.phrygian(),
-	lydian: new sc.Scale.lydian(),
-	mixolydian: new sc.Scale.mixolydian(),
-	aeolian: new sc.Scale.aeolian(),
-	locrian: new sc.Scale.locrian(),
-	harmonicMinor: new sc.Scale.harmonicMinor(),
-	harmonicMajor: new sc.Scale.harmonicMajor(),
-	melodicMinor: new sc.Scale.melodicMinor(),
-	melodicMinorDesc: new sc.Scale.melodicMinorDesc(),
-	melodicMajor: new sc.Scale.melodicMajor(),
-	minorPentatonic: new sc.Scale.minorPentatonic(),
-	majorPentatonic: new sc.Scale.majorPentatonic(),
-	
-	hexMajor7: new sc.Scale.hexMajor7(),
-	hexDorian: new sc.Scale.hexDorian(),
-	hexPhrygian: new sc.Scale.hexPhrygian(),
-	hexSus: new sc.Scale.hexSus(),
-	hexMajor6: new sc.Scale.hexMajor6(),
-	hexAeolian: new sc.Scale.hexAeolian(),
+const offsetY = 100;
 
-	ritusen: new sc.Scale.ritusen(),
-	egyptian: new sc.Scale.egyptian(),
-	hirajoshi: new sc.Scale.hirajoshi(),
-	kumoi: new sc.Scale.kumoi(),
-	iwato: new sc.Scale.iwato(),
-	ryukyu: new sc.Scale.ryukyu(),
-	chinese: new sc.Scale.chinese(),
-	indian: new sc.Scale.indian(),
-	pelog: new sc.Scale.pelog(),
-	prometheus: new sc.Scale.prometheus(),
-	scriabin: new sc.Scale.scriabin(),
-	gong: new sc.Scale.gong(),
-	shang: new sc.Scale.shang(),
-	jiao: new sc.Scale.jiao(),
-	zhi: new sc.Scale.zhi(),
-	yu: new sc.Scale.yu(),
-	
-
-}
-
-const offsetY = 80;
-
-let scale =  new sc.Scale.lydian();
-let notes = scale.degrees();
-
-const $mode = $('[data-mode-select]');
+const $modeSelect = $('[data-mode-select]');
+const $waveSelect = $('[data-wave-select]');
+const $scaleSelect = $('[data-scale-select]');
 const $scaleColors = $('[data-scale-colors]');
+const $adsr = $('[data-adsr]');
 const $container = $('#canvas');
+
+
+let mode =  new sc.Scale.lydian();
+let notes = mode.degrees();
+let scale = 0;
+let wave = 'sin';
+const adsr = {
+	a: 80,
+	d: 0,
+	h: 0,
+	r: 500,
+};
 
 const resolution = window.devicePixelRatio || 1;
 let animating = true;
-let width = $(document).width();
-let height = $(document).height() - offsetY;
+let width = $container.width();
+let height = $container.height() - offsetY;
 let maxRadius = Math.sqrt(width*width + height*height)/2;
 
-const renderer = new PIXI.autoDetectRenderer(width, height, {resolution, transparent: false, backgroundColor: 0xFFFFFF});
-const canvas = renderer.view;
+let renderer = null;
+let canvas = null;
 const stage = new Container();
 
 
@@ -82,33 +47,69 @@ stage.addChild(anchorsContainer);
 
 const clickZone = new Sprite();
 clickZone.interactive = true;
-clickZone.hitArea = new PIXI.Rectangle(0,0,width,height);
+clickZone.hitArea = new PIXI.Rectangle(0,0,10000,10000);
 stage.addChild(clickZone);
 
 const ripples = [];
 const fxRipples = [];
 const anchors = [];
 
+function updateSize() {
+	width = $container.width();
+	height = $container.height();
+}
+
+function updateModeColors() {
+	$scaleColors.html('');
+	for(let note of notes) {
+		const noteColor = noteColors[(note+scale) % 12];
+		const $block = $('<div class="scale-color"></div>').css('background-color', '#' + noteColor.toString(16));
+		$scaleColors.append($block);
+	}
+}
+
 function init() {
 
 	
-	$mode.append('<option>Select scale...</option>');
-	for(let scale in scales) {
-		const $option = $('<option value="'+scale+'">'+scale+'</option>');
-		if(scale == 'lydian') $option.attr('selected', 'selected');
-		$mode.append($option);
+	for(let mode in modes) {
+		const $option = $('<option value="'+mode+'">'+mode+'</option>');
+		if(mode == 'lydian') $option.attr('selected', 'selected');
+		$modeSelect.append($option);
 	}
-	$mode.on('change', function() {
-		scale = scales[$(this).val()];
-		notes = scale.degrees();
-		$scaleColors.html('');
-		for(let note of notes) {
-			const $block = $('<div class="scale-color"></div>').css('background-color', '#' + noteColors[note].toString(16));
-			$scaleColors.append($block);
-		}
+	$modeSelect.on('change', function() {
+		mode = modes[$(this).val()];
+		notes = mode.degrees();
+		updateModeColors();
 	});
-	$mode.trigger('change');
-		
+	$modeSelect.trigger('change');
+
+
+	for(let note of noteStrings) {
+		const $option = $('<option value="'+note+'">'+note+'</option>');
+		if(note == 'C') $option.attr('selected', 'selected');
+		$scaleSelect.append($option);
+	}
+	$scaleSelect.on('change', function() {
+		scale = noteStrings.indexOf($(this).val());
+		updateModeColors();
+	});
+
+	$waveSelect.on('change', function() {
+		wave = $(this).val();
+	});
+
+	$adsr.find('[data-adsr-key]').each((i, elem) => {
+		const $elem = $(elem);
+		const key = $elem.data('adsr-key');
+		$elem.attr('max', 1).attr('step', 0.001);
+		$elem.val(adsr[key]/1000);
+		$elem.on('change', function() {
+			adsr[key] = $(this).val()*1000;//getSliderLog($(this).val());
+		})
+	});
+
+	
+
 	ripples.push({
 		id: 1,
 		x: 0.5,
@@ -128,9 +129,18 @@ function init() {
 		anchors.push(anchor);
 	});
 
-	$container.append(canvas);
+	$(document).ready(() => {
+		updateSize();
+		renderer = new PIXI.autoDetectRenderer(width, height, {resolution, transparent: false, backgroundColor: 0xFFFFFF});
+		canvas = renderer.view;
+		$container.append(canvas);
+		animate();
+	});
 
-	animate();
+	$(window).on('resize', () => {
+		updateSize()
+		renderer.resize(width, height);
+	});
 }
 
 function dist(p1, p2) {
@@ -146,6 +156,17 @@ function getRandomNote() {
 	while(Math.abs(note-lastNote) % 12 <= 1) note = notes[Math.floor(Math.random()*notes.length)];
 	lastNote = note;
 	return note;
+}
+
+function getSliderLog(value, min = 0.00001, max = 1000) {
+	const minV = Math.log(min);
+	const maxV = Math.log(max);
+	return Math.exp(minV + (maxV - minV)*value);
+}
+function getSliderPosition(value, min = 0.00001, max = 1000) {
+	const minV = Math.log(min);
+	const maxV = Math.log(max);
+	return (Math.log(value) - minV) / (maxV - minV);
 }
 
 function animate() {
@@ -178,9 +199,9 @@ function animate() {
 				anchor.counters[ripple.id] = ripple.count;
 
 				const note = getRandomNote();
-				const freq = scale.degreeToFreq(note, (48).midicps(), 1);
-				const sine = T('sin', {freq, mul: 0.1})
-				T('perc', {a:80, r:500}, sine).on('ended', function() {
+				const freq = mode.degreeToFreq(note, (48+scale).midicps(), 1);
+				const sound = T(wave, {freq, mul: 0.1})
+				T('adshr', adsr, sound).on('ended', function() {
 					this.pause();
 				}).bang().play();
 

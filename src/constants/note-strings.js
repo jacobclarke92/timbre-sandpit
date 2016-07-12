@@ -1,0 +1,1 @@
+export default ['C','C♯','D','E♭','E','F','F♯','G','A♭','A','B♭','B']
