@@ -133,7 +133,7 @@ function init() {
 	clickZone.on('mousedown', event => {
 		const anchor = new Graphics();
 		anchor.id = newId();
-		anchor.beginFill(0x000000);
+		anchor.beginFill(0xFFFFFF);
 		anchor.drawCircle(0,0,5);
 		anchor.position.set(event.data.originalEvent.clientX, event.data.originalEvent.clientY - offsetY);
 		anchor.counters = {};
@@ -143,7 +143,7 @@ function init() {
 
 	$(document).ready(() => {
 		updateSize();
-		renderer = new PIXI.autoDetectRenderer(width, height, {resolution, transparent: false, backgroundColor: 0xFFFFFF});
+		renderer = new PIXI.autoDetectRenderer(width, height, {resolution, transparent: false, backgroundColor: 0x000000});
 		canvas = renderer.view;
 		$container.append(canvas);
 		animate();
@@ -195,7 +195,7 @@ function animate() {
 
 	ripplesGraphic.clear();
 
-	ripplesGraphic.lineStyle(2, 0x000000);
+	ripplesGraphic.lineStyle(3, 0xFFFFFF);
 	for(let ripple of ripples) {
 		ripple.radius += ripple.speed;
 		if(ripple.radius > maxRadius) {

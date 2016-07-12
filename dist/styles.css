@@ -14,13 +14,18 @@ html,body {
     height: 100px;
 }
 .ui-left {
-	flex-grow: 1;
 	display: flex;
 	flex-direction: column;
 	padding-top: 5px;
+	max-width: 640px;
 }
 .ui-right {
-	min-width: 350px;
+	flex-grow: 1;
+	padding-top: 5px;
+	padding-right: 10px;
+	text-align: right;
+	display: flex;
+	justify-content: space-between;
 }
 .canvas {
     flex-grow: 1;
@@ -55,5 +60,5 @@ input[type='range'] {
 	display: block;
 	-webkit-appearance: slider-vertical;
 	width: 8px;
-	height: 80px;
+	height: 70px;
 }
