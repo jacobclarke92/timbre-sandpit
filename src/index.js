@@ -226,13 +226,13 @@ function animate() {
 		let radialSegment = maxRadius/totalDivisions;
 		guidesGraphic.clear();
 		for(let i=0; i<totalDivisions; i++) {
-			guidesGraphic.lineStyle(1, (i%guideSubdivisions === 0) ? 0x222222 : 0x111111);
+			guidesGraphic.lineStyle(2, (i%guideSubdivisions === 0) ? 0x222222 : 0x111111);
 			guidesGraphic.drawCircle(width/2, height/2, i*radialSegment);
 		}
 		totalDivisions = radialDivisions*radialSubdivisions;
 		radialSegment = Math.PI*2/totalDivisions;
 		for(let i=0; i<totalDivisions; i++) {
-			guidesGraphic.lineStyle(1, 0x111111);
+			guidesGraphic.lineStyle(3, 0x111111);
 			guidesGraphic.moveTo(width/2, height/2);
 			guidesGraphic.lineTo(
 				width/2 + Math.cos(i*radialSegment)*maxRadius,
