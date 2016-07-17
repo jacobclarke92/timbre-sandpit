@@ -6,6 +6,7 @@ import PIXI, { Container, Graphics, Sprite, Point } from 'pixi.js'
 import noteColors from './constants/note-colors'
 import noteStrings from './constants/note-strings'
 import modes from './constants/modes'
+import * as AnchorTypes from './constants/anchor-types'
 
 const offsetY = 100;
 
@@ -17,12 +18,13 @@ const $adsr = $('[data-adsr]');
 const $container = $('#canvas');
 
 
+let globalSpeed = 2.5;
 let mode =  new sc.Scale.lydian();
 let notes = mode.degrees();
 let scale = 0;
 let wave = 'sin';
 let reactive = false;
-let showGuides = false;
+let showGuides = true;
 let guideDivisions = 8;
 let guideSubdivisions = 4;
 let radialDivisions = 4;
@@ -64,7 +66,10 @@ stage.addChild(anchorsContainer);
 const ripples = [];
 const fxRipples = [];
 let anchors = [];
-let activeAnchor = null;
+let activeAnchor = null;;
+let placing = false;
+let mouseMoved = false;
+let lastScale = 1;
 
 // little id function to not have clashing ids
 let idCounter = 0;
@@ -133,9 +138,11 @@ function init() {
 	});
 
 	// bind options
+	if(reactive) $('[data-reactive]').prop('checked', true);
 	$('[data-reactive]').on('change', function() {
 		reactive = $(this).prop('checked');
 	});
+	if(showGuides) $('[data-guides]').prop('checked', true);
 	$('[data-guides]').on('change', function() {
 		showGuides = $(this).prop('checked');
 		drawnGuides = false;
@@ -153,20 +160,22 @@ function init() {
 		x: 0.5,
 		y: 0.5,
 		radius: 0,
-		speed: 2.5,
+		speed: globalSpeed,
 		count: 0,
 	});
 
 	// create new anchor node on mouseup
-	clickZone.on('mouseup', event => {
+	clickZone.on('mousedown', event => {
 		const anchor = new Container();
 		const graphic = new Graphics();
 
 		anchor.id = newId();
 		anchor.interactive = true;
 		anchor.buttonMode = true;
+		anchor.type = AnchorTypes.RANDOM;
 		anchor.radius = 4;
 		anchor.counters = {};
+		anchor.scale.set(lastScale);
 		anchor.position.set(event.data.originalEvent.clientX, event.data.originalEvent.clientY - offsetY);
 
 		graphic.beginFill(0xFFFFFF);
@@ -175,16 +184,58 @@ function init() {
 		anchor.addChild(graphic);
 		
 		anchor.on('mouseover', () => activeAnchor = anchor);
-		anchor.on('mouseout', () => activeAnchor = null);
+		anchor.on('mouseout', () => {
+			if(!placing) activeAnchor = null;
+		});
+		anchor.on('mousedown', () => {
+			activeAnchor = anchor;
+			placing = true;
+			mouseMoved = false;
+		})
 		anchor.on('mouseup', function(event) {
-			event.stopPropagation();
-			anchorsContainer.removeChild(anchor);
-			anchors.splice(anchors.indexOf(anchor), 1);
+			if(placing && !mouseMoved) {
+				event.stopPropagation();
+				anchorsContainer.removeChild(anchor);
+				anchors.splice(anchors.indexOf(anchor), 1);
+			}
+			placing = false;
+			mouseMoved = false;
 		});
 
 		anchorsContainer.addChild(anchor);
 		anchors.push(anchor);
+		placing = true;
+		mouseMoved = true;
+		activeAnchor = anchor;
 	});
+
+	clickZone.on('mousemove', event => {
+		if(placing) {
+			mouseMoved = true;
+			const mouse = new Point(event.data.originalEvent.clientX, event.data.originalEvent.clientY - offsetY);
+			const distance = dist(mouse, activeAnchor);
+			const angle = Math.atan2(mouse.y - activeAnchor.y, mouse.x - activeAnchor.x);
+			if(distance > 20) {
+				activeAnchor.rotation = angle;
+				if(angle > 0 && angle < Math.PI && activeAnchor.type != AnchorTypes.DOWN) {
+					changeAnchorType(activeAnchor, AnchorTypes.DOWN);
+				}else if(angle < 0 || angle > Math.PI && activeAnchor.type != AnchorTypes.UP) {
+					changeAnchorType(activeAnchor, AnchorTypes.UP);
+				}
+			}else if(activeAnchor.type != AnchorTypes.RANDOM) {
+				changeAnchorType(activeAnchor, AnchorTypes.RANDOM);
+			}
+		}
+	});
+
+	clickZone.on('mouseup', event => {
+		if(placing) {
+			event.stopPropagation();
+			console.log('finished placing');
+			activeAnchor = null;
+			placing = false;
+		}
+	})
 
 	// bind window resize to update canvas
 	$(window).on('resize', () => {
@@ -199,6 +250,7 @@ function init() {
 			if (scrollAmount !== 0) {
 				let nextScale = activeAnchor.scale.x - scrollAmount/50;
 				nextScale = Math.min(5, Math.max(1, nextScale));
+				lastScale = nextScale;
 				activeAnchor.scale.set(nextScale);
 			}
 		}
@@ -222,11 +274,51 @@ function dist(p1, p2) {
 	);
 }
 
+function changeAnchorType(anchor, type) {
+	if(anchor.type == type) return;
+	anchor.type = type;
+	anchor.graphic.clear();
+	let anchorColor = null;
+	switch(type) {
+		case AnchorTypes.UP: anchorColor = 0x5D8FFF; break;
+		case AnchorTypes.DOWN: anchorColor = 0xFF489E; break;
+		default: anchorColor = 0xFFFFFF;
+	}
+	anchor.graphic.beginFill(anchorColor);
+	anchor.graphic.drawCircle(0, 0, anchor.radius);
+	if(type == AnchorTypes.UP || type == AnchorTypes.DOWN) {
+		anchor.graphic.drawPolygon([
+			0,-anchor.radius, 
+			0, anchor.radius,
+			anchor.radius*3, 0,
+		])
+	}
+}
+
 // generates random note that doesn't clash with previous note
 let lastNote = 0;
 function getRandomNote() {
+	console.log('Getting random note');
 	let note = notes[Math.floor(Math.random()*notes.length)];
 	while(Math.abs(note-lastNote) % 12 <= 1) note = notes[Math.floor(Math.random()*notes.length)];
+	lastNote = note;
+	return note;
+}
+function getAscendingNote() {
+	console.log('Getting ascending note');
+	let index = notes.indexOf(lastNote);
+	if(index >= notes.length-1) index = 0;
+	else index ++;
+	const note = notes[index];
+	lastNote = note;
+	return note;
+}
+function getDescendingNote() {
+	console.log('Getting descending note');
+	let index = notes.indexOf(lastNote);
+	if(index === 0) index = notes.length-1;
+	else index --;
+	const note = notes[index];
 	lastNote = note;
 	return note;
 }
@@ -246,8 +338,14 @@ function getSliderPosition(value, min = 0.00001, max = 1000) {
 }
 
 // plays note based on current settings
-function playNote(volume = 1, pan = 0) {
-	const note = getRandomNote();
+function playNote(volume = 1, pan = 0, noteType = AnchorTypes.RANDOM) {
+	console.log('Playing note');
+	let note = null;
+	switch(noteType) {
+		case AnchorTypes.UP: note = getAscendingNote(); break;
+		case AnchorTypes.DOWN: note = getDescendingNote(); break;
+		default: note = getRandomNote();
+	}
 	const freq = mode.degreeToFreq(note, (48+scale).midicps(), 1);
 	const synth = T(wave, {freq, mul: volume/10});
 	const sound = T('pan', {pos: pan}, synth);
@@ -312,7 +410,11 @@ function animate() {
 				anchor.counters[ripple.id] = ripple.count;
 
 				// play note
-				const note = playNote(1*anchor.scale.x, (anchor.x-width/2)/(width/2));
+				const note = playNote(
+					1*anchor.scale.x, 
+					(anchor.x-width/2)/(width/2), 
+					anchor.type
+				);
 
 				// create an fx ripple
 				fxRipples.push({
@@ -320,7 +422,7 @@ function animate() {
 					x: anchor.x,
 					y: anchor.y,
 					radius: 0,
-					speed: 1,
+					speed: globalSpeed/5,
 					alpha: 1,
 					count: 0,
 					parent: anchor.id,
@@ -336,8 +438,8 @@ function animate() {
 
 		// init fx ripple draw
 		ripplesGraphic.lineStyle(4, ripple.color || 0xff8200, ripple.alpha);
-		ripple.radius += 5;
-		ripple.alpha -= 0.02;
+		ripple.radius += globalSpeed;
+		ripple.alpha -= 0.01;
 
 		// remove ripple if invisible
 		if(ripple.alpha <= 0) fxRipples.splice(fxRipples.indexOf(ripple), 1);
@@ -354,7 +456,11 @@ function animate() {
 					
 					anchor.counters[ripple.id] = ripple.id;
 
-					const note = playNote(ripple.alpha*anchor.scale.x, (anchor.x-width/2)/(width/2));
+					const note = playNote(
+						ripple.alpha*anchor.scale.x, 
+						(anchor.x-width/2)/(width/2),
+						anchor.type
+					);
 
 					fxRipples.push({
 						id: newId(),
