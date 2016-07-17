@@ -44,6 +44,7 @@ let drawnGuides = false;
 let renderer = null;
 let canvas = null;
 const stage = new Container();
+stage.interactive = true;
 
 const guidesGraphic = new Graphics();
 stage.addChild(guidesGraphic);
@@ -51,23 +52,27 @@ stage.addChild(guidesGraphic);
 const ripplesGraphic = new Graphics();
 stage.addChild(ripplesGraphic);
 
-const anchorsContainer = new Container();
-stage.addChild(anchorsContainer);
-
 const clickZone = new Sprite();
 clickZone.interactive = true;
 clickZone.hitArea = new PIXI.Rectangle(0,0,10000,10000);
 stage.addChild(clickZone);
 
+const anchorsContainer = new Container();
+stage.addChild(anchorsContainer);
+
+
 const ripples = [];
 const fxRipples = [];
 let anchors = [];
+let activeAnchor = null;
 
+// little id function to not have clashing ids
 let idCounter = 0;
 function newId() {
 	return ++idCounter;
 }
 
+// called on init and window resize
 function updateSize() {
 	width = $container.width();
 	height = $container.height();
@@ -75,6 +80,7 @@ function updateSize() {
 	drawnGuides = false;
 }
 
+// called on mode change
 function updateModeColors() {
 	$scaleColors.html('');
 	for(let note of notes) {
@@ -87,7 +93,7 @@ function updateModeColors() {
 
 function init() {
 
-	
+	// init and bind mode select
 	for(let mode in modes) {
 		const $option = $('<option value="'+mode+'">'+mode+'</option>');
 		if(mode == 'lydian') $option.attr('selected', 'selected');
@@ -100,7 +106,7 @@ function init() {
 	});
 	$modeSelect.trigger('change');
 
-
+	// init and bind scale select
 	for(let note of noteStrings) {
 		const $option = $('<option value="'+note+'">'+note+'</option>');
 		if(note == 'C') $option.attr('selected', 'selected');
@@ -111,6 +117,7 @@ function init() {
 		updateModeColors();
 	});
 
+	// bind wave select
 	$waveSelect.on('change', function() {
 		wave = $(this).val();
 	});
@@ -125,45 +132,79 @@ function init() {
 		})
 	});
 
+	// bind options
 	$('[data-reactive]').on('change', function() {
 		reactive = $(this).prop('checked');
 	});
-
 	$('[data-guides]').on('change', function() {
 		showGuides = $(this).prop('checked');
 		drawnGuides = false;
 		if(!showGuides) guidesGraphic.clear();
 	});
-
 	$('[data-reset]').on('click', function() {
-		for(let anchor of anchors) {
-			anchorsContainer.removeChild(anchor);
-		}
+		for(let anchor of anchors) anchorsContainer.removeChild(anchor);
 		anchors = [];
 	});
 
 	
-
+	// init central ripple
 	ripples.push({
 		id: newId(),
 		x: 0.5,
 		y: 0.5,
 		radius: 0,
-		speed: 5,
+		speed: 2.5,
 		count: 0,
 	});
 
-	clickZone.on('mousedown', event => {
-		const anchor = new Graphics();
+	// create new anchor node on mouseup
+	clickZone.on('mouseup', event => {
+		const anchor = new Container();
+		const graphic = new Graphics();
+
 		anchor.id = newId();
-		anchor.beginFill(0xFFFFFF);
-		anchor.drawCircle(0,0,5);
-		anchor.position.set(event.data.originalEvent.clientX, event.data.originalEvent.clientY - offsetY);
+		anchor.interactive = true;
+		anchor.buttonMode = true;
+		anchor.radius = 4;
 		anchor.counters = {};
+		anchor.position.set(event.data.originalEvent.clientX, event.data.originalEvent.clientY - offsetY);
+
+		graphic.beginFill(0xFFFFFF);
+		graphic.drawCircle(0, 0, anchor.radius);
+		anchor.graphic = graphic;
+		anchor.addChild(graphic);
+		
+		anchor.on('mouseover', () => activeAnchor = anchor);
+		anchor.on('mouseout', () => activeAnchor = null);
+		anchor.on('mouseup', function(event) {
+			event.stopPropagation();
+			anchorsContainer.removeChild(anchor);
+			anchors.splice(anchors.indexOf(anchor), 1);
+		});
+
 		anchorsContainer.addChild(anchor);
 		anchors.push(anchor);
 	});
 
+	// bind window resize to update canvas
+	$(window).on('resize', () => {
+		updateSize()
+		renderer.resize(width, height);
+	});
+
+	// bind scrollwheel to sizing anchor nodes
+	$(window).on('mousewheel DOMMouseScroll', function(event) {
+		if(activeAnchor) {
+			const scrollAmount = event.originalEvent.wheelDelta || event.originalEvent.detail;
+			if (scrollAmount !== 0) {
+				let nextScale = activeAnchor.scale.x - scrollAmount/50;
+				nextScale = Math.min(5, Math.max(1, nextScale));
+				activeAnchor.scale.set(nextScale);
+			}
+		}
+	});
+
+	// bind document ready to init animation
 	$(document).ready(() => {
 		updateSize();
 		renderer = new PIXI.autoDetectRenderer(width, height, {resolution, transparent: false, backgroundColor: 0x000000});
@@ -171,13 +212,9 @@ function init() {
 		$container.append(canvas);
 		animate();
 	});
-
-	$(window).on('resize', () => {
-		updateSize()
-		renderer.resize(width, height);
-	});
 }
 
+// gets distance between two points
 function dist(p1, p2) {
 	return Math.sqrt(
 		Math.pow(Math.abs(p2.x-p1.x), 2) + 
@@ -185,6 +222,7 @@ function dist(p1, p2) {
 	);
 }
 
+// generates random note that doesn't clash with previous note
 let lastNote = 0;
 function getRandomNote() {
 	let note = notes[Math.floor(Math.random()*notes.length)];
@@ -193,17 +231,21 @@ function getRandomNote() {
 	return note;
 }
 
+// transforms regular number to log number
 function getSliderLog(value, min = 0.00001, max = 1000) {
 	const minV = Math.log(min);
 	const maxV = Math.log(max);
 	return Math.exp(minV + (maxV - minV)*value);
 }
+
+// transforms log number to regular number
 function getSliderPosition(value, min = 0.00001, max = 1000) {
 	const minV = Math.log(min);
 	const maxV = Math.log(max);
 	return (Math.log(value) - minV) / (maxV - minV);
 }
 
+// plays note based on current settings
 function playNote(volume = 1, pan = 0) {
 	const note = getRandomNote();
 	const freq = mode.degreeToFreq(note, (48+scale).midicps(), 1);
@@ -221,6 +263,7 @@ function playNote(volume = 1, pan = 0) {
 
 function animate() {
 
+	// draw guides if haven't yet, eg. in init or resize
 	if(showGuides && !drawnGuides) {
 		let totalDivisions = guideDivisions*guideSubdivisions;
 		let radialSegment = maxRadius/totalDivisions;
@@ -242,10 +285,12 @@ function animate() {
 		drawnGuides = true;
 	}
 
+	// draw main ripples
 	ripplesGraphic.clear();
-
 	ripplesGraphic.lineStyle(3, 0xFFFFFF);
 	for(let ripple of ripples) {
+
+		// update ripple radius or reset and increment counter if reached the edge
 		ripple.radius += ripple.speed;
 		if(ripple.radius > maxRadius) {
 			ripple.radius = 0;
@@ -254,15 +299,22 @@ function animate() {
 			ripple.radius = maxRadius;
 			ripple.count ++;
 		}
+
+		// draw ripple
 		ripplesGraphic.drawCircle(width*ripple.x, height*ripple.y, ripple.radius);
 
+		// check all anchors to see if ripple has passed over one
 		for(let anchor of anchors) {
 			if(anchor.counters[ripple.id] != ripple.count
 			 && ripple.radius >= dist(new Point(width*ripple.x, height*ripple.y), anchor)) {
+
+			 	// increment anchor counter for ripple so it knows not to trigger next frame
 				anchor.counters[ripple.id] = ripple.count;
 
-				const note = playNote(1, (anchor.x-width/2)/(width/2));
+				// play note
+				const note = playNote(1*anchor.scale.x, (anchor.x-width/2)/(width/2));
 
+				// create an fx ripple
 				fxRipples.push({
 					id: newId(),
 					x: anchor.x,
@@ -279,14 +331,21 @@ function animate() {
 		}
 	}
 
-
+	// draw fx ripples
 	for(let ripple of fxRipples) {
+
+		// init fx ripple draw
 		ripplesGraphic.lineStyle(4, ripple.color || 0xff8200, ripple.alpha);
 		ripple.radius += 5;
 		ripple.alpha -= 0.02;
+
+		// remove ripple if invisible
 		if(ripple.alpha <= 0) fxRipples.splice(fxRipples.indexOf(ripple), 1);
+
+		//draw fx ripple
 		ripplesGraphic.drawCircle(ripple.x, ripple.y, ripple.radius);
 
+		// if reactive option is checked do the same anchor check as above ripple loop
 		if(reactive) {
 			for(let anchor of anchors) {
 				if(ripple.parent !== anchor.id
@@ -295,7 +354,7 @@ function animate() {
 					
 					anchor.counters[ripple.id] = ripple.id;
 
-					const note = playNote(ripple.alpha, (anchor.x-width/2)/(width/2));
+					const note = playNote(ripple.alpha*anchor.scale.x, (anchor.x-width/2)/(width/2));
 
 					fxRipples.push({
 						id: newId(),
@@ -314,6 +373,7 @@ function animate() {
 		}
 	}
 
+	// check if animating before approving next frame
 	renderer.render(stage);
 	if(animating) window.requestAnimationFrame(animate);
 }

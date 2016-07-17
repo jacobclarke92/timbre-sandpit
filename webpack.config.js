@@ -3,7 +3,8 @@ var webpack = require('webpack');
 
 module.exports = {
 	entry: {
-		scripts: './src/index.js',
+		timbre: './src/timbre/index.js',
+		hooktheory: './src/hooktheory/index.js',
 	},
 	output: {
 		path: path.join(__dirname, 'dist'),
