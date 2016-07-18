@@ -36,7 +36,7 @@ const adsr = {
 	r: 500,
 };
 
-const resolution = window.devicePixelRatio || 1;
+let resolution = window.devicePixelRatio || 1;
 let animating = true;
 let width = $container.width();
 let height = $container.height() - offsetY;
@@ -81,6 +81,7 @@ function newId() {
 function updateSize() {
 	width = $container.width();
 	height = $container.height();
+	resolution = window.devicePixelRatio || 1;
 	maxRadius = Math.sqrt(width*width + height*height)/2;
 	drawnGuides = false;
 }
@@ -239,7 +240,7 @@ function init() {
 
 	// bind window resize to update canvas
 	$(window).on('resize', () => {
-		updateSize()
+		updateSize();
 		renderer.resize(width, height);
 	});
 
