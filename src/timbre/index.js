@@ -46,6 +46,7 @@ let drawnGuides = false;
 let renderer = null;
 let canvas = null;
 const stage = new Container();
+stage.scale.set(1/resolution);
 stage.interactive = true;
 
 const guidesGraphic = new Graphics();
@@ -166,77 +167,14 @@ function init() {
 	});
 
 	// create new anchor node on mouseup
-	clickZone.on('mousedown', event => {
-		const anchor = new Container();
-		const graphic = new Graphics();
+	clickZone.on('mousedown', event => createAnchorNode(event.data.originalEvent.clientX, event.data.originalEvent.clientY - offsetY));
+	clickZone.on('touchstart', event => createAnchorNode(event.data.originalEvent.touches[0].clientX, event.data.originalEvent.touches[0].clientY - offsetY));
 
-		anchor.id = newId();
-		anchor.interactive = true;
-		anchor.buttonMode = true;
-		anchor.type = AnchorTypes.RANDOM;
-		anchor.radius = 4;
-		anchor.counters = {};
-		anchor.scale.set(lastScale);
-		anchor.position.set(event.data.originalEvent.clientX, event.data.originalEvent.clientY - offsetY);
+	clickZone.on('mousemove', event => handlePointerMove(event.data.originalEvent.clientX, event.data.originalEvent.clientY - offsetY));
+	clickZone.on('touchmove', event => handlePointerMove(event.data.originalEvent.touches[0].clientX, event.data.originalEvent.touches[0].clientY - offsetY));
 
-		graphic.beginFill(0xFFFFFF);
-		graphic.drawCircle(0, 0, anchor.radius);
-		anchor.graphic = graphic;
-		anchor.addChild(graphic);
-		
-		anchor.on('mouseover', () => activeAnchor = anchor);
-		anchor.on('mouseout', () => {
-			if(!placing) activeAnchor = null;
-		});
-		anchor.on('mousedown', () => {
-			activeAnchor = anchor;
-			placing = true;
-			mouseMoved = false;
-		})
-		anchor.on('mouseup', function(event) {
-			if(placing && !mouseMoved) {
-				event.stopPropagation();
-				anchorsContainer.removeChild(anchor);
-				anchors.splice(anchors.indexOf(anchor), 1);
-			}
-			placing = false;
-			mouseMoved = false;
-		});
-
-		anchorsContainer.addChild(anchor);
-		anchors.push(anchor);
-		placing = true;
-		mouseMoved = true;
-		activeAnchor = anchor;
-	});
-
-	clickZone.on('mousemove', event => {
-		if(placing) {
-			mouseMoved = true;
-			const mouse = new Point(event.data.originalEvent.clientX, event.data.originalEvent.clientY - offsetY);
-			const distance = dist(mouse, activeAnchor);
-			const angle = Math.atan2(mouse.y - activeAnchor.y, mouse.x - activeAnchor.x);
-			if(distance > 20) {
-				activeAnchor.rotation = angle;
-				if(angle > 0 && angle < Math.PI && activeAnchor.type != AnchorTypes.DOWN) {
-					changeAnchorType(activeAnchor, AnchorTypes.DOWN);
-				}else if(angle < 0 || angle > Math.PI && activeAnchor.type != AnchorTypes.UP) {
-					changeAnchorType(activeAnchor, AnchorTypes.UP);
-				}
-			}else if(activeAnchor.type != AnchorTypes.RANDOM) {
-				changeAnchorType(activeAnchor, AnchorTypes.RANDOM);
-			}
-		}
-	});
-
-	clickZone.on('mouseup', event => {
-		if(placing) {
-			event.stopPropagation();
-			console.log('finished placing');
-			activeAnchor = null;
-			placing = false;
-		}
-	})
+	clickZone.on('mouseup', event => handlePointerUp());
+	clickZone.on('touchend', event => handlePointerUp());
 
 	// bind window resize to update canvas
 	$(window).on('resize', () => {
@@ -260,11 +198,83 @@ function init() {
 	// bind document ready to init animation
 	$(document).ready(() => {
 		updateSize();
-		renderer = new PIXI.autoDetectRenderer(width, height, {resolution, transparent: false, backgroundColor: 0x000000});
+		renderer = new PIXI.autoDetectRenderer(width, height, {resolution, transparent: false, backgroundColor: 0x000000, antialiasing: true});
 		canvas = renderer.view;
 		$container.append(canvas);
 		animate();
 	});
+}
+
+function createAnchorNode(positionX, positionY) {
+	const anchor = new Container();
+	const graphic = new Graphics();
+
+	anchor.id = newId();
+	anchor.interactive = true;
+	anchor.buttonMode = true;
+	anchor.type = AnchorTypes.RANDOM;
+	anchor.radius = 4;
+	anchor.counters = {};
+	anchor.scale.set(lastScale);
+	anchor.position.set(positionX, positionY);
+
+	graphic.beginFill(0xFFFFFF);
+	graphic.drawCircle(0, 0, anchor.radius);
+	anchor.graphic = graphic;
+	anchor.addChild(graphic);
+	
+	anchor.on('mouseover', () => activeAnchor = anchor);
+	anchor.on('mouseout', () => {
+		if(!placing) activeAnchor = null;
+	});
+	anchor.on('mousedown', () => {
+		activeAnchor = anchor;
+		placing = true;
+		mouseMoved = false;
+	})
+	anchor.on('mouseup', function(event) {
+		if(placing && !mouseMoved) {
+			event.stopPropagation();
+			anchorsContainer.removeChild(anchor);
+			anchors.splice(anchors.indexOf(anchor), 1);
+		}
+		placing = false;
+		mouseMoved = false;
+	});
+
+	anchorsContainer.addChild(anchor);
+	anchors.push(anchor);
+	placing = true;
+	mouseMoved = true;
+	activeAnchor = anchor;
+}
+
+function handlePointerMove(positionX, positionY) {
+	if(placing) {
+		mouseMoved = true;
+		const mouse = new Point(positionX, positionY);
+		const distance = dist(mouse, activeAnchor);
+		const angle = Math.atan2(mouse.y - activeAnchor.y, mouse.x - activeAnchor.x);
+		if(distance > 20) {
+			activeAnchor.rotation = angle;
+			if(angle > 0 && angle < Math.PI && activeAnchor.type != AnchorTypes.DOWN) {
+				changeAnchorType(activeAnchor, AnchorTypes.DOWN);
+			}else if(angle < 0 || angle > Math.PI && activeAnchor.type != AnchorTypes.UP) {
+				changeAnchorType(activeAnchor, AnchorTypes.UP);
+			}
+		}else if(activeAnchor.type != AnchorTypes.RANDOM) {
+			changeAnchorType(activeAnchor, AnchorTypes.RANDOM);
+		}
+	}
+}
+
+function handlePointerUp() {
+	if(placing) {
+		event.stopPropagation();
+		console.log('finished placing');
+		activeAnchor = null;
+		placing = false;
+	}
 }
 
 // gets distance between two points
