@@ -24,12 +24,10 @@
                         <label>
                             Wave: 
                             <select data-wave-select>
-                                <option value="sin">Sine</option>
-                                <option value="tri">Triangle</option>
-                                <option value="pulse">Pulse</option>
-                                <option value="saw">Saw</option>
-                                <option value="pulse">Fami</option>
-                                <option value="pulse">Konami</option>
+                                <option value="sine">Sine</option>
+                                <option value="triangle">Triangle</option>
+                                <option value="sawtooth">Saw</option>
+                                <option value="square">Pulse</option>
                             </select>
                         </label>
                     </div>
@@ -48,10 +46,12 @@
                         <button type="button" data-reset>Clear</button>
                     </div>
                     <div class="adsr" data-adsr>
-                        <label>A<input type="range" data-adsr-key="a" /></label>
-                        <label>H<input type="range" data-adsr-key="h" /></label>
-                        <label>D<input type="range" data-adsr-key="d" /></label>
-                        <label>R<input type="range" data-adsr-key="r" /></label>
+                        <label>A<input type="range" data-adsr-key="attack" /></label>
+                        <label>D<input type="range" data-adsr-key="decay" /></label>
+                        <!--
+                        <label>S<input type="range" data-adsr-key="sustain" /></label>
+                        <label>R<input type="range" data-adsr-key="release" /></label>
+                        -->
                     </div>
                 </div>
             </div>

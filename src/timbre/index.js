@@ -1,5 +1,5 @@
 import $ from 'jquery'
-import T from 'timbre'
+import Tone, { Synth } from 'tone'
 import sc from 'subcollider'
 import PIXI, { Container, Graphics, Sprite, Point } from 'pixi.js'
 
@@ -18,22 +18,23 @@ const $adsr = $('[data-adsr]');
 const $container = $('#canvas');
 
 
-let globalSpeed = 2.5;
+let globalSpeed = 2.5; // speed of all ripples -- this should be tied to a bpm .. eventaully
 let mode =  new sc.Scale.lydian();
 let notes = mode.degrees();
-let scale = 0;
-let wave = 'sin';
+let scale = 0; // scale offset for current scale
+let wave = 'sine';
 let reactive = false;
 let showGuides = true;
-let guideDivisions = 8;
+let guideDivisions = 8; 
 let guideSubdivisions = 4;
 let radialDivisions = 4;
 let radialSubdivisions = 3;
+const adsrScale = 4; // adsr sliders go from 0 to 1 (or 0s - 1s), this multiplies that
 const adsr = {
-	a: 2,
-	h: 100,
-	d: 0,
-	r: 500,
+	attack: 0.002,
+	decay: 0.1,
+	sustain: 0,
+	release: 0.5,
 };
 
 let resolution = window.devicePixelRatio || 1;
@@ -135,7 +136,7 @@ function init() {
 		$elem.attr('max', 1).attr('step', 0.001);
 		$elem.val(adsr[key]/1000);
 		$elem.on('change input', function() {
-			adsr[key] = $(this).val()*1000;//getSliderLog($(this).val());
+			adsr[key] = $(this).val()*adsrScale;//getSliderLog($(this).val());
 		})
 	});
 
@@ -358,15 +359,18 @@ function playNote(volume = 1, pan = 0, noteType = AnchorTypes.RANDOM) {
 		default: note = getRandomNote();
 	}
 	const freq = mode.degreeToFreq(note, (48+scale).midicps(), 1);
-	const synth = T(wave, {freq, mul: volume/10});
-	const sound = T('pan', {pos: pan}, synth);
-	// const sound = T('reverb', {room:1, damp:0.2, mix:0.7}, synth);
-	// const sound = T('delay', {time:250, fb:0.8, mix:0.33}, synth);
 
-	T('adshr', adsr, sound).on('ended', function() {
-		this.pause();
-		delete this;
-	}).bang().play();
+	const synth = new Synth({
+		envelope: adsr, 
+		oscillator: {type: wave}
+	}).toMaster();
+	synth.triggerAttackRelease(freq, 0);
+	// synth.triggerAttack(freq, 0, volume); // dunno why this doesn't work
+	// TODO: get volume to work again
+
+	// not sure if there's a way to get an envelope complete callback ... so manually destroy for now
+	setTimeout(() => synth.dispose(), adsr.attack*1000*adsrScale + adsr.decay*1000*adsrScale);
+	
 	return note;
 }
 
