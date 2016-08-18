@@ -23,6 +23,7 @@ class Envelope extends Component {
 		});
 
 		this.stage = new Container();
+		this.stage.scale.set(1/getPixelDensity());
 		this.graphics = new Graphics();
 		this.stage.addChild(this.graphics);
 
