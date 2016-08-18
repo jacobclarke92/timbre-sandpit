@@ -3,6 +3,7 @@ import { connect } from 'react-redux'
 
 import Envelope from './components/Envelope'
 import MusicalityInterface from './components/MusicalityInterface'
+import PrimaryInterface from './components/PrimaryInterface'
 
 class App extends Component {
 	render() {
@@ -12,7 +13,7 @@ class App extends Component {
 					<MusicalityInterface />
 					<Envelope />
 				</div>
-				{/*<PrimaryInterface />*/}
+				<PrimaryInterface />
 			</main>
 		)
 	}

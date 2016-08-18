@@ -16,17 +16,31 @@ const initialState = {
 export default function (state = initialState, action) {
 	switch(action.type) {
 		case ActionTypes.UPDATE_OCTAVE:
-			return Object.assign({}, state, {octave: action.octave});
+			return {
+				...state, 
+				octave: action.octave,
+			}
 
 		case ActionTypes.UPDATE_SCALE:
-			return Object.assign({}, state, {scaleString: action.scale, scale: noteStrings.indexOf(action.scale)});
+			return {
+				...state, 
+				scaleString: action.scale, 
+				scale: noteStrings.indexOf(action.scale),
+			}
 
 		case ActionTypes.UPDATE_MODE:
 			const mode = modes[action.mode];
-			return Object.assign({}, state, {modeString: action.mode, mode, notes: mode ? mode.degrees() : []});
+			return {
+				...state, 
+				modeString: action.mode, mode, 
+				notes: mode ? mode.degrees() : [],
+			}
 
 		case ActionTypes.UPDATE_BPM:
-			return Object.assign({}, state, {bpm: action.bpm});
+			return {
+				...state, 
+				bpm: action.bpm,
+			}
 	}
 	return state;
 }

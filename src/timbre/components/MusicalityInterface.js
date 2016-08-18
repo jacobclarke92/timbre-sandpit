@@ -11,17 +11,14 @@ import Bpm from './Bpm'
 class MusicalityInterface extends Component {
 
 	handleBpmChange(bpm) {
-		console.log('change bpm', bpm);
-		this.props.dispatch({type: ActionTypes.UPDATE_MODE, bpm});
+		this.props.dispatch({type: ActionTypes.UPDATE_BPM, bpm});
 	}
 	
 	handleModeChange(mode) {
-		console.log('change mode', mode);
 		this.props.dispatch({type: ActionTypes.UPDATE_MODE, mode});
 	}
 
 	handleScaleChange(scale) {
-		console.log('change scale', scale);
 		this.props.dispatch({type: ActionTypes.UPDATE_SCALE, scale});
 	}
 
