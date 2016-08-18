@@ -13,7 +13,8 @@ module.exports = {
 	},
 	plugins: [
 		new webpack.NoErrorsPlugin(),
-		new webpack.DefinePlugin({'process.env': {'NODE_ENV': JSON.stringify('production')}}),
+		// new webpack.DefinePlugin({'process.env': {'NODE_ENV': JSON.stringify('production')}}),
+		new webpack.DefinePlugin({'process.env': {'NODE_ENV': JSON.stringify('development')}}),
 		new BrowserSyncPlugin({
 			host: 'localhost',
 			port: 3000,
@@ -40,7 +41,7 @@ module.exports = {
 			{
 				loader: 'babel-loader',
 				test: /\.js$/,
-				query: {presets: ['es2015']},
+				query: {presets: ['react', 'es2015']},
 				include: [path.join(__dirname, 'src')],
 			},
 		],

@@ -1,0 +1,9 @@
+export const UPDATE_OCTAVE = 'UPDATE_OCTAVE'
+export const UPDATE_SCALE = 'UPDATE_SCALE'
+export const UPDATE_MODE = 'UPDATE_MODE'
+export const UPDATE_BPM = 'UPDATE_BPM'
+
+export const UPDATE_ENVELOPE = 'UPDATE_ENVELOPE'
+
+export const START_ANIMATING = 'START_ANIMATING'
+export const STOP_ANIMATING = 'STOP_ANIMATING'
