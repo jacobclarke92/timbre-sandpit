@@ -1,4 +1,4 @@
-import Tone, { Synth } from 'tone'
+import Tone, { Synth, Transport } from 'tone'
 import _get from 'lodash/get'
 
 import * as AnchorTypes from './constants/anchorTypes'
@@ -9,6 +9,11 @@ let lastNote = 0;
 
 export function receiveStore(_store) {
 	store = _store;
+}
+
+export function setBpm(bpm) {
+	console.log('Updaing transport bpm', bpm);
+	Transport.bpm.value = bpm;
 }
 
 export function getRandomNote() {

@@ -19,7 +19,7 @@ html,body {
 	display: flex;
 	flex-direction: column;
 	padding-top: 5px;
-	max-width: 640px;
+	max-width: 700px;
 	flex-grow: 1;
 }
 .ui-right {
@@ -88,6 +88,7 @@ input[type='number'] {
 	font-family: Orbitron, sans-serif;
 	font-weight: 900;
 	font-size: 1rem;
+	min-width: 30px;
 	max-width: 50px;
 	background-color: #000;
 	color: #BB0000;

@@ -6,12 +6,16 @@ import noteColors from '../constants/noteColors'
 import noteStrings from '../constants/noteStrings'
 import * as ActionTypes from '../constants/actionTypes'
 
-import Bpm from './Bpm'
+import NumberInput from './NumberInput'
 
 class MusicalityInterface extends Component {
 
 	handleBpmChange(bpm) {
 		this.props.dispatch({type: ActionTypes.UPDATE_BPM, bpm});
+	}
+
+	handleOctaveChange(octave) {
+		this.props.dispatch({type: ActionTypes.UPDATE_OCTAVE, octave});
 	}
 	
 	handleModeChange(mode) {
@@ -27,7 +31,8 @@ class MusicalityInterface extends Component {
 		return (
 			<div className="ui-left">
 				<div>
-					<Bpm value={bpm} onChange={bpm => this.handleBpmChange(bpm)} />
+					<NumberInput label="BPM" value={bpm} min={20} max={420} step={0.5} onChange={bpm => this.handleBpmChange(bpm)} />
+					<NumberInput label="Octave" value={octave} min={1} max={8} step={1} onChange={bpm => this.handleOctaveChange(bpm)} />
 					<label>
 						Mode: 
 						<select value={modeString} onChange={event => this.handleModeChange(event.target.value)}>
