@@ -1,9 +1,9 @@
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
 
-import Envelope from './components/Envelope'
-import MusicalityInterface from './components/MusicalityInterface'
-import PrimaryInterface from './components/PrimaryInterface'
+import Envelope from './Envelope'
+import MusicalityInterface from './MusicalityInterface'
+import PrimaryInterface from './PrimaryInterface'
 
 class App extends Component {
 	render() {

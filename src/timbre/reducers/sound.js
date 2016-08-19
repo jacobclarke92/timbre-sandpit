@@ -1,17 +1,13 @@
 import * as ActionTypes from '../constants/actionTypes'
 
 const initialState = {
-	attack: 0.02,
-	decay: 0.1,
-	sustain: 0,
-	release: 1,
-	max: 5,
+	waveform: 'sine',
 }
 
 export default function(state = initialState, action) {
 	switch(action.type) {
-		case ActionTypes.UPDATE_ENVELOPE:
-			return {...state, [action.node]: action.value};
+		case ActionTypes.UPDATE_WAVEFORM:
+			return {...state, waveform: action.waveform};
 	}
 	return state;
 }

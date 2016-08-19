@@ -19,6 +19,10 @@ export function addResizeCallback(func) {
 	resizeCallbacks.push(func);
 }
 
+export function triggerResize() {
+	_resizeCallback();
+}
+
 function _resizeCallback() {
 	screenWidth = $(window).width();
 	screenHeight = $(window).height();
