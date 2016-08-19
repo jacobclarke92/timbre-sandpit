@@ -127,6 +127,7 @@ body {
 }
 .primary-interface {
   position: absolute;
+  width: 100vw;
   height: calc(100vh - 100px);
 }
 .envelope-container {
