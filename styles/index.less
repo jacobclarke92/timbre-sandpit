@@ -1,0 +1,27 @@
+@import './definitions.less';
+@import './base.less';
+@import './ui.less';
+
+html,body {
+	margin: 0;
+	padding: 0;
+	font-family: Jura, sans-serif;
+	font-weight: 500;
+	overflow-y: hidden;
+}
+.app {
+	position: absolute;
+	left: 0;
+	top: 0;
+	width: 100vw;
+	height: 100vh;
+}
+.primary-interface {
+	position: absolute;
+	width: 100vw;
+	height: calc(100vh ~"-" @ui-height);
+}
+.envelope-container {
+	max-width: 250px;
+	max-height: 100px;
+}

@@ -1,98 +1,137 @@
-html,body {
-	margin: 0;
-	padding: 0;
-	font-family: Jura, sans-serif;
-	font-weight: 500;
-	overflow-y: hidden;
-}
-.app {
-	display: flex;
-	flex-direction: column;
-	height: 100vh;
-}
-.ui {
-	display: flex;
-	flex-shrink: 0;
-    height: 100px;
-}
-.ui-left {
-	display: flex;
-	flex-direction: column;
-	padding-top: 5px;
-	max-width: 700px;
-	flex-grow: 1;
-}
-.ui-right {
-	flex-grow: 1;
-	padding-top: 5px;
-	padding-right: 10px;
-	text-align: right;
-	display: flex;
-	justify-content: space-between;
-}
-.ui-right-checks {
-	padding-left: 5px;
-	padding-bottom: 5px;
-	display: flex;
-	flex-direction: column;
-	text-align: left;
-	justify-content: space-between;
-}
-.canvas {
-    flex-grow: 1;
-}
-.scale-colors {
-	flex-grow: 1;
-    display: flex;
-    justify-content: space-between;
-}
-.scale-color {
-    min-width: 50px;
-    flex-grow: 1;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    color: white;
-    font-weight: bolder;
-    text-shadow: 0px 0px 6px rgba(0,0,0,0.35);
-}
-.adsr label {
-	margin-right: 0;
-}
-.envelope-container {
-	max-width: 250px;
-	max-height: 100px;
-}
 select {
-    height: 30px;
-    width: 150px;
+  height: 30px;
+  width: 150px;
 }
 label {
-	display: inline-block;
-	margin: 0 5px 5px 5px;
+  display: inline-block;
+  margin: 0 5px 5px 5px;
 }
 input[type='range'] {
-	display: block;
-	-webkit-appearance: slider-vertical;
-	width: 8px;
-	height: 70px;
+  display: block;
+  -webkit-appearance: slider-vertical;
+  width: 8px;
+  height: 70px;
 }
-label>input, label>select {
-	margin-left: 5px;
+label > input,
+label > select {
+  margin-left: 5px;
 }
 button {
-	padding: 5 8px;
+  padding: 5 8px;
+}
+input[type='number'] {
+  font-family: Orbitron, sans-serif;
+  font-weight: 900;
+  font-size: 1rem;
+  min-width: 30px;
+  max-width: 50px;
+  background-color: #000;
+  color: #BB0000;
+  border: 0;
+  outline: 0;
+  padding: 5px 5px 2px 5px;
+}
+.ui {
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-shrink: 0;
+      -ms-flex-negative: 0;
+          flex-shrink: 0;
+  height: 100px;
+}
+.ui .ui-left {
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-direction: column;
+      -ms-flex-direction: column;
+          flex-direction: column;
+  padding-top: 5px;
+  max-width: 700px;
+  -webkit-flex-grow: 1;
+      -ms-flex-positive: 1;
+          flex-grow: 1;
+}
+.ui .ui-right {
+  -webkit-flex-grow: 1;
+      -ms-flex-positive: 1;
+          flex-grow: 1;
+  padding-top: 5px;
+  padding-right: 10px;
+  text-align: right;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-justify-content: space-between;
+      -ms-flex-pack: justify;
+          justify-content: space-between;
+}
+.ui .ui-right .ui-right-checks {
+  padding-left: 5px;
+  padding-bottom: 5px;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-direction: column;
+      -ms-flex-direction: column;
+          flex-direction: column;
+  text-align: left;
+  -webkit-justify-content: space-between;
+      -ms-flex-pack: justify;
+          justify-content: space-between;
+}
+.scale-colors {
+  -webkit-flex-grow: 1;
+      -ms-flex-positive: 1;
+          flex-grow: 1;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-justify-content: space-between;
+      -ms-flex-pack: justify;
+          justify-content: space-between;
+}
+.scale-color {
+  min-width: 50px;
+  -webkit-flex-grow: 1;
+      -ms-flex-positive: 1;
+          flex-grow: 1;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-justify-content: center;
+      -ms-flex-pack: center;
+          justify-content: center;
+  -webkit-align-items: center;
+      -ms-flex-align: center;
+          align-items: center;
+  color: white;
+  font-weight: bolder;
+  text-shadow: 0px 0px 6px rgba(0, 0, 0, 0.35);
+}
+html,
+body {
+  margin: 0;
+  padding: 0;
+  font-family: Jura, sans-serif;
+  font-weight: 500;
+  overflow-y: hidden;
+}
+.app {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100vw;
+  height: 100vh;
+}
+.primary-interface {
+  position: absolute;
+  height: calc(100vh - 100px);
+}
+.envelope-container {
+  max-width: 250px;
+  max-height: 100px;
 }
 
-input[type='number'] {
-	font-family: Orbitron, sans-serif;
-	font-weight: 900;
-	font-size: 1rem;
-	min-width: 30px;
-	max-width: 50px;
-	background-color: #000;
-	color: #BB0000;
-	border: 0;
-	outline: 0;
-	padding: 5px 5px 2px 5px;
-}
+/*# sourceMappingURL=timbre.css.map*/

@@ -1,6 +1,8 @@
 var path = require('path');
 var webpack = require('webpack');
+var autoprefixer = require('autoprefixer');
 var BrowserSyncPlugin = require('browser-sync-webpack-plugin');
+var ExtractTextPlugin = require("extract-text-webpack-plugin");
 
 module.exports = {
 	entry: {
@@ -15,6 +17,7 @@ module.exports = {
 		new webpack.NoErrorsPlugin(),
 		// new webpack.DefinePlugin({'process.env': {'NODE_ENV': JSON.stringify('production')}}),
 		new webpack.DefinePlugin({'process.env': {'NODE_ENV': JSON.stringify('development')}}),
+		new ExtractTextPlugin('timbre.css', {allChunks: false}),
 		new BrowserSyncPlugin({
 			host: 'localhost',
 			port: 3000,
@@ -34,6 +37,11 @@ module.exports = {
 				loader: 'transform?brfs',
 			},
 			{
+				test: /\.less$/,
+				include: path.join(__dirname, 'styles'),
+				loader: ExtractTextPlugin.extract('style-loader', 'css-loader!postcss-loader!less-loader'),
+			},
+			{
 				test: /\.json$/,
 				include: path.join(__dirname, 'node_modules', 'pixi.js'),
 				loader: 'json',
@@ -45,5 +53,6 @@ module.exports = {
 				include: [path.join(__dirname, 'src')],
 			},
 		],
-	}
+	},
+	postcss: [ autoprefixer({ browsers: ['last 3 versions'] }) ],
 };

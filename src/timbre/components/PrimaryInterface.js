@@ -337,7 +337,7 @@ class PrimaryInterface extends Component {
 
 	render() {
 		return (
-			<div ref="container"></div>
+			<div className="primary-interface" ref="container"></div>
 		)
 	}
 

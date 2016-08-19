@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom'
 import { createStore } from 'redux'
 import { Provider } from 'react-redux'
 
+import '../../styles/index.less'
 import App from './components/App'
 import reducers from './reducers/index'
 import * as Sound  from './sound'
