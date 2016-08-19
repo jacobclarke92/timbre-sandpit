@@ -81,7 +81,7 @@ class PrimaryInterface extends Component {
 
 
 		// bind scrollwheel to sizing anchor nodes
-		$(window).on('mousewheel DOMMouseScroll', this.handleMousewheel);
+		$(window).on('mousewheel DOMMouseScroll', ::this.handleMousewheel);
 
 		addResizeCallback(::this.handleResize);
 		setTimeout(() => triggerResize(), 10);
@@ -139,7 +139,7 @@ class PrimaryInterface extends Component {
 			this.placing = true;
 			this.mouseMoved = false;
 		})
-		anchor.on('mouseup', function(event) {
+		anchor.on('mouseup', event => {
 			if(this.placing && !this.mouseMoved) {
 				event.stopPropagation();
 				this.anchorsContainer.removeChild(anchor);
