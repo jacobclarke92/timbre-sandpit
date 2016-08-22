@@ -10,7 +10,7 @@ export default class NumberInput extends Component {
 		const { value, label, onChange, ...rest } = this.props;
 		return (
 			<label>
-				{label}: 
+				{label && label+': '}
 				<input type="number" value={value} size={3} onChange={event => onChange(event.target.value)} {...rest} />
 			</label>
 		)

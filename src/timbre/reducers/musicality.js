@@ -4,7 +4,8 @@ import noteStrings from '../constants/noteStrings'
 import modes from '../constants/modes'
 
 const initialState = {
-	bpm: 128,
+	meterBeats: 4,
+	meterTime: 4,
 	scale: 0,
 	scaleString: 'C',
 	octave: 4,
@@ -37,6 +38,19 @@ export default function (state = initialState, action) {
 				modeString: action.mode, mode, 
 				notes: mode ? mode.degrees() : [],
 			}
+
+		case ActionTypes.UPDATE_METER_BEATS:
+			return {
+				...state,
+				meterBeats: action.meterBeats,
+			}
+
+		case ActionTypes.UPDATE_METER_TIME:
+			return {
+				...state,
+				meterTime: action.meterTime,
+			}
+
 	}
 	return state;
 }

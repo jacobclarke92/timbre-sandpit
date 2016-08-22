@@ -53,9 +53,17 @@ class TopUI extends Component {
 		this.props.dispatch({type: ActionTypes.UPDATE_SCALE, scale});
 	}
 
+	handleMeterBeatsChange(meterBeats) {
+		this.props.dispatch({type: ActionTypes.UPDATE_METER_BEATS, meterBeats});
+	}
+
+	handleMeterTimeChange(meterTime) {
+		this.props.dispatch({type: ActionTypes.UPDATE_METER_TIME, meterBeats});
+	}
+
 	render() {
 		const { gui } = this.props;
-		const { modeString, scaleString, scale } = this.props.musicality;
+		const { modeString, scaleString, scale, meterBeats, meterTime } = this.props.musicality;
 		const { playing, bpm } = this.props.transport;
 		const ToolUi = Tools[gui.tool] || null;
 		return (
@@ -68,6 +76,8 @@ class TopUI extends Component {
 						)}
 					</div>
 					<div>
+						<NumberInput label="Meter" value={meterBeats} min={2} max={15} step={1} onChange={meterBeats => this.handleMeterBeatsChange(meterBeats)} style={{width: 30}} /> / 
+						<NumberInput label="" value={meterTime} min={3} max={16} step={1} onChange={meterTime => this.handleMeterTimeChange(meterTime)} style={{width: 30}} />
 						<NumberInput label="BPM" value={bpm} min={20} max={420} step={0.5} onChange={bpm => this.handleBpmChange(bpm)} />
 						<label>
 							Mode: 
