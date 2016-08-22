@@ -1,7 +1,7 @@
 import Tone, { Synth, Transport } from 'tone'
 import _get from 'lodash/get'
 
-import * as AnchorTypes from './constants/anchorTypes'
+import * as NoteTypes from './constants/noteTypes'
 
 let store = null;
 let lastNote = 0;
@@ -45,7 +45,7 @@ export function getDescendingNote() {
 	return note;
 }
 
-export function playNote(volume = 1, pan = 0, noteType = AnchorTypes.RANDOM) {
+export function playNote(volume = 1, pan = 0, noteType = NoteTypes.RANDOM) {
 	if(!store) return;
 	console.log('Playing note');
 
@@ -58,8 +58,8 @@ export function playNote(volume = 1, pan = 0, noteType = AnchorTypes.RANDOM) {
 	// decide what note ot play next
 	let note = null;
 	switch(noteType) {
-		case AnchorTypes.UP: note = getAscendingNote(); break;
-		case AnchorTypes.DOWN: note = getDescendingNote(); break;
+		case NoteTypes.UP: note = getAscendingNote(); break;
+		case NoteTypes.DOWN: note = getDescendingNote(); break;
 		default: note = getRandomNote();
 	}
 	const freq = mode.degreeToFreq(note, (12*octave + scale).midicps(), 1);

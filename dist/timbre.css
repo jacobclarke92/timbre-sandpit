@@ -35,6 +35,12 @@ input[type='number'] {
   outline: 0;
   padding: 8px 5px 2px 6px;
 }
+button + button,
+button + .scale-color,
+.scale-color + button,
+.scale-color + .scale-color {
+  margin-left: 5px;
+}
 button {
   cursor: pointer;
   outline: none;
@@ -47,12 +53,9 @@ button {
   vertical-align: top;
 }
 button.active {
-  border: 1px solid #64B6AC;
+  border-color: #64B6AC;
   background-color: #C0FDFB;
   color: #64B6AC;
-}
-button + button {
-  margin-left: 5px;
 }
 button svg {
   display: inline-block;
@@ -73,6 +76,31 @@ button.button-icon svg {
   margin-bottom: 0;
   display: block;
 }
+.scale-color {
+  cursor: pointer;
+  width: 36px;
+  height: 36px;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-justify-content: center;
+      -ms-flex-pack: center;
+          justify-content: center;
+  -webkit-align-items: center;
+      -ms-flex-align: center;
+          align-items: center;
+  color: white;
+  font-weight: bolder;
+  border: 1px solid currentColor;
+  text-shadow: 0px 0px 6px rgba(0, 0, 0, 0.35);
+  vertical-align: top;
+}
+.scale-color.active {
+  border-color: #64B6AC;
+  border-width: 2px;
+  width: 34px;
+  height: 34px;
+}
 .ui {
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -83,7 +111,7 @@ button.button-icon svg {
   -webkit-flex-direction: column;
       -ms-flex-direction: column;
           flex-direction: column;
-  height: 110px;
+  height: 126px;
   padding: 5px;
 }
 .ui > div:first-child {
@@ -103,76 +131,6 @@ button.button-icon svg {
   -webkit-justify-content: space-between;
       -ms-flex-pack: justify;
           justify-content: space-between;
-}
-.ui .ui-left {
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-flex-direction: column;
-      -ms-flex-direction: column;
-          flex-direction: column;
-  padding-top: 5px;
-  max-width: 700px;
-  -webkit-flex-grow: 1;
-      -ms-flex-positive: 1;
-          flex-grow: 1;
-}
-.ui .ui-right {
-  -webkit-flex-grow: 1;
-      -ms-flex-positive: 1;
-          flex-grow: 1;
-  padding-top: 5px;
-  padding-right: 10px;
-  text-align: right;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-justify-content: space-between;
-      -ms-flex-pack: justify;
-          justify-content: space-between;
-}
-.ui .ui-right .ui-right-checks {
-  padding-left: 5px;
-  padding-bottom: 5px;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-flex-direction: column;
-      -ms-flex-direction: column;
-          flex-direction: column;
-  text-align: left;
-  -webkit-justify-content: space-between;
-      -ms-flex-pack: justify;
-          justify-content: space-between;
-}
-.scale-colors {
-  -webkit-flex-grow: 1;
-      -ms-flex-positive: 1;
-          flex-grow: 1;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-justify-content: space-between;
-      -ms-flex-pack: justify;
-          justify-content: space-between;
-}
-.scale-color {
-  min-width: 50px;
-  -webkit-flex-grow: 1;
-      -ms-flex-positive: 1;
-          flex-grow: 1;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-justify-content: center;
-      -ms-flex-pack: center;
-          justify-content: center;
-  -webkit-align-items: center;
-      -ms-flex-align: center;
-          align-items: center;
-  color: white;
-  font-weight: bolder;
-  text-shadow: 0px 0px 6px rgba(0, 0, 0, 0.35);
 }
 .Select {
   position: relative;
@@ -553,7 +511,7 @@ body {
 .primary-interface {
   position: absolute;
   width: 100vw;
-  height: calc(100vh - 120px);
+  height: calc(100vh - 136px);
 }
 .envelope-container {
   max-width: 250px;

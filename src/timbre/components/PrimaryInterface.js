@@ -8,10 +8,8 @@ import { dist } from '../utils/mathUtils'
 import newId from '../utils/newId'
 
 import noteColors from '../constants/noteColors'
-import * as AnchorTypes from '../constants/anchorTypes'
+import * as NoteTypes from '../constants/noteTypes'
 import { getRandomNote, getAscendingNote, getDescendingNote, playNote } from '../sound'
-
-const offsetY = 100;
 
 class PrimaryInterface extends Component {
 
@@ -46,10 +44,10 @@ class PrimaryInterface extends Component {
 		this.clickZone = new Sprite();
 		this.clickZone.interactive = true;
 		this.clickZone.hitArea = new PIXI.Rectangle(0,0,10000,10000);
-		this.clickZone.on('mousedown', event => this.createAnchorNode(event.data.originalEvent.clientX, event.data.originalEvent.clientY - offsetY));
-		this.clickZone.on('touchstart', event => this.createAnchorNode(event.data.originalEvent.touches[0].clientX, event.data.originalEvent.touches[0].clientY - offsetY));
-		this.clickZone.on('mousemove', event => this.handlePointerMove(event.data.originalEvent.clientX, event.data.originalEvent.clientY - offsetY));
-		this.clickZone.on('touchmove', event => this.handlePointerMove(event.data.originalEvent.touches[0].clientX, event.data.originalEvent.touches[0].clientY - offsetY));
+		this.clickZone.on('mousedown', event => this.createAnchorNode(event.data.originalEvent.clientX, event.data.originalEvent.clientY - this.offsetY));
+		this.clickZone.on('touchstart', event => this.createAnchorNode(event.data.originalEvent.touches[0].clientX, event.data.originalEvent.touches[0].clientY - this.offsetY));
+		this.clickZone.on('mousemove', event => this.handlePointerMove(event.data.originalEvent.clientX, event.data.originalEvent.clientY - this.offsetY));
+		this.clickZone.on('touchmove', event => this.handlePointerMove(event.data.originalEvent.touches[0].clientX, event.data.originalEvent.touches[0].clientY - this.offsetY));
 		this.clickZone.on('mouseup', event => this.handlePointerUp());
 		this.clickZone.on('touchend', event => this.handlePointerUp());
 		this.stage.addChild(this.clickZone);
@@ -94,6 +92,7 @@ class PrimaryInterface extends Component {
 	handleResize() {
 		this.width = this.$container.width();
 		this.height = this.$container.height();
+		this.offsetY = this.$container.offset().top;
 		this.maxRadius = Math.sqrt(this.width*this.width + this.height*this.height)/2;
 		this.drawnGuides = false;
 		if(this.renderer) this.renderer.resize(this.width, this.height);
@@ -119,7 +118,7 @@ class PrimaryInterface extends Component {
 		anchor.id = newId();
 		anchor.interactive = true;
 		anchor.buttonMode = true;
-		anchor.type = AnchorTypes.RANDOM;
+		anchor.type = NoteTypes.RANDOM;
 		anchor.radius = 4;
 		anchor.counters = {};
 		anchor.scale.set(this.lastScale);
@@ -164,13 +163,13 @@ class PrimaryInterface extends Component {
 			const angle = Math.atan2(mouse.y - this.activeAnchor.y, mouse.x - this.activeAnchor.x);
 			if(distance > 20) {
 				this.activeAnchor.rotation = angle;
-				if(angle > 0 && angle < Math.PI && this.activeAnchor.type != AnchorTypes.DOWN) {
-					this.changeAnchorType(this.activeAnchor, AnchorTypes.DOWN);
-				}else if(angle < 0 || angle > Math.PI && this.activeAnchor.type != AnchorTypes.UP) {
-					this.changeAnchorType(this.activeAnchor, AnchorTypes.UP);
+				if(angle > 0 && angle < Math.PI && this.activeAnchor.type != NoteTypes.DOWN) {
+					this.changeAnchorType(this.activeAnchor, NoteTypes.DOWN);
+				}else if(angle < 0 || angle > Math.PI && this.activeAnchor.type != NoteTypes.UP) {
+					this.changeAnchorType(this.activeAnchor, NoteTypes.UP);
 				}
-			}else if(this.activeAnchor.type != AnchorTypes.RANDOM) {
-				this.changeAnchorType(this.activeAnchor, AnchorTypes.RANDOM);
+			}else if(this.activeAnchor.type != NoteTypes.RANDOM) {
+				this.changeAnchorType(this.activeAnchor, NoteTypes.RANDOM);
 			}
 		}
 	}
@@ -190,13 +189,13 @@ class PrimaryInterface extends Component {
 		anchor.graphic.clear();
 		let anchorColor = null;
 		switch(type) {
-			case AnchorTypes.UP: anchorColor = 0x5D8FFF; break;
-			case AnchorTypes.DOWN: anchorColor = 0xFF489E; break;
+			case NoteTypes.UP: anchorColor = 0x5D8FFF; break;
+			case NoteTypes.DOWN: anchorColor = 0xFF489E; break;
 			default: anchorColor = 0xFFFFFF;
 		}
 		anchor.graphic.beginFill(anchorColor);
 		anchor.graphic.drawCircle(0, 0, anchor.radius);
-		if(type == AnchorTypes.UP || type == AnchorTypes.DOWN) {
+		if(type == NoteTypes.UP || type == NoteTypes.DOWN) {
 			anchor.graphic.drawPolygon([
 				0,-anchor.radius, 
 				0, anchor.radius,

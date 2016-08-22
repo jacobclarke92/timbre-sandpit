@@ -14,6 +14,7 @@ import Icon from './ui/Icon'
 import Button from './ui/Button'
 import ButtonIcon from './ui/ButtonIcon'
 import NumberInput from './ui/NumberInput'
+import Tools from './ui/Tools'
 
 const views = [
 	{type: UiViews.STAGE, icon: 'stage', label: 'Stage'},
@@ -25,7 +26,7 @@ const views = [
 const tools = [
 	{type: NodeTypes.ORIGIN_RING_NODE, icon: 'ring', label: 'Origin Ring Node'},
 	{type: NodeTypes.ORIGIN_RADAR_NODE, icon: 'radial-lines', label: 'Origin Radar Node'},
-	{type: NodeTypes.STANDARD_NODE, icon: 'action-add', label: 'Standard Node'},
+	{type: NodeTypes.POINT_NODE, icon: 'action-add', label: 'Point Node'},
 	{type: NodeTypes.ARC_NODE, icon: 'arc', label: 'Arc Node'},
 ];
 
@@ -56,6 +57,7 @@ class TopUI extends Component {
 		const { gui } = this.props;
 		const { modeString, scaleString, scale } = this.props.musicality;
 		const { playing, bpm } = this.props.transport;
+		const ToolUi = Tools[gui.tool] || null;
 		return (
 			<div className="ui">
 				<div className="ui-global">
@@ -69,11 +71,11 @@ class TopUI extends Component {
 						<NumberInput label="BPM" value={bpm} min={20} max={420} step={0.5} onChange={bpm => this.handleBpmChange(bpm)} />
 						<label>
 							Mode: 
-							<Select value={modeString} onChange={value => this.handleModeChange(value)} clearable={false} options={Object.keys(modes).map(value => ({value, label: value}))} style={{width: 160}} />
+							<Select value={modeString} onChange={({value}) => this.handleModeChange(value)} clearable={false} options={Object.keys(modes).map(value => ({value, label: value}))} style={{width: 160}} />
 						</label>
 						<label>
 							Scale: 
-							<Select value={scaleString} onChange={value => this.handleScaleChange(value)} clearable={false} options={noteStrings.map(value => ({value, label: value}))} style={{width: 60}} />
+							<Select value={scaleString} onChange={({value}) => this.handleScaleChange(value)} clearable={false} options={noteStrings.map(value => ({value, label: value}))} style={{width: 60}} />
 						</label>
 					</div>
 				</div>
@@ -85,12 +87,12 @@ class TopUI extends Component {
 					</div>
 				</div>
 				<div className="ui-selection">
-
+					{ToolUi && <ToolUi />}
 				</div>
 				{this.props.showIcons && 
 					<div className="ui-icons">
 						{Object.keys(icons).map((icon, i) =>
-							<Icon key={i} name={icon} />
+							<span key={i} data-label={icon}><Icon name={icon} size={18} /></span>
 						)}
 					</div>
 				}
@@ -100,3 +102,4 @@ class TopUI extends Component {
 }
 
 export default connect(({gui, musicality, transport}) => ({gui, musicality, transport}))(TopUI)
+

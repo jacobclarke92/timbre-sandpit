@@ -22,6 +22,7 @@ export default function (state = initialState, action) {
 			}
 
 		case ActionTypes.UPDATE_SCALE:
+			// console.log('Scale changed', action.scale, noteStrings[action.scale]);
 			return {
 				...state, 
 				scaleString: action.scale, 
@@ -29,6 +30,7 @@ export default function (state = initialState, action) {
 			}
 
 		case ActionTypes.UPDATE_MODE:
+			// console.log('Mode changed', action.mode);
 			const mode = modes[action.mode];
 			return {
 				...state, 
