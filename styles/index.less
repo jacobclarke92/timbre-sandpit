@@ -1,11 +1,12 @@
 @import './definitions.less';
 @import './base.less';
 @import './ui.less';
+@import './components/react-select.less';
 
 html,body {
 	margin: 0;
 	padding: 0;
-	font-family: Jura, sans-serif;
+	font-family: @serif-font-family;
 	font-weight: 500;
 	overflow-y: hidden;
 }
@@ -24,4 +25,21 @@ html,body {
 .envelope-container {
 	max-width: 250px;
 	max-height: 100px;
+}
+
+[data-label] {
+	position: relative;
+	&:hover:after {
+		content: attr(data-label);
+		z-index: 10;
+		position: absolute;
+		top: calc(100% ~"+" @gutter);
+		// left: 50%;
+		// transform: translate(-50%, 0);
+		left: 0;
+		color: @white;
+		background-color: fade(@dark, 75%);
+		padding: @gutter;
+		white-space: nowrap;
+	}
 }

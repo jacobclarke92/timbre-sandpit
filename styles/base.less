@@ -12,22 +12,71 @@ input[type='range'] {
 	width: 8px;
 	height: 70px;
 }
-label>input, label>select {
+label>input, 
+label>select,
+label>.Select {
 	margin-left: 5px;
 }
-button {
-	padding: 5 8px;
+
+label>.Select {
+	display: inline-block;
+	vertical-align: middle;
+	font-size: 14px;
 }
 
 input[type='number'] {
 	font-family: Orbitron, sans-serif;
 	font-weight: 900;
-	font-size: 1rem;
+	font-size: 1.2rem;
 	min-width: 30px;
-	max-width: 50px;
-	background-color: #000;
-	color: #BB0000;
+	max-width: 100px;
+	border: 1px solid @primary;
+	background-color: @primary-light;
+	color: @primary;
 	border: 0;
 	outline: 0;
-	padding: 5px 5px 2px 5px;
+	padding: 8px 5px 2px 6px;
+}
+
+button {
+	cursor: pointer;
+	outline: none;
+	border: 1px solid @secondary;
+	background-color: @secondary-light;
+	color: @secondary;
+	padding: 5px 8px;
+	text-align: center;
+	font-family: @serif-font-family;
+	vertical-align: top;
+
+	&.active {
+		border: 1px solid @primary;
+		background-color: @primary-light;
+		color: @primary;		
+	}
+
+	+ button {
+		margin-left: 5px;
+	}
+
+	svg {
+		display: inline-block;
+		margin-bottom: -2px;
+		* {
+			fill: currentColor !important;
+		}
+		+ span {
+			vertical-align: top;
+			line-height: 24px;
+			padding: 0 5px 0 3px;
+		}
+	}
+}
+
+button.button-icon {
+	padding: 5px;
+	svg {
+		margin-bottom: 0;
+		display: block;
+	}
 }

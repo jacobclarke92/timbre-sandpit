@@ -328,11 +328,7 @@ class PrimaryInterface extends Component {
 
 
 		this.renderer.render(this.stage);
-		if(this.props.transport.playing) requestAnimationFrame(this.animate.bind(this));
-	}
-
-	componentWillReceiveProps(nextProps) {
-		if(nextProps.transport.playing && !this.props.transport.playing) setTimeout(() => this.animate());
+		if(this.props.animating) requestAnimationFrame(this.animate.bind(this));
 	}
 
 	shouldComponentUpdate() {
@@ -347,4 +343,4 @@ class PrimaryInterface extends Component {
 
 }
 
-export default connect(({musicality, envelope, transport}) => ({musicality, envelope, transport}))(PrimaryInterface)
+export default connect(({musicality, envelope, animating}) => ({musicality, envelope, animating}))(PrimaryInterface)

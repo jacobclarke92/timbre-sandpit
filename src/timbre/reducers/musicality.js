@@ -2,7 +2,6 @@ import * as ActionTypes from '../constants/actionTypes'
 import noteColors from '../constants/noteColors'
 import noteStrings from '../constants/noteStrings'
 import modes from '../constants/modes'
-import { setBpm } from '../sound'
 
 const initialState = {
 	bpm: 128,
@@ -35,13 +34,6 @@ export default function (state = initialState, action) {
 				...state, 
 				modeString: action.mode, mode, 
 				notes: mode ? mode.degrees() : [],
-			}
-
-		case ActionTypes.UPDATE_BPM:
-			setBpm(action.bpm);
-			return {
-				...state, 
-				bpm: action.bpm,
 			}
 	}
 	return state;

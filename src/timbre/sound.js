@@ -11,11 +11,6 @@ export function receiveStore(_store) {
 	store = _store;
 }
 
-export function setBpm(bpm) {
-	console.log('Updaing transport bpm', bpm);
-	Transport.bpm.value = bpm;
-}
-
 export function getRandomNote() {
 	if(!store) return;
 	console.log('Getting random note');

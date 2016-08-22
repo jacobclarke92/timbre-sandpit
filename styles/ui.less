@@ -1,7 +1,32 @@
 .ui {
 	display: flex;
 	flex-shrink: 0;
-    height: 100px;
+	flex-direction: column;
+    height: @ui-height - @gutter*2;
+    padding: @gutter;
+
+    >div:first-child {
+    	padding-bottom: @gutter;
+    	border-bottom: 1px solid @light;
+    }
+
+    >div:not(:last-child) {
+    	margin-bottom: @gutter;
+    }
+
+    .ui-global {
+    	display: flex;
+    	flex-wrap: nowrap;
+    	justify-content: space-between;
+    }
+
+    .ui-view {
+
+    }
+
+    .ui-selection {
+
+    }
 
 
 	.ui-left {

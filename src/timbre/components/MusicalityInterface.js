@@ -6,7 +6,7 @@ import noteColors from '../constants/noteColors'
 import noteStrings from '../constants/noteStrings'
 import * as ActionTypes from '../constants/actionTypes'
 
-import NumberInput from './NumberInput'
+import NumberInput from './ui/NumberInput'
 
 class MusicalityInterface extends Component {
 
