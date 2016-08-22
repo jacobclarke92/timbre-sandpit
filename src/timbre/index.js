@@ -7,9 +7,12 @@ import '../../styles/index.less'
 import App from './components/App'
 import reducers from './reducers/index'
 import * as Sound  from './sound'
+import * as keyUtils  from './utils/keyUtils'
 
 let store = createStore(reducers);
 Sound.receiveStore(store);
+
+keyUtils.init();
 
 ReactDOM.render(
 	<Provider store={store}>

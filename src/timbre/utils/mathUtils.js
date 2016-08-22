@@ -5,3 +5,7 @@ export function dist(p1, p2) {
 		Math.pow(Math.abs(p2.y-p1.y), 2)
 	);
 }
+
+export function clamp(val, min, max) {
+	return Math.min(Math.max(val, min), max);
+}
