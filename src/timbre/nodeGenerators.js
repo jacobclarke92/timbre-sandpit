@@ -67,33 +67,8 @@ export function createPointNode(_attrs) {
 
 	const node = new Container();
 	const graphic = new Graphics();
-
-	let color = 0xFFFFFF;
-	switch(attrs.noteType) {
-		case NoteTypes.UP: 
-			color = 0x5D8FFF; 
-			node.rotation -= Math.PI/2;
-			break;
-		case NoteTypes.DOWN: 
-			color = 0xFF489E; 
-			node.rotation += Math.PI/2;
-			break;
-		case NoteTypes.NOTE:
-			const note = (state.musicality.scale + state.musicality.notes[attrs.noteIndex]) % 12;
-			color = noteColors[note];
-			break;
-	}
-	graphic.beginFill(color);
-	graphic.drawCircle(0, 0, attrs.radius);
-	if(attrs.noteType == NoteTypes.UP || attrs.noteType == NoteTypes.DOWN) {
-		graphic.drawPolygon([
-			0,-attrs.radius, 
-			0, attrs.radius,
-			attrs.radius*3, 0,
-		]);
-	}
-	graphic.cacheAsBitmap = true;
 	node.graphic = graphic;
+	redrawPointNode(attrs, node);
 	node.addChild(graphic);
 
 	node.id = attrs.id || newId();
@@ -105,10 +80,43 @@ export function createPointNode(_attrs) {
 	node.radius = attrs.radius;
 	node.scale.set(attrs.scale);
 	node.position.set(attrs.position.x, attrs.position.y);
-	node.graphic = graphic;
-	// node.addChild(graphic);
 	 
 	return node;
+}
+
+export function redrawPointNode(_attrs, node) {
+	if(!_attrs || !node) return;
+
+	const attrs = {...defaultNodeAttrs, ..._attrs};
+	const state = store.getState();
+	
+	let color = 0xFFFFFF;
+	switch(attrs.noteType) {
+		case NoteTypes.UP: 
+			color = 0x5D8FFF; 
+			node.rotation = -Math.PI/2;
+			break;
+		case NoteTypes.DOWN: 
+			color = 0xFF489E; 
+			node.rotation = Math.PI/2;
+			break;
+		case NoteTypes.NOTE:
+			const note = (state.musicality.scale + state.musicality.notes[attrs.noteIndex]) % 12;
+			color = noteColors[note];
+			break;
+	}
+	node.graphic.cacheAsBitmap = false;
+	node.graphic.clear();
+	node.graphic.beginFill(color);
+	node.graphic.drawCircle(0, 0, attrs.radius);
+	if(attrs.noteType == NoteTypes.UP || attrs.noteType == NoteTypes.DOWN) {
+		node.graphic.drawPolygon([
+			0,-attrs.radius, 
+			0, attrs.radius,
+			attrs.radius*3, 0,
+		]);
+	}
+	node.graphic.cacheAsBitmap = true;
 }
 
 export function createArcNode(_attrs) {

@@ -21,11 +21,12 @@ class PointNodeTools extends Component {
 				<ButtonIcon icon="random" data-label="Random" selected={noteType == RANDOM} onClick={() => dispatch(changeToolSetting('noteType', RANDOM))} />
 				<ButtonIcon icon="arrow-up" data-label="Ascending" selected={noteType == UP} onClick={() => dispatch(changeToolSetting('noteType', UP))} />
 				<ButtonIcon icon="arrow-down" data-label="Descending" selected={noteType == DOWN} onClick={() => dispatch(changeToolSetting('noteType', DOWN))} />
-				{notes.map(note => {
+				{notes.map((note, i) => {
 					const noteInScale = (note+scale) % 12;
 					const noteColor = noteColors[noteInScale];
 					return (
-						<div key={note} 
+						<div key={i} 
+							data-numbered={i+1}
 							className={classname('scale-color', (noteType == NOTE && note == notes[noteIndex]) ? 'active' : false)} 
 							style={{backgroundColor: '#'+noteColor.toString(16)}}
 							onClick={() => dispatch(changeToolSettings({noteType: NOTE, noteIndex: notes.indexOf(note)}))}>

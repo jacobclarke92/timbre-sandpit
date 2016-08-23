@@ -16,7 +16,7 @@ import * as NoteTypes from '../constants/noteTypes'
 import * as NodeTypes from '../constants/nodeTypes'
 import { createNode, removeNode } from '../reducers/stage'
 import { getRandomNote, getAscendingNote, getDescendingNote, playNote } from '../sound'
-import { createPointNode, createRingNode, createArcNode, createRadarNode } from '../nodeGenerators'
+import { createPointNode, redrawPointNode, createRingNode, createArcNode, createRadarNode } from '../nodeGenerators'
 import { bindNodeEvents } from '../nodeEventHandlers'
 
 const scaleEase = 10;
@@ -242,9 +242,21 @@ class PrimaryInterface extends Component {
 		if(transport.playing) requestAnimationFrame(this.animate.bind(this));
 	}
 
-	// force animation to start again if props update
 	componentWillReceiveProps(nextProps) {
+
+		// force animation to start again if props updates
 		if(nextProps.transport.playing && !this.props.transport.playing) setTimeout(() => this.animate());
+
+		// redraw coloured nodes if scale or mode changes
+		if(nextProps.musicality.scale != this.props.musicality.scale
+			|| nextProps.musicality.modeString != this.props.musicality.modeString) {
+
+			for(let pointNode of nextProps.stage.pointNodes) {
+				if(pointNode.noteType == NoteTypes.NOTE) {
+					redrawPointNode(pointNode, this.pointNodes[pointNode.id]);
+				}
+			}
+		}
 	}
 
 	shouldComponentUpdate() {
