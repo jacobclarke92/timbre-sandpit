@@ -8,7 +8,7 @@ import $ from 'jquery'
 import Point from '../Point'
 import { getPixelDensity, addResizeCallback, triggerResize } from '../utils/screenUtils'
 import { dist, clamp, inBounds } from '../utils/mathUtils'
-import * as keyUtils from '../utils/keyUtils'
+import { isUpKeyPressed, isDownKeyPressed, isLeftKeyPressed, isRightKeyPressed, addKeyListener } from '../utils/keyUtils'
 import newId from '../utils/newId'
 
 import noteColors from '../constants/noteColors'
@@ -22,6 +22,7 @@ import { bindNodeEvents } from '../nodeEventHandlers'
 const scaleEase = 10;
 const mouseMoveThrottle = 1000/50; // 50fps
 const scrollwheelThrottle = 1000/50; // 50fps
+let indicatorOsc = 0;
 
 class PrimaryInterface extends Component {
 
@@ -78,8 +79,10 @@ class PrimaryInterface extends Component {
 			this.stage.addChild(dots);
 		}
 
-		this.anchorsContainer = new Container();
-		this.stage.addChild(this.anchorsContainer);
+		this.activeNodeIndicator = new Graphics();
+		this.activeNodeIndicator.lineStyle(2, 0xFFFFFF, 0.75);
+		this.activeNodeIndicator.drawCircle(0, 0, 15);
+		this.stage.addChild(this.activeNodeIndicator);
 
 		this.fxRipples = [];
 		this.placing = false;
@@ -103,6 +106,8 @@ class PrimaryInterface extends Component {
 		$(window).on('mousewheel DOMMouseScroll', ::this.handleMousewheel);
 
 		addResizeCallback(::this.handleResize);
+		addKeyListener('backspace', ::this.removeActiveNode);
+		addKeyListener('delete', ::this.removeActiveNode);
 		setTimeout(() => triggerResize(), 10);
 
 		this.mounted = true;
@@ -133,7 +138,8 @@ class PrimaryInterface extends Component {
 
 	handlePointerUp(event) {
 		this.mouseDown = false;
-		if(!this.mouseMoved) this.createNode(event);
+		if(this.activeNode) this.activeNode = null;
+		else if(!this.mouseMoved) this.createNode(event);
 	}
 
 	handlePointerMove(event) {
@@ -194,6 +200,12 @@ class PrimaryInterface extends Component {
 		this.props.dispatch(removeNode(nodeInstance.nodeType, nodeInstance.id));
 	}
 
+	removeActiveNode() {
+		if(!this.activeNode) return;
+		this.removeNode(this.activeNode);
+		this.activeNode = null;
+	}
+
 	createNodeInstance(nodeType, nodeAttrs)  {
 		let node = null;
 		switch(nodeType) {
@@ -226,12 +238,22 @@ class PrimaryInterface extends Component {
 				this.createNodeInstance(NodeTypes.POINT_NODE, pointNode)
 			}
 		}
+
+		// active node indiciator
+		if(this.activeNode) {
+			indicatorOsc = (indicatorOsc + 0.1) % (Math.PI*2);
+			this.activeNodeIndicator.alpha = 1;
+			this.activeNodeIndicator.position = this.activeNode.position;
+			this.activeNodeIndicator.scale.set(1 + Math.cos(indicatorOsc)*0.05);
+		}else{
+			this.activeNodeIndicator.alpha = 0;
+		}
 		
 		// pan controls
-		if(keyUtils.isUpKeyPressed()) this.stage.position.y += scaleEase;
-		else if(keyUtils.isDownKeyPressed()) this.stage.position.y -= scaleEase;
-		if(keyUtils.isLeftKeyPressed()) this.stage.position.x += scaleEase;
-		else if(keyUtils.isRightKeyPressed()) this.stage.position.x -= scaleEase;
+		if(isUpKeyPressed()) this.stage.position.y += scaleEase;
+		else if(isDownKeyPressed()) this.stage.position.y -= scaleEase;
+		if(isLeftKeyPressed()) this.stage.position.x += scaleEase;
+		else if(isRightKeyPressed()) this.stage.position.x -= scaleEase;
 		
 		// scale easing
 		const stageScale = this.stage.scale.x;

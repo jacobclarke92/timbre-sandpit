@@ -4,9 +4,9 @@ import * as NodeTypes from './constants/nodeTypes'
 export function bindNodeEvents(nodeType, node) {
 	if(!node || !nodeType) return;
 
-	// bind all node hovers with setting activeNode
-	node.on('mouseover', event => this.activeNode = node);
-	node.on('mouseout', event => this.activeNode = null);
+	// bind all node hovers with setting hoverNode
+	node.on('mouseover', event => this.hoverNode = node);
+	node.on('mouseout', event => this.hoverNode = null);
 	
 	switch(nodeType) {
 		case NodeTypes.POINT_NODE:
@@ -19,15 +19,15 @@ export function bindNodeEvents(nodeType, node) {
 }
 
 export function pointNodePointerDown(event) {
-	this.placing = true;
 	this.mouseMoved = false;
 }
 
 export function pointNodePointerUp(event) {
 	// if pointer hasn't moved since pointer down then remove
-	if(this.placing && !this.mouseMoved && event.target) {
+	if(!this.mouseMoved && event.target) {
 		event.stopPropagation();
-		this.removeNode(event.target);
+		// this.removeNode(event.target);
+		this.activeNode = event.target;
 	}
 
 	this.placing = false;
