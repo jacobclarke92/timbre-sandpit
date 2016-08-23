@@ -89,6 +89,7 @@ export function redrawPointNode(_attrs, node) {
 
 	const attrs = {...defaultNodeAttrs, ..._attrs};
 	const state = store.getState();
+	const { scale, notes } = state.musicality;
 	
 	let color = 0xFFFFFF;
 	switch(attrs.noteType) {
@@ -101,7 +102,7 @@ export function redrawPointNode(_attrs, node) {
 			node.rotation = Math.PI/2;
 			break;
 		case NoteTypes.NOTE:
-			const note = (state.musicality.scale + state.musicality.notes[attrs.noteIndex]) % 12;
+			const note = (scale + notes[attrs.noteIndex % notes.length]) % 12;
 			color = noteColors[note];
 			break;
 	}
