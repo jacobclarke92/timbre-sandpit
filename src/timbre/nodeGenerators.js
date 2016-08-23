@@ -18,7 +18,8 @@ export function createRingNode(_attrs) {
 	const node = new Container();
 	const graphic = new Graphics();
 
-	node.id = newId();
+	node.id = attrs.id || newId();
+	node.nodeType = attrs.nodeType;
 	node.inited = false;
 	node.interactive = true;
 	node.buttonMode = true;
@@ -40,7 +41,8 @@ export function createRadarNode(_attrs) {
 	const node = new Container();
 	const graphic = new Graphics();
 
-	node.id = newId();
+	node.id = attrs.id || newId();
+	node.nodeType = attrs.nodeType;
 	node.inited = false;
 	node.interactive = true;
 	node.buttonMode = true;
@@ -59,7 +61,14 @@ export function createPointNode(_attrs) {
 	const node = new Container();
 	const graphic = new Graphics();
 
-	node.id = newId();
+	graphic.beginFill(0xFFFFFF);
+	graphic.drawCircle(0, 0, attrs.radius);
+	graphic.cacheAsBitmap = true;
+	node.graphic = graphic;
+	node.addChild(graphic);
+
+	node.id = attrs.id || newId();
+	node.nodeType = attrs.nodeType;
 	node.inited = false;
 	node.interactive = true;
 	node.buttonMode = true;
@@ -79,7 +88,8 @@ export function createArcNode(_attrs) {
 	const node = new Container();
 	const graphic = new Graphics();
 
-	node.id = newId();
+	node.id = attrs.id || newId();
+	node.nodeType = attrs.nodeType;
 	node.inited = false;
 	node.interactive = true;
 	node.buttonMode = true;

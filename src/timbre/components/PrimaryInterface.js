@@ -12,8 +12,11 @@ import newId from '../utils/newId'
 
 import noteColors from '../constants/noteColors'
 import * as NoteTypes from '../constants/noteTypes'
-import { createNode } from '../reducers/stage'
+import * as NodeTypes from '../constants/nodeTypes'
+import { createNode, removeNode } from '../reducers/stage'
 import { getRandomNote, getAscendingNote, getDescendingNote, playNote } from '../sound'
+import { createPointNode, createRingNode, createArcNode, createRadarNode } from '../nodeGenerators'
+import { bindNodeEvents } from '../nodeEventHandlers'
 
 const scaleEase = 10;
 const mouseMoveThrottle = 1000/50; // 50fps
@@ -30,7 +33,6 @@ class PrimaryInterface extends Component {
 		super(props);
 		this.handlePointerMove = _throttle(this.handlePointerMove, mouseMoveThrottle);
 		this.handleMousewheel = _throttle(this.handleMousewheel, scrollwheelThrottle);
-
 	}
 
 	componentDidMount() {
@@ -84,6 +86,14 @@ class PrimaryInterface extends Component {
 		this.cursor = new Point(0,0);
 		this.lastCursor = new Point(0,0);
 
+		this.initedNodeIds = [];
+		this.pointNodes = {};
+		this.originRingNodes = {};
+		this.arcNodes = {};
+		this.originRadarNodes = {};
+
+		this.activeNode = null;
+
 
 		// bind scrollwheel to sizing anchor nodes
 		$(window).on('mousewheel DOMMouseScroll', ::this.handleMousewheel);
@@ -119,24 +129,22 @@ class PrimaryInterface extends Component {
 		if(!this.mouseMoved) this.createNode(event);
 	}
 
-	createNode(event) {
-		if(!event.target || !event.data) return;
-		const spawnPoint = event.data.getLocalPosition(event.target);
-		this.props.dispatch(createNode(this.props.gui.tool, {position: {x: spawnPoint.x, y: spawnPoint.y}}));
-	}
-
 	handlePointerMove(event) {
+		// update last mouse vars
 		this.mouseMoved = true;
 		this.lastCursor = this.cursor;
 		this.lastStageCursor = this.stageCursor;
 		
+		// update mouse vars
 		this.cursor = new Point(event.data.originalEvent.clientX, event.data.originalEvent.clientY - this.offsetY);
 		this.stageCursor = event.data.getLocalPosition(this.stage);
 		
+		// reposition stage pivot to mouse position for zooming
 		this.stage.position.x += (this.stageCursor.x - this.stage.pivot.x) * this.stage.scale.x;
 		this.stage.position.y += (this.stageCursor.y - this.stage.pivot.y) * this.stage.scale.y;
 		this.stage.pivot = this.stageCursor;
 
+		// pan stage if dragging
 		if(this.mouseDown) {
 			this.stage.position.x += this.cursor.x - this.lastCursor.x;
 			this.stage.position.y += this.cursor.y - this.lastCursor.y;
@@ -161,10 +169,50 @@ class PrimaryInterface extends Component {
 		*/
 	}
 
+	createNode(event) {
+		if(!event.target || !event.data) return;
+		const spawnPoint = event.data.getLocalPosition(event.target);
+		this.props.dispatch(createNode(this.props.gui.tool, {id: newId(), position: {x: spawnPoint.x, y: spawnPoint.y}}));
+	}
+
+	removeNode(nodeInstance) {
+		this.stage.removeChild(nodeInstance);
+		// todo: remove from class arrays
+		this.props.dispatch(removeNode(nodeInstance.nodeType, nodeInstance.id));
+	}
+
+	createNodeInstance(nodeType, nodeAttrs)  {
+		let node = null;
+		switch(nodeType) {
+			case NodeTypes.POINT_NODE:
+				node = createPointNode(nodeAttrs);
+				this.stage.addChild(node);
+				this.pointNodes[nodeAttrs.id] = node;
+				this.initedNodeIds.push(nodeAttrs.id);
+				break;
+
+			case NodeTypes.ORIGIN_RING_NODE:
+				node = createRingNode(nodeAttrs);
+				this.stage.addChild(node);
+				this.ringNodes[nodeAttrs.id] = node;
+				this.initedNodeIds.push(nodeAttrs.id);
+				break;
+		}
+		if(node) bindNodeEvents.call(this, nodeType, node);
+	}
+
 	animate() {
 
 		const { gui, stage, transport } = this.props;
+		const { pointNodes, originRingNodes } = stage;
 
+		for(let pointNode of pointNodes) {
+			// instanciate a pixi pointNode if it doesn't exist - just created or on load
+			if(this.initedNodeIds.indexOf(pointNode.id) < 0) {
+				console.log('Creating PIXI pointNode');
+				this.createNodeInstance(NodeTypes.POINT_NODE, pointNode)
+			}
+		}
 		
 		// pan controls
 		if(keyUtils.isUpKeyPressed()) this.stage.position.y += scaleEase;
