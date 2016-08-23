@@ -64,7 +64,7 @@ const defaultNodeAttrs = {
 
 export function createNode(nodeType, nodeAttrs = {}) {
 	const node = {...defaultNodeAttrs, ...nodeAttrs, nodeType};
-	console.log('Adding', nodeType);
+	console.log('Adding', nodeType, nodeAttrs);
 	switch(nodeType) {
 		case NodeTypes.ORIGIN_RING_NODE:
 			return {type: ActionTypes.ADD_RING_NODE, node}; break;

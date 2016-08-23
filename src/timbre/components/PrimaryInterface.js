@@ -1,8 +1,9 @@
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
-import $ from 'jquery'
 import PIXI, { Container, Graphics, Sprite } from 'pixi.js'
 import _throttle from 'lodash/throttle'
+import _get from 'lodash/get'
+import $ from 'jquery'
 
 import Point from '../Point'
 import { getPixelDensity, addResizeCallback, triggerResize } from '../utils/screenUtils'
@@ -178,7 +179,13 @@ class PrimaryInterface extends Component {
 	createNode(event) {
 		if(!event.target || !event.data) return;
 		const spawnPoint = event.data.getLocalPosition(event.target);
-		this.props.dispatch(createNode(this.props.gui.tool, {id: newId(), position: {x: spawnPoint.x, y: spawnPoint.y}}));
+		const attrs = {
+			id: newId(), 
+			position: {x: spawnPoint.x, y: spawnPoint.y},
+			noteType: _get(this.props.gui, 'toolSettings.noteType'),
+			noteIndex: _get(this.props.gui, 'toolSettings.noteIndex'),
+		}
+		this.props.dispatch(createNode(this.props.gui.tool, attrs));
 	}
 
 	removeNode(nodeInstance) {

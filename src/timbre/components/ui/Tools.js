@@ -26,9 +26,9 @@ class PointNodeTools extends Component {
 					const noteColor = noteColors[noteInScale];
 					return (
 						<div key={note} 
-							className={classname('scale-color', (noteType == NOTE && note == noteIndex) ? 'active' : false)} 
+							className={classname('scale-color', (noteType == NOTE && note == notes[noteIndex]) ? 'active' : false)} 
 							style={{backgroundColor: '#'+noteColor.toString(16)}}
-							onClick={() => dispatch(changeToolSettings({noteType: NOTE, noteIndex: note}))}>
+							onClick={() => dispatch(changeToolSettings({noteType: NOTE, noteIndex: notes.indexOf(note)}))}>
 							{noteStrings[noteInScale]}
 						</div>
 					)
