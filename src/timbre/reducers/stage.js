@@ -1,4 +1,6 @@
 import * as ActionTypes from '../constants/actionTypes'
+import * as NodeTypes from '../constants/nodeTypes'
+import * as NoteTypes from '../constants/noteTypes'
 
 const initialState = {
 	originRingNodes: [],
@@ -51,4 +53,29 @@ export default function (state = initialState, action) {
 			}
 	}
 	return state;
+}
+
+const defaultNodeAttrs = {
+	position: {x: 0, y: 0},
+	scale: 1,
+	radius: 4,
+	noteType: NoteTypes.RANDOM,
+};
+
+export function createNode(nodeType, nodeAttrs = {}) {
+	const node = {...defaultNodeAttrs, ...nodeAttrs, nodeType};
+	console.log('Adding', nodeType);
+	switch(nodeType) {
+		case NodeTypes.ORIGIN_RING_NODE:
+			return {type: ActionTypes.ADD_RING_NODE, node}; break;
+
+		case NodeTypes.ORIGIN_RADAR_NODE:
+			return {type: ActionTypes.ADD_RADAR_NODE, node}; break;
+
+		case NodeTypes.POINT_NODE:
+			return {type: ActionTypes.ADD_POINT_NODE, node}; break;
+
+		case NodeTypes.ARC_NODE:
+			return {type: ActionTypes.ADD_ARC_NODE, node}; break;
+	}
 }

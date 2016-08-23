@@ -12,9 +12,12 @@ import newId from '../utils/newId'
 
 import noteColors from '../constants/noteColors'
 import * as NoteTypes from '../constants/noteTypes'
+import { createNode } from '../reducers/stage'
 import { getRandomNote, getAscendingNote, getDescendingNote, playNote } from '../sound'
 
 const scaleEase = 10;
+const mouseMoveThrottle = 1000/50; // 50fps
+const scrollwheelThrottle = 1000/50; // 50fps
 
 class PrimaryInterface extends Component {
 
@@ -25,7 +28,8 @@ class PrimaryInterface extends Component {
 
 	constructor(props) {
 		super(props);
-		this.handlePointerMove = _throttle(this.handlePointerMove, 50);
+		this.handlePointerMove = _throttle(this.handlePointerMove, mouseMoveThrottle);
+		this.handleMousewheel = _throttle(this.handleMousewheel, scrollwheelThrottle);
 
 	}
 
@@ -49,12 +53,12 @@ class PrimaryInterface extends Component {
 		this.aimScale = 1;
 
 		// bind mouse / touch events
-		this.stage.on('mousedown', event => this.createNode(event));
-		this.stage.on('touchstart', event => this.createNode(event));
+		this.stage.on('mousedown', event => this.handlePointerDown(event));
+		this.stage.on('touchstart', event => this.handlePointerDown(event));
 		this.stage.on('mousemove', event => this.handlePointerMove(event));
 		this.stage.on('touchmove', event => this.handlePointerMove(event));
-		this.stage.on('mouseup', event => this.handlePointerUp());
-		this.stage.on('touchend', event => this.handlePointerUp());
+		this.stage.on('mouseup', event => this.handlePointerUp(event));
+		this.stage.on('touchend', event => this.handlePointerUp(event));
 
 		// debug rainbow dots
 		const dots = new Graphics();
@@ -74,7 +78,11 @@ class PrimaryInterface extends Component {
 		this.fxRipples = [];
 		this.placing = false;
 		this.mouseMoved = false;
+		this.mouseDown = false;
 		this.stageCursor = new Point(0,0);
+		this.lastStageCursor = new Point(0,0);
+		this.cursor = new Point(0,0);
+		this.lastCursor = new Point(0,0);
 
 
 		// bind scrollwheel to sizing anchor nodes
@@ -101,18 +109,38 @@ class PrimaryInterface extends Component {
 		if (scrollAmount !== 0) this.aimScale = clamp(this.aimScale + scrollAmount/200, this.props.minZoom, this.props.maxZoom);
 	}
 
+	handlePointerDown(event) {
+		this.mouseDown = true;
+		this.mouseMoved = false;
+	}
+
+	handlePointerUp(event) {
+		this.mouseDown = false;
+		if(!this.mouseMoved) this.createNode(event);
+	}
+
 	createNode(event) {
 		if(!event.target || !event.data) return;
 		const spawnPoint = event.data.getLocalPosition(event.target);
-		const { tool } = this.props.gui;
-		console.log('Should create', tool);
+		this.props.dispatch(createNode(this.props.gui.tool, {position: {x: spawnPoint.x, y: spawnPoint.y}}));
 	}
 
 	handlePointerMove(event) {
+		this.mouseMoved = true;
+		this.lastCursor = this.cursor;
+		this.lastStageCursor = this.stageCursor;
+		
+		this.cursor = new Point(event.data.originalEvent.clientX, event.data.originalEvent.clientY - this.offsetY);
 		this.stageCursor = event.data.getLocalPosition(this.stage);
+		
 		this.stage.position.x += (this.stageCursor.x - this.stage.pivot.x) * this.stage.scale.x;
 		this.stage.position.y += (this.stageCursor.y - this.stage.pivot.y) * this.stage.scale.y;
 		this.stage.pivot = this.stageCursor;
+
+		if(this.mouseDown) {
+			this.stage.position.x += this.cursor.x - this.lastCursor.x;
+			this.stage.position.y += this.cursor.y - this.lastCursor.y;
+		}
 		/*
 		if(this.placing) {
 			this.mouseMoved = true;
@@ -129,17 +157,6 @@ class PrimaryInterface extends Component {
 			}else if(this.activeAnchor.type != NoteTypes.RANDOM) {
 				this.changeAnchorType(this.activeAnchor, NoteTypes.RANDOM);
 			}
-		}
-		*/
-	}
-
-	handlePointerUp() {
-		/*
-		if(this.placing) {
-			event.stopPropagation();
-			console.log('finished placing');
-			this.activeAnchor = null;
-			this.placing = false;
 		}
 		*/
 	}
