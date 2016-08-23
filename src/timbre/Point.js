@@ -92,4 +92,8 @@ export default class Point {
 		return this;
 	}
 
+	toObject() {
+		return {x: this.x, y: this.y};
+	}
+
 }
