@@ -6,7 +6,7 @@ import _throttle from 'lodash/throttle'
 
 import Point from '../Point'
 import { getPixelDensity, addResizeCallback, triggerResize } from '../utils/screenUtils'
-import { dist, clamp } from '../utils/mathUtils'
+import { dist, clamp, inBounds } from '../utils/mathUtils'
 import * as keyUtils from '../utils/keyUtils'
 import newId from '../utils/newId'
 
@@ -25,8 +25,9 @@ const scrollwheelThrottle = 1000/50; // 50fps
 class PrimaryInterface extends Component {
 
 	static defaultProps = {
-		maxZoom: 4,
-		minZoom: 0.2,
+		maxZoom: 2,
+		minZoom: 0.5,
+		showDebugDots: false,
 	};
 
 	constructor(props) {
@@ -63,16 +64,18 @@ class PrimaryInterface extends Component {
 		this.stage.on('touchend', event => this.handlePointerUp(event));
 
 		// debug rainbow dots
-		const dots = new Graphics();
-		dots.beginFill(0xFFFFFF);
-		for(let x=0; x<100; x ++) {
-			for(let y=0; y<100; y++) {
-				dots.beginFill(noteColors[(x+y)%noteColors.length]);
-				dots.drawCircle(x*40, y*40, 5);
+		if(this.props.showDebugDots) {
+			const dots = new Graphics();
+			dots.beginFill(0xFFFFFF);
+			for(let x=0; x<100; x ++) {
+				for(let y=0; y<100; y++) {
+					dots.beginFill(noteColors[(x+y)%noteColors.length]);
+					dots.drawCircle(x*40, y*40, 5);
+				}
 			}
+			dots.cacheAsBitmap = true;
+			this.stage.addChild(dots);
 		}
-		dots.cacheAsBitmap = true;
-		this.stage.addChild(dots);
 
 		this.anchorsContainer = new Container();
 		this.stage.addChild(this.anchorsContainer);
@@ -115,6 +118,9 @@ class PrimaryInterface extends Component {
 	}
 
 	handleMousewheel(event) {
+		// disable scroll zoom while dragging / clicking
+		if(this.mouseDown || !inBounds(this.cursor, 0, 0, this.width, this.height)) return false;
+		
 		const scrollAmount = event.originalEvent.wheelDelta || event.originalEvent.detail;
 		if (scrollAmount !== 0) this.aimScale = clamp(this.aimScale + scrollAmount/200, this.props.minZoom, this.props.maxZoom);
 	}
