@@ -108,6 +108,7 @@ class PrimaryInterface extends Component {
 		addResizeCallback(::this.handleResize);
 		addKeyListener('backspace', ::this.removeActiveNode);
 		addKeyListener('delete', ::this.removeActiveNode);
+		addKeyListener('esc', () => this.activeNode = null);
 		setTimeout(() => triggerResize(), 10);
 
 		this.mounted = true;
