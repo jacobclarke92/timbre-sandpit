@@ -80,8 +80,9 @@ class PrimaryInterface extends Component {
 		}
 
 		this.activeNodeIndicator = new Graphics();
-		this.activeNodeIndicator.lineStyle(2, 0xFFFFFF, 0.75);
+		this.activeNodeIndicator.lineStyle(2, 0xFFFFFF, 0.5);
 		this.activeNodeIndicator.drawCircle(0, 0, 15);
+		this.activeNodeIndicator.cacheAsBitmap = true;
 		this.stage.addChild(this.activeNodeIndicator);
 
 		this.fxRipples = [];
@@ -139,8 +140,10 @@ class PrimaryInterface extends Component {
 
 	handlePointerUp(event) {
 		this.mouseDown = false;
-		if(this.activeNode) this.activeNode = null;
-		else if(!this.mouseMoved) this.createNode(event);
+		if(!this.mouseMoved) {
+			if(this.activeNode) this.activeNode = null;
+			else this.createNode(event);
+		}
 	}
 
 	handlePointerMove(event) {

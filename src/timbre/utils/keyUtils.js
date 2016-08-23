@@ -18,7 +18,7 @@ const keyCallbacks = {};
 
 function handleKeyDown(event) {
 	const key = keycode(event);
-	console.log(key);
+	// console.log(key);
 	switch (key) {
 		case 'shift': shiftKeyPressed = true; break;
 		case 'ctrl': ctrlKeyPressed = true; break;
