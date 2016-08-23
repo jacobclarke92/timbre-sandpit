@@ -127,10 +127,10 @@ class PrimaryInterface extends Component {
 
 	handleMousewheel(event) {
 		// disable scroll zoom while dragging / clicking
-		if(this.mouseDown || !inBounds(this.cursor, 0, 0, this.width, this.height)) return false;
-		
-		const scrollAmount = event.originalEvent.wheelDelta || event.originalEvent.detail;
-		if (scrollAmount !== 0) this.aimScale = clamp(this.aimScale + scrollAmount/200, this.props.minZoom, this.props.maxZoom);
+		if(!this.mouseDown && inBounds(this.cursor, 0, 0, this.width, this.height)) {
+			const scrollAmount = event.originalEvent.wheelDelta || event.originalEvent.detail;
+			if (scrollAmount !== 0) this.aimScale = clamp(this.aimScale + scrollAmount/200, this.props.minZoom, this.props.maxZoom);
+		}
 	}
 
 	handlePointerDown(event) {
