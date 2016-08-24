@@ -4,13 +4,9 @@ import newId from '../utils/newId'
 
 const initialState = [
 	{id: newId(), frequency: 1, amplitude: 1, waveform: WaveTypes.SINE},
-	// {id: newId(), frequency: 2, amplitude: 1, waveform: WaveTypes.SINE},
-	// {id: newId(), frequency: 3, amplitude: 1, waveform: WaveTypes.SINE},
-	// {id: newId(), frequency: 4, amplitude: 1, waveform: WaveTypes.SINE},
-	// {id: newId(), frequency: 5, amplitude: 1, waveform: WaveTypes.SINE},
-	// {id: newId(), frequency: 6, amplitude: 1, waveform: WaveTypes.SINE},
-	// {id: newId(), frequency: 7, amplitude: 1, waveform: WaveTypes.SINE},
-	// {id: newId(), frequency: 8, amplitude: 1, waveform: WaveTypes.SINE},
+	{id: newId(), frequency: 1, amplitude: 1, waveform: WaveTypes.TRIANGLE},
+	{id: newId(), frequency: 1, amplitude: 1, waveform: WaveTypes.SAWTOOTH},
+	{id: newId(), frequency: 1, amplitude: 1, waveform: WaveTypes.SQUARE},
 ];
 
 export default function (state = initialState, action) {

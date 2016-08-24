@@ -38,6 +38,7 @@ class OscillatorDisplay extends Component {
 		this.stage.addChild(this.waveshape);
 
 		this.generateWaveTable();
+		this.drawWaveShape();
 		this.animate();
 	}
 
@@ -46,16 +47,16 @@ class OscillatorDisplay extends Component {
 	}
 
 	generateWaveTable(waveform = this.props.waveform) {
-		// get wave lookup array
 		this.waveTable = getWaveLookupArray(waveform, this.width);
+	}
 
-		// redraw line
+	drawWaveShape(amplitude = this.props.amplitude) {
 		this.waveshape.cacheAsBitmap = false;
 		this.waveshape.clear();
 		this.waveshape.lineStyle(2, 0xFFFFFF, 0.2);
 		for(let x = 0; x < this.waveTable.length; x++) {
-			if(x === 0) this.waveshape.moveTo(x, this.waveTable[x] * this.height/2 * -1);
-			else this.waveshape.lineTo(x, this.waveTable[x] * this.height/2 * -1);
+			if(x === 0) this.waveshape.moveTo(x, this.waveTable[x] * this.height/2 * amplitude * -1);
+			else this.waveshape.lineTo(x, this.waveTable[x] * this.height/2 * amplitude * -1);
 		}
 		this.waveshape.cacheAsBitmap = true;
 	}
@@ -87,7 +88,12 @@ class OscillatorDisplay extends Component {
 		if(nextProps.transport.playing && !this.props.transport.playing) setTimeout(() => this.animate());
 
 		// update wave table if required
-		if(nextProps.waveform != this.props.waveform) this.generateWaveTable(nextProps.waveform);
+		if(nextProps.waveform != this.props.waveform) {
+			this.generateWaveTable(nextProps.waveform);
+			this.drawWaveShape(nextProps.amplitude);
+		}else if(nextProps.amplitude != this.props.amplitude) {
+			this.drawWaveShape(nextProps.amplitude);
+		}
 	}
 
 	render() {
