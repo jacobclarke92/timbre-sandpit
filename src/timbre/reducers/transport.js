@@ -3,6 +3,8 @@ import * as ActionTypes from '../constants/actionTypes'
 
 const initialState = {
 	bpm: 128,
+	meterBeats: 4,
+	meterTime: 4,
 	playing: true,
 };
 
@@ -15,25 +17,46 @@ export default function(state = initialState, action) {
 				...state, 
 				bpm: action.bpm,
 			}
+
 		case ActionTypes.TRANSPORT_START: 
 			startTransport();
 			return {
 				...state,
 				playing: true,
 			}
+
 		case ActionTypes.TRANSPORT_STOP: 
 			stopTransport();
 			return {
 				...state,
 				playing: false,
 			}
+
 		case ActionTypes.TRANSPORT_TOGGLE:
 			const playing = !state.playing;
 			if(playing) startTransport();
 			else stopTransport();
 			return {...state, playing};
+
+		case ActionTypes.UPDATE_METER_BEATS:
+			setTimeSignature(action.meterBeats, state.meterTime);
+			return {
+				...state,
+				meterBeats: action.meterBeats,
+			}
+
+		case ActionTypes.UPDATE_METER_TIME:
+			setTimeSignature(state.meterBeats, action.meterTime);
+			return {
+				...state,
+				meterTime: action.meterTime,
+			}
 	}
 	return state;
+}
+
+export function setTimeSignature(numerator, denominator) {
+	Transport.timeSignature = [numerator, denominator];
 }
 
 export function setBpm(bpm) {

@@ -59,13 +59,13 @@ class TopUI extends Component {
 	}
 
 	handleMeterTimeChange(meterTime) {
-		this.props.dispatch({type: ActionTypes.UPDATE_METER_TIME, meterBeats});
+		this.props.dispatch({type: ActionTypes.UPDATE_METER_TIME, meterTime});
 	}
 
 	render() {
 		const { gui } = this.props;
-		const { modeString, scaleString, scale, meterBeats, meterTime } = this.props.musicality;
-		const { playing, bpm } = this.props.transport;
+		const { modeString, scaleString, scale } = this.props.musicality;
+		const { playing, bpm, meterBeats, meterTime } = this.props.transport;
 		const ToolUi = Tools[gui.tool] || null;
 		return (
 			<div className="ui">

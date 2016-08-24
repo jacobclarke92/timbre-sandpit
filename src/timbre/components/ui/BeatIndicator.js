@@ -16,7 +16,7 @@ class BeatIndicator extends Component {
 	}
 
 	componentDidMount() {
-		this.loop = new Loop(::this.tick, this.props.musicality.meterTime+'n');
+		this.loop = new Loop(::this.tick, this.props.transport.meterTime+'n');
 		console.log(this.props.transport.playing);
 		if(this.props.transport.playing) setTimeout(() => this.loop.start(0), 100);
 	}
@@ -32,7 +32,7 @@ class BeatIndicator extends Component {
 
 	tick() {
 		this.beat ++;
-		if(this.beat >= this.props.musicality.meterBeats || this.beat === 0) {
+		if(this.beat >= this.props.transport.meterBeats || this.beat === 0) {
 			this.beat = 0;
 			this.setState({indicator: 'downbeat'});
 		}else{
@@ -50,4 +50,4 @@ class BeatIndicator extends Component {
 
 }
 
-export default connect(({transport, musicality}) => ({transport, musicality}))(BeatIndicator)
+export default connect(({transport}) => ({transport}))(BeatIndicator)
