@@ -1,5 +1,6 @@
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
+import $ from 'jquery'
 
 import { STAGE, OSCILLATORS, MAPPINGS, FX } from '../constants/uiViews'
 import { addKeyListener } from '../utils/keyUtils'
@@ -16,10 +17,14 @@ import FxInterface from './FxInterface'
 class App extends Component {
 
 	componentDidMount() {
-		addKeyListener('1', () => this.props.dispatch(changeView(STAGE)));
-		addKeyListener('2', () => this.props.dispatch(changeView(OSCILLATORS)));
-		addKeyListener('3', () => this.props.dispatch(changeView(MAPPINGS)));
-		addKeyListener('4', () => this.props.dispatch(changeView(FX)));
+		addKeyListener('1', () => this.changeView(STAGE));
+		addKeyListener('2', () => this.changeView(OSCILLATORS));
+		addKeyListener('3', () => this.changeView(MAPPINGS));
+		addKeyListener('4', () => this.changeView(FX));
+	}
+
+	changeView(view) {
+		this.props.dispatch(changeView(view));
 	}
 
 	render() {

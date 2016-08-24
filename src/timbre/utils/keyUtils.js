@@ -17,6 +17,8 @@ export const isDownKeyPressed = () => downKeyPressed;
 const keyCallbacks = {};
 
 function handleKeyDown(event) {
+	if(isInputFocused()) return;
+
 	const key = keycode(event);
 	// console.log(key);
 	switch (key) {
@@ -67,4 +69,8 @@ export function removeKeyListener(keyCode, func) {
 			if(keyCallbacks[keyCode][i] == func) keyCallbacks[keyCode].splice(i, 1);
 		}
 	}
+}
+
+export function isInputFocused() {
+	return (document.activeElement && ['INPUT','TEXTAREA'].indexOf(document.activeElement.tagName) >= 0)
 }
