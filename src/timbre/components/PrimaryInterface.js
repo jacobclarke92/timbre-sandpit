@@ -45,7 +45,7 @@ class PrimaryInterface extends Component {
 		this.handleResize();
 			
 		// init renderer
-		this.renderer = new PIXI.autoDetectRenderer(this.width, this.height, {resolution: getPixelDensity(), transparent: false, backgroundColor: 0x000000, antialiasing: true});
+		this.renderer = new PIXI.autoDetectRenderer(this.width/getPixelDensity(), this.height/getPixelDensity(), {resolution: getPixelDensity(), transparent: false, backgroundColor: 0x000000, antialiasing: true});
 		this.canvas = this.renderer.view;
 		this.$container.append(this.canvas);
 
@@ -121,7 +121,7 @@ class PrimaryInterface extends Component {
 		this.width = this.$container.width();
 		this.height = this.$container.height();
 		this.offsetY = this.$container.offset().top;
-		if(this.renderer) this.renderer.resize(this.width, this.height);
+		if(this.renderer) this.renderer.resize(this.width/getPixelDensity(), this.height/getPixelDensity());
 		console.log(this.width, this.height);
 	}
 
@@ -166,24 +166,6 @@ class PrimaryInterface extends Component {
 			this.stage.position.x += this.cursor.x - this.lastCursor.x;
 			this.stage.position.y += this.cursor.y - this.lastCursor.y;
 		}
-		/*
-		if(this.placing) {
-			this.mouseMoved = true;
-			const mouse = new Point(positionX, positionY);
-			const distance = mouse.distance(this.activeAnchor);
-			const angle = Math.atan2(mouse.y - this.activeAnchor.y, mouse.x - this.activeAnchor.x);
-			if(distance > 20) {
-				this.activeAnchor.rotation = angle;
-				if(angle > 0 && angle < Math.PI && this.activeAnchor.type != NoteTypes.DOWN) {
-					this.changeAnchorType(this.activeAnchor, NoteTypes.DOWN);
-				}else if(angle < 0 || angle > Math.PI && this.activeAnchor.type != NoteTypes.UP) {
-					this.changeAnchorType(this.activeAnchor, NoteTypes.UP);
-				}
-			}else if(this.activeAnchor.type != NoteTypes.RANDOM) {
-				this.changeAnchorType(this.activeAnchor, NoteTypes.RANDOM);
-			}
-		}
-		*/
 	}
 
 	createNode(event) {
