@@ -24,7 +24,7 @@ class OscillatorDisplay extends Component {
 		this.$canvas.append(this.canvas);
 
 		this.stage = new Container();
-		this.stage.position.y = this.height/2;
+		this.stage.position.y = this.height/2/getPixelDensity();
 		this.stage.scale.set(1/getPixelDensity());
 
 		this.indicator = new Graphics();

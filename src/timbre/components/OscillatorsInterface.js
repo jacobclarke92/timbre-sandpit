@@ -14,7 +14,7 @@ class OscillatorsInterface extends Component {
 		const { oscillators } = this.props;
 		return (
 			<div className="oscillators-interface">
-				<p>Oscillators interface coming soon...</p>
+				<h1>Oscillators</h1>
 				<div>
 					{oscillators.map((oscillator, i) => 
 						<Oscillator key={i} oscillator={oscillator} onChange={::this.handleOscillatorChange} />

@@ -19,7 +19,7 @@ export default class Oscillator extends Component {
 		return (
 			<div className="oscillator">
 				<OscillatorDisplay {...oscillator} />
-				<NumberInput label="Frequency" min={0.1} max={100} step={0.1} value={frequency} onChange={::this.handleFrequencyChange} />
+				<NumberInput label="Frequency (hz)" min={0.1} max={100} step={0.1} value={frequency} onChange={::this.handleFrequencyChange} />
 				<NumberInput label="Amplitude" min={0} max={1} step={0.05} value={amplitude} onChange={::this.handleAmplitudeChange} />
 			</div>
 		)
