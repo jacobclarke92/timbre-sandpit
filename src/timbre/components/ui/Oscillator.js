@@ -15,7 +15,7 @@ export default class Oscillator extends Component {
 
 	constructor(props) {
 		super(props);
-		this.state = { timeMode: 'hz' };
+		this.state = { timeMode: this.props.oscillator.freqNote ? 'note' : 'hz' };
 	}
 
 	handleWaveformChange(waveform) {
