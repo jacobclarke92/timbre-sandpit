@@ -5,6 +5,7 @@ import envelope from './envelope'
 import sound from './sound'
 import gui from './gui'
 import stage from './stage'
+import oscillators from './oscillators'
 
 const reducers = combineReducers({
 	transport,
@@ -13,6 +14,7 @@ const reducers = combineReducers({
 	sound,
 	gui,
 	stage,
+	oscillators,
 });
 
 export default reducers

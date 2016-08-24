@@ -49,7 +49,10 @@
         justify-content: center;
         align-items: center;
         flex-direction: column;
-        font-size: 24px;
+
+        p {
+            font-size: 24px;
+        }
     }
 }
 
@@ -63,6 +66,15 @@
     }
     &.upbeat {
         background-color: @secondary;
+    }
+}
+
+.oscillator {
+    display: flex;
+
+    label,
+    .oscillator-display {
+        margin-right: @margin-medium;
     }
 }
 

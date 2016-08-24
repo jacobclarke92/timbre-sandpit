@@ -167,6 +167,10 @@ button.button-icon svg {
   -webkit-flex-direction: column;
       -ms-flex-direction: column;
           flex-direction: column;
+}
+.interface-container > .oscillators-interface p,
+.interface-container > .mappings-interface p,
+.interface-container > .fx-interface p {
   font-size: 24px;
 }
 .beat-indicator {
@@ -180,6 +184,15 @@ button.button-icon svg {
 }
 .beat-indicator.upbeat {
   background-color: #f6b491;
+}
+.oscillator {
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+}
+.oscillator label,
+.oscillator .oscillator-display {
+  margin-right: 20px;
 }
 .oscillator-display {
   display: block;

@@ -40,12 +40,12 @@ class OscillatorDisplay extends Component {
 	}
 
 	animate() {
-		const { frequency, transport } = this.props;
+		const { frequency, amplitude, transport } = this.props;
 		const elapsed = Date.now() - transport.startTime;
 		const freqMS = 1/(frequency)*1000;
 
 		const positionX = (elapsed % freqMS)/freqMS;
-		const positionY = Math.sin(positionX*Math.PI*2);
+		const positionY = Math.sin(positionX*Math.PI*2)*amplitude;
 
 		this.indicator.position.x = positionX * this.width;
 		this.indicator.position.y = positionY * this.height/2;
