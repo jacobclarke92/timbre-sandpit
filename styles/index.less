@@ -20,34 +20,6 @@ html,body {
 	height: 100vh;
 }
 
-.interface-container {
-	position: absolute;
-	top: @ui-height;
-	left: 0;
-	width: 100vw;
-	height: calc(100vh ~"-" @ui-height);
-
-	> .primary-interface {
-		.cover();
-	}
-
-	> .oscillators-interface,
-	> .mappings-interface,
-	> .fx-interface {
-		.cover();
-		background-color: fade(@white, 75%);
-		display: flex;
-		justify-content: center;
-		align-items: center;
-		font-size: 24px;
-	}
-}
-
-.envelope-container {
-	max-width: 250px;
-	max-height: 100px;
-}
-
 [data-label] {
 	position: relative;
 	&:hover:after {

@@ -6,6 +6,7 @@ const initialState = {
 	meterBeats: 4,
 	meterTime: 4,
 	playing: true,
+	startTime: Date.now(),
 };
 
 export default function(state = initialState, action) {
@@ -23,6 +24,7 @@ export default function(state = initialState, action) {
 			return {
 				...state,
 				playing: true,
+				startTime: Date.now(),
 			}
 
 		case ActionTypes.TRANSPORT_STOP: 
