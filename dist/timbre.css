@@ -132,6 +132,18 @@ button.button-icon svg {
       -ms-flex-pack: justify;
           justify-content: space-between;
 }
+.beat-indicator {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border: 1px solid #828D9B;
+}
+.beat-indicator.downbeat {
+  background-color: #64B6AC;
+}
+.beat-indicator.upbeat {
+  background-color: #f6b491;
+}
 .Select {
   position: relative;
 }

@@ -14,6 +14,7 @@ import Icon from './ui/Icon'
 import Button from './ui/Button'
 import ButtonIcon from './ui/ButtonIcon'
 import NumberInput from './ui/NumberInput'
+import BeatIndicator from './ui/BeatIndicator'
 import Tools from './ui/Tools'
 
 const views = [
@@ -79,6 +80,9 @@ class TopUI extends Component {
 						<NumberInput label="Signature" value={meterBeats} min={2} max={15} step={1} onChange={meterBeats => this.handleMeterBeatsChange(meterBeats)} style={{width: 30}} /> / 
 						<NumberInput label="" value={meterTime} min={3} max={16} step={1} onChange={meterTime => this.handleMeterTimeChange(meterTime)} style={{width: 30}} />
 						<NumberInput label="BPM" value={bpm} min={20} max={420} step={0.5} onChange={bpm => this.handleBpmChange(bpm)} />
+						<label>
+							<BeatIndicator />
+						</label>
 						<label>
 							Mode: 
 							<Select value={modeString} onChange={({value}) => this.handleModeChange(value)} clearable={false} options={Object.keys(modes).map(value => ({value, label: value}))} style={{width: 160}} />

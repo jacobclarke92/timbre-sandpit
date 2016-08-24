@@ -28,3 +28,16 @@
 
     }
 }
+
+.beat-indicator {
+    display: inline-block;
+    .square(8px);
+    border: 1px solid @grey;
+   
+    &.downbeat {
+        background-color: @primary;
+    }
+    &.upbeat {
+        background-color: @secondary;
+    }
+}
