@@ -15,6 +15,26 @@ export function getPixelDensity() {
 	return window.devicePixelRatio || 1;
 }
 
+export function hasPointerLock() {
+	return (
+		'pointerLockElement' in document ||
+		'mozPointerLockElement' in document ||
+		'webkitPointerLockElement' in document
+	);
+}
+
+export function requestPointerLock(element) {
+	if(!element) return;
+	console.log(element);
+	element.requestPointerLock = element.requestPointerLock || element.mozRequestPointerLock || element.webkitRequestPointerLock;
+	element.requestPointerLock();
+}
+
+export function exitPointerLock() {
+	document.exitPointerLock = document.exitPointerLock || document.mozExitPointerLock || document.webkitExitPointerLock;
+	document.exitPointerLock();
+}
+
 export function addResizeCallback(func) {
 	resizeCallbacks.push(func);
 }
