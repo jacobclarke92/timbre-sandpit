@@ -35,7 +35,7 @@ export default class NumberInput extends Component {
 		if(this.mouseDown) {
 			const { min, max, step, value, onChange } = this.props;
 			const movementY = event.movementY || event.mozMovementY || 0;
-			const amount = Math.round(movementY/2)*step;
+			const amount = -movementY*step;
 			let newValue = value + amount;
 			if(min && newValue < min) newValue = min;
 			if(max && newValue > max) newValue = max;
