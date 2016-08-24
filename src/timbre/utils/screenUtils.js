@@ -25,7 +25,6 @@ export function hasPointerLock() {
 
 export function requestPointerLock(element) {
 	if(!element) return;
-	console.log(element);
 	element.requestPointerLock = element.requestPointerLock || element.mozRequestPointerLock || element.webkitRequestPointerLock;
 	element.requestPointerLock();
 }

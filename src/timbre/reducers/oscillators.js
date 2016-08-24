@@ -3,10 +3,10 @@ import * as WaveTypes from '../constants/waveTypes'
 import newId from '../utils/newId'
 
 const initialState = [
-	{id: newId(), frequency: 1, amplitude: 1, waveform: WaveTypes.SINE},
-	{id: newId(), frequency: 1, amplitude: 1, waveform: WaveTypes.TRIANGLE},
-	{id: newId(), frequency: 1, amplitude: 1, waveform: WaveTypes.SAWTOOTH},
-	{id: newId(), frequency: 1, amplitude: 1, waveform: WaveTypes.SQUARE},
+	{id: newId(), frequency: 1, amplitude: 1, freqNote: null, waveform: WaveTypes.SINE},
+	{id: newId(), frequency: 1, amplitude: 1, freqNote: null, waveform: WaveTypes.TRIANGLE},
+	{id: newId(), frequency: 1, amplitude: 1, freqNote: null, waveform: WaveTypes.SAWTOOTH},
+	{id: newId(), frequency: 1, amplitude: 1, freqNote: null, waveform: WaveTypes.SQUARE},
 ];
 
 export default function (state = initialState, action) {

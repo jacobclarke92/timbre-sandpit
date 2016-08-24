@@ -1,6 +1,7 @@
 import React, { Component, PropTypes } from 'react'
 import PIXI, { Container, Graphics } from 'pixi.js'
 import { connect } from 'react-redux'
+import { Time } from 'tone'
 import $ from 'jquery'
 
 import { getPixelDensity } from '../../utils/screenUtils'
@@ -62,11 +63,12 @@ class OscillatorDisplay extends Component {
 	}
 
 	animate() {
-		const { frequency, amplitude, transport } = this.props;
+		const { frequency, amplitude, freqNote, transport } = this.props;
 		const elapsed = Date.now() - transport.startTime;
+		const freq = freqNote ? new Time(freqNote).toFrequency() : frequency;
 
 		// convert hz to ms
-		const freqMS = 1/(frequency)*1000;
+		const freqMS = 1/(freq)*1000;
 
 		// set x position based on cycle ms
 		const percentX = (elapsed % freqMS)/freqMS;
