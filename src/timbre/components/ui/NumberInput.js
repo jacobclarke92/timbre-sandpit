@@ -39,6 +39,7 @@ export default class NumberInput extends Component {
 			let newValue = value + amount;
 			if(min && newValue < min) newValue = min;
 			if(max && newValue > max) newValue = max;
+			newValue = Math.round(newValue*1000)/1000; // fix javascript float shitness
 			if(amount) onChange(newValue);
 		}
 	}
