@@ -5,9 +5,9 @@ import Icon from './Icon'
 
 export default class Button extends Component {
 	render() {
-		const { label, selected, icon, ...rest} = this.props;
+		const { label, selected, icon, className, ...rest} = this.props;
 		return (
-			<button type="button" className={classname('button', selected && 'active')} {...rest}>
+			<button type="button" className={classname('button', className, selected && 'active')} {...rest}>
 				{icon && <Icon name={icon} />} <span>{label}</span>
 			</button>
 		)

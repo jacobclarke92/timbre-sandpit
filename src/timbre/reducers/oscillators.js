@@ -1,15 +1,16 @@
 import * as ActionTypes from '../constants/actionTypes'
+import * as WaveTypes from '../constants/waveTypes'
 import newId from '../utils/newId'
 
 const initialState = [
-	{id: newId(), frequency: 1, amplitude: 1},
-	{id: newId(), frequency: 2, amplitude: 1},
-	{id: newId(), frequency: 3, amplitude: 1},
-	{id: newId(), frequency: 4, amplitude: 1},
-	{id: newId(), frequency: 5, amplitude: 1},
-	{id: newId(), frequency: 6, amplitude: 1},
-	{id: newId(), frequency: 7, amplitude: 1},
-	{id: newId(), frequency: 8, amplitude: 1},
+	{id: newId(), frequency: 1, amplitude: 1, waveform: WaveTypes.SINE},
+	// {id: newId(), frequency: 2, amplitude: 1, waveform: WaveTypes.SINE},
+	// {id: newId(), frequency: 3, amplitude: 1, waveform: WaveTypes.SINE},
+	// {id: newId(), frequency: 4, amplitude: 1, waveform: WaveTypes.SINE},
+	// {id: newId(), frequency: 5, amplitude: 1, waveform: WaveTypes.SINE},
+	// {id: newId(), frequency: 6, amplitude: 1, waveform: WaveTypes.SINE},
+	// {id: newId(), frequency: 7, amplitude: 1, waveform: WaveTypes.SINE},
+	// {id: newId(), frequency: 8, amplitude: 1, waveform: WaveTypes.SINE},
 ];
 
 export default function (state = initialState, action) {
@@ -27,8 +28,12 @@ export default function (state = initialState, action) {
 	return state;
 }
 
-export function addOscillator(oscillator) {
-	return {type: ActionTypes.ADD_OSCILLATOR, oscillator};
+function createDefaultOscillator() {
+	return {id: newId(), frequency: 1, amplitude: 1, waveform: WaveTypes.SINE};
+}
+
+export function addOscillator(oscillator = {}) {
+	return {type: ActionTypes.ADD_OSCILLATOR, oscillator: {...createDefaultOscillator(), ...oscillator}};
 }
 
 export function removeOscillator(id) {

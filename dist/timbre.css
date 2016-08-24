@@ -1,3 +1,63 @@
+.margin-top-xsmall {
+  margin-top: 5px;
+}
+.margin-top-small {
+  margin-top: 10px;
+}
+.margin-top-medium {
+  margin-top: 20px;
+}
+.margin-top-large {
+  margin-top: 30px;
+}
+.margin-top-xlarge {
+  margin-top: 50px;
+}
+.margin-right-xsmall {
+  margin-right: 5px;
+}
+.margin-right-small {
+  margin-right: 10px;
+}
+.margin-right-medium {
+  margin-right: 20px;
+}
+.margin-right-large {
+  margin-right: 30px;
+}
+.margin-right-xlarge {
+  margin-right: 50px;
+}
+.margin-bottom-xsmall {
+  margin-bottom: 5px;
+}
+.margin-bottom-small {
+  margin-bottom: 10px;
+}
+.margin-bottom-medium {
+  margin-bottom: 20px;
+}
+.margin-bottom-large {
+  margin-bottom: 30px;
+}
+.margin-bottom-xlarge {
+  margin-bottom: 50px;
+}
+.margin-left-xsmall {
+  margin-left: 5px;
+}
+.margin-left-small {
+  margin-left: 10px;
+}
+.margin-left-medium {
+  margin-left: 20px;
+}
+.margin-left-large {
+  margin-left: 30px;
+}
+.margin-left-xlarge {
+  margin-left: 50px;
+}
 select {
   height: 30px;
   width: 150px;
@@ -167,6 +227,7 @@ button.button-icon svg {
   -webkit-flex-direction: column;
       -ms-flex-direction: column;
           flex-direction: column;
+  overflow: auto;
 }
 .interface-container > .oscillators-interface p,
 .interface-container > .mappings-interface p,

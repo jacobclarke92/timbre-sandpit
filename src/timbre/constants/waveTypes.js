@@ -1,0 +1,5 @@
+export const SINE = 'sine'
+export const SQUARE = 'square'
+export const CUSTOM = 'custom'
+export const SAWTOOTH = 'sawtooth'
+export const TRIANGLE = 'triangle'
