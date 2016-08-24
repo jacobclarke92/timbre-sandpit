@@ -4,13 +4,14 @@ import { connect } from 'react-redux'
 import $ from 'jquery'
 
 import { getPixelDensity } from '../../utils/screenUtils'
+import { getWaveLookupArray } from '../../utils/waveUtils'
 
 class OscillatorDisplay extends Component {
 
 	static defaultProps = {
 		frequency: 1, // hz,
 		amplitude: 1,
-		wave: 'sine',
+		waveform: 'sine',
 	}
 
 	componentDidMount() {
@@ -19,7 +20,8 @@ class OscillatorDisplay extends Component {
 		this.width = this.$canvas.width();
 		this.height = this.$canvas.height();
 
-		this.renderer = new PIXI.CanvasRenderer/*autoDetectRenderer*/(this.width/getPixelDensity(), this.height/getPixelDensity(), {resolution: getPixelDensity(), transparent: false, backgroundColor: 0x000000, antialiasing: true});
+		// No need to use a webGL instance for something like this
+		this.renderer = new PIXI.CanvasRenderer(this.width/getPixelDensity(), this.height/getPixelDensity(), {resolution: getPixelDensity(), transparent: false, backgroundColor: 0x000000, antialiasing: true});
 		this.canvas = this.renderer.view;
 		this.$canvas.append(this.canvas);
 
@@ -32,6 +34,10 @@ class OscillatorDisplay extends Component {
 		this.indicator.drawCircle(0,0, 5);
 		this.stage.addChild(this.indicator);
 
+		this.waveshape = new Graphics();
+		this.stage.addChild(this.waveshape);
+
+		this.generateWaveTable();
 		this.animate();
 	}
 
@@ -39,16 +45,38 @@ class OscillatorDisplay extends Component {
 
 	}
 
+	generateWaveTable(waveform = this.props.waveform) {
+		// get wave lookup array
+		this.waveTable = getWaveLookupArray(waveform, this.width);
+
+		// redraw line
+		this.waveshape.cacheAsBitmap = false;
+		this.waveshape.clear();
+		this.waveshape.lineStyle(2, 0xFFFFFF, 0.2);
+		for(let x = 0; x < this.waveTable.length; x++) {
+			if(x === 0) this.waveshape.moveTo(x, this.waveTable[x] * this.height/2 * -1);
+			else this.waveshape.lineTo(x, this.waveTable[x] * this.height/2 * -1);
+		}
+		this.waveshape.cacheAsBitmap = true;
+	}
+
 	animate() {
 		const { frequency, amplitude, transport } = this.props;
 		const elapsed = Date.now() - transport.startTime;
+
+		// convert hz to ms
 		const freqMS = 1/(frequency)*1000;
 
-		const positionX = (elapsed % freqMS)/freqMS;
-		const positionY = Math.sin(positionX*Math.PI*2)*amplitude;
+		// set x position based on cycle ms
+		const percentX = (elapsed % freqMS)/freqMS;
+		const positionX = percentX * this.width;
 
-		this.indicator.position.x = positionX * this.width;
-		this.indicator.position.y = positionY * this.height/2;
+		// set y position based on waveTable lookup and flip phase for display
+		const percentY = amplitude * this.waveTable[Math.floor(positionX)] * -1;
+		const positionY = percentY * this.height/2;
+
+		this.indicator.position.x = positionX;
+		this.indicator.position.y = positionY;
 
 		this.renderer.render(this.stage);
 		if(transport.playing) requestAnimationFrame(this.animate.bind(this));
@@ -57,6 +85,9 @@ class OscillatorDisplay extends Component {
 	componentWillReceiveProps(nextProps) {
 		// force animation to start again if props updates
 		if(nextProps.transport.playing && !this.props.transport.playing) setTimeout(() => this.animate());
+
+		// update wave table if required
+		if(nextProps.waveform != this.props.waveform) this.generateWaveTable(nextProps.waveform);
 	}
 
 	render() {
