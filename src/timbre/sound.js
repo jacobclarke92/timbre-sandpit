@@ -6,6 +6,7 @@ import * as NoteTypes from './constants/noteTypes'
 let store = null;
 let lastNote = 0;
 
+const synths = {};
 
 export function receiveStore(_store) {
 	store = _store;
@@ -45,15 +46,31 @@ export function getDescendingNote() {
 	return note;
 }
 
-export function playNote(volume = 1, pan = 0, noteType = NoteTypes.RANDOM) {
+export function getSynth(synth) {
+	if(Object.keys(synths).indexOf(synth.id) < 0) {
+		synths[synth.id] = new Synth({
+			envelope: synth.envelope,
+			oscillator: {type: synth.waveform},
+		}).toMaster();
+	}
+	return synths[synth.id];
+}
+
+export function playNote(node, synthId) {
 	if(!store) return;
-	console.log('Playing note');
+	const volume = 1;
+	const pan = 0;
+	const noteType = node.noteType || NoteTypes.RANDOM;
 
 	// get vars from store
 	const state = store.getState();
+	const synthData = state.synths.reduce((prev, item) => item.id === synthId ? item : prev, null);
+	if(!synthData) return;
+
+	const synth = getSynth(synthData);
+
 	const { mode, scale, octave } = _get(state, 'musicality', {});
-	const adsr = _get(state, 'envelope');
-	const { waveform } = _get(state, 'sound', {});
+	const adsr = synthData.envelope;
 
 	// decide what note ot play next
 	let note = null;
@@ -62,19 +79,9 @@ export function playNote(volume = 1, pan = 0, noteType = NoteTypes.RANDOM) {
 		case NoteTypes.DOWN: note = getDescendingNote(); break;
 		default: note = getRandomNote();
 	}
+
 	const freq = mode.degreeToFreq(note, (12*octave + scale).midicps(), 1);
-
-	// create synth and play
-	const synth = new Synth({
-		envelope: adsr, 
-		oscillator: {type: waveform}
-	}).toMaster();
 	synth.triggerAttackRelease(freq, 0);
-	// synth.triggerAttack(freq, 0, volume); // dunno why this doesn't work
-	// TODO: get volume to work again
-
-	// not sure if there's a way to get an envelope complete callback ... so manually destroy for now
-	setTimeout(() => synth.dispose(), adsr.attack*1000*adsr.max + adsr.decay*1000*adsr.max);
 	
 	return note;
 }

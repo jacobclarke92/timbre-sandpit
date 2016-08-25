@@ -96,6 +96,10 @@ class PrimaryInterface extends Component {
 		this.activeNodeIndicator.cacheAsBitmap = true;
 		this.stage.addChild(this.activeNodeIndicator);
 
+		this.ringsFX = [];
+		this.ringFX = new Graphics();
+		this.stage.addChild(this.ringFX);
+
 		// state vars
 		this.mouseMoved = false;
 		this.mouseDown = false;
@@ -197,7 +201,7 @@ class PrimaryInterface extends Component {
 			noteType: _get(this.props.gui, 'toolSettings.noteType'),
 			noteIndex: _get(this.props.gui, 'toolSettings.noteIndex'),
 		}
-		// if(nodeType == ORIGIN_RING_NODE) attrs.beats = this.props.transport.meterBeats;
+		if(nodeType == ORIGIN_RING_NODE) attrs.synthId = this.props.synths[0].id;
 		this.props.dispatch(createNode(nodeType, attrs));
 	}
 
@@ -275,7 +279,7 @@ class PrimaryInterface extends Component {
 
 	animate() {
 
-		const { gui, stage, transport } = this.props;
+		const { gui, stage, transport, musicality } = this.props;
 		const { pointNodes, originRingNodes } = stage;
 		const elapsed = Date.now() - transport.startTime;
 		const beatMS = (1000*60)/transport.bpm; // idk why divide 2 okay
@@ -304,9 +308,16 @@ class PrimaryInterface extends Component {
 			if(ringSize < node.lastRingSize) node.loopCounter ++;
 			for(let nearbyPointNode of node.nearbyPointNodes) {
 				if(nearbyPointNode.distance <= ringSize && nearbyPointNode.counter < node.loopCounter) {
-					console.log('play note');
-					playNote(1, 0, nearbyPointNode.ref.noteType);
 					nearbyPointNode.counter = node.loopCounter;
+					const noteIndex = playNote(nearbyPointNode.ref, attrs.synthId);
+					this.ringsFX.push({
+						id: newId(),
+						position: nearbyPointNode.ref.position,
+						counter: 0,
+						opacity: 1,
+						radius: 0,
+						color: noteColors[(noteIndex + musicality.scale)%12],
+					});
 				}
 			}
 
@@ -314,6 +325,18 @@ class PrimaryInterface extends Component {
 
 		}
 		
+		// render FX rings
+		this.ringFX.clear();
+		for(let ringFX of this.ringsFX) {
+			ringFX.radius += transport.bpm/200; // just eyeballed this one
+			if(++ringFX.counter >= 60) {
+				if(ringFX.opacity > 0) ringFX.opacity -= 0.05;
+			}
+			this.ringFX.lineStyle(2, ringFX.color, ringFX.opacity);
+			this.ringFX.drawCircle(ringFX.position.x, ringFX.position.y, ringFX.radius);
+		}
+		this.ringsFX = this.ringsFX.filter(ring => ring.opacity > 0);
+
 		// pan controls
 		if(isUpKeyPressed()) this.stage.position.y += scaleEase;
 		else if(isDownKeyPressed()) this.stage.position.y -= scaleEase;
@@ -383,5 +406,5 @@ class PrimaryInterface extends Component {
 
 }
 
-export default connect(({gui, stage, musicality, envelope, transport}) => ({gui, stage, musicality, envelope, transport}))(PrimaryInterface)
+export default connect(({gui, stage, musicality, synths, transport}) => ({gui, stage, musicality, synths, transport}))(PrimaryInterface)
 
