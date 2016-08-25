@@ -2,6 +2,7 @@ import React, { Component } from 'react'
 import { connect } from 'react-redux'
 import classname from 'classname'
 
+import { STAGE } from '../constants/uiViews'
 import { checkDifferenceAny } from '../utils/lifecycleUtils'
 import PropertiesUI from './ui/PropertiesUI'
 
@@ -17,7 +18,7 @@ class BottomUI extends Component {
 		const { gui } = this.props;
 		const NodeUI = gui.activeNode ? (PropertiesUI[gui.activeNode.nodeType] || null) : null;
 		return (
-			<div className={classname('ui-properties', gui.activeNode && 'active')}>
+			<div className={classname('ui-properties', gui.view == STAGE && gui.activeNode && 'active')}>
 				<h4 className="caps">Properties</h4>
 				{NodeUI && <NodeUI />}
 			</div>
