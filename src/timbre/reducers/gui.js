@@ -22,6 +22,7 @@ const initialState = {
 	tool: NodeTypes.POINT_NODE,
 	toolSettings: initialToolSettings[NodeTypes.POINT_NODE],
 	_toolSettings: {...initialToolSettings},
+	activeNode: null,
 };
 
 export default function(state = initialState, action) {
@@ -47,6 +48,12 @@ export default function(state = initialState, action) {
 				toolSettings[key] = action.settings[key];
 			});
 			return {...state, toolSettings};
+
+		case ActionTypes.SET_ACTIVE_NODE:
+			return {...state, activeNode: action.node};
+
+		case ActionTypes.CLEAR_ACTIVE_NODE:
+			return {...state, activeNode: null};
 	}
 	return state;
 }

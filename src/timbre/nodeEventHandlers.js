@@ -23,11 +23,9 @@ export function pointNodePointerDown(event) {
 }
 
 export function pointNodePointerUp(event) {
-	// if pointer hasn't moved since pointer down then remove
 	if(!this.mouseMoved && event.target) {
 		event.stopPropagation();
-		// this.removeNode(event.target);
-		this.activeNode = event.target;
+		this.setActiveNode(event.target);
 	}
 
 	this.placing = false;

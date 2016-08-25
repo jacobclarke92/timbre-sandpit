@@ -14,6 +14,7 @@ import newId from '../utils/newId'
 import noteColors from '../constants/noteColors'
 import * as NoteTypes from '../constants/noteTypes'
 import * as NodeTypes from '../constants/nodeTypes'
+import * as ActionTypes from '../constants/actionTypes'
 import { createNode, removeNode } from '../reducers/stage'
 import { getRandomNote, getAscendingNote, getDescendingNote, playNote } from '../sound'
 import { createPointNode, redrawPointNode, createRingNode, createArcNode, createRadarNode } from '../nodeGenerators'
@@ -109,7 +110,7 @@ class PrimaryInterface extends Component {
 		addResizeCallback(::this.handleResize);
 		addKeyListener('backspace', ::this.removeActiveNode);
 		addKeyListener('delete', ::this.removeActiveNode);
-		addKeyListener('esc', () => this.activeNode = null);
+		addKeyListener('esc', ::this.clearActiveNode);
 		setTimeout(() => triggerResize(), 10);
 
 		this.mounted = true;
@@ -141,7 +142,7 @@ class PrimaryInterface extends Component {
 	handlePointerUp(event) {
 		this.mouseDown = false;
 		if(!this.mouseMoved) {
-			if(this.activeNode) this.activeNode = null;
+			if(this.activeNode) this.clearActiveNode();
 			else this.createNode(event);
 		}
 	}
@@ -186,10 +187,37 @@ class PrimaryInterface extends Component {
 		this.props.dispatch(removeNode(nodeInstance.nodeType, nodeInstance.id));
 	}
 
+	// for setting active node selection
+	setActiveNode(nodeInstance) {
+
+		// this bit is dumb
+		let lookup = '';
+		switch(nodeInstance.nodeType) {
+			case NodeTypes.ARC_NODE: lookup = 'arcNodes'; break;
+			case NodeTypes.POINT_NODE: lookup = 'pointNodes'; break;
+			case NodeTypes.ORIGIN_RING_NODE: lookup = 'ringNodes'; break;
+			case NodeTypes.ORIGIN_RADAR_NODE: lookup = 'radarNodes'; break;
+			default: return false;
+		}
+
+		const actualNode = this.props.stage[lookup].reduce((prev, node) => (!prev && node.id == nodeInstance.id) ? node : prev, null);
+		this.activeNode = nodeInstance;
+		this.props.dispatch({type: ActionTypes.SET_ACTIVE_NODE, node: actualNode});
+	}
+
+	// for clearing active node selection
+	clearActiveNode() {
+		if(this.props.gui.activeNode) {
+			this.props.dispatch({type: ActionTypes.CLEAR_ACTIVE_NODE})
+			this.activeNode = null;
+		}
+	}
+	
+	// for actually deleting the active node
 	removeActiveNode() {
-		if(!this.activeNode) return;
+		if(!this.props.gui.activeNode) return;
 		this.removeNode(this.activeNode);
-		this.activeNode = null;
+		this.clearActiveNode();
 	}
 
 	createNodeInstance(nodeType, nodeAttrs)  {
