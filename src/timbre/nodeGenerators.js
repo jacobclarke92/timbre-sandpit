@@ -39,7 +39,7 @@ export function createRingNode(_attrs) {
 	graphic.moveTo(-10, 0);
 	graphic.lineTo(10, 0);
 	graphic.cacheAsBitmap = true;
-	
+
 	node.graphic = graphic;
 	node.addChild(graphic);
 
@@ -98,12 +98,10 @@ export function redrawPointNode(_attrs, node) {
 	
 	let color = 0xFFFFFF;
 	switch(attrs.noteType) {
-		case NoteTypes.UP: 
-			color = 0x5D8FFF; 
+		case NoteTypes.UP:
 			node.rotation = -Math.PI/2;
 			break;
-		case NoteTypes.DOWN: 
-			color = 0xFF489E; 
+		case NoteTypes.DOWN:
 			node.rotation = Math.PI/2;
 			break;
 		case NoteTypes.NOTE:
