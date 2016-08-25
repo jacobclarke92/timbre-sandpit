@@ -19,7 +19,8 @@ import * as ActionTypes from '../constants/actionTypes'
 import { bindNodeEvents } from '../nodeEventHandlers'
 import { createNode, removeNode } from '../reducers/stage'
 import { getRandomNote, getAscendingNote, getDescendingNote, playNote } from '../sound'
-import { createPointNode, redrawPointNode, createRingNode, createArcNode, createRadarNode } from '../nodeGenerators'
+import { redrawPointNode, redrawRingGuides } from '../nodeGraphics'
+import { createPointNode, createRingNode, createArcNode, createRadarNode } from '../nodeGenerators'
 import { nodeTypeLookup, nodeTypeKeys, POINT_NODE, ARC_NODE, ORIGIN_RING_NODE, ORIGIN_RADAR_NODE } from '../constants/nodeTypes'
 
 const scaleEase = 10;
@@ -243,6 +244,24 @@ class PrimaryInterface extends Component {
 		}
 	}
 
+	getNearbyPointNodes(node, pointNodes = this.props.stage.pointNodes) {
+		const oldIds = (node.nearbyPointNodes || []).map(item => item.id);
+		node.nearbyPointNodes = [];
+
+		for(let pointNodeAttrs of pointNodes) {
+			const pointNode = this.pointNodes[pointNodeAttrs.id];
+			const distance = new Point(node.position).distance(pointNode.position);
+			if(distance <= node.radius) {
+				node.nearbyPointNodes.push({
+					id: pointNodeAttrs.id, 
+					counter: oldIds.indexOf(pointNodeAttrs.id) >= 0 ? node.loopCounter : node.loopCounter-1,
+					distance,
+					ref: pointNode,
+				});
+			}
+		}
+	}
+
 	animate() {
 
 		const { gui, stage, transport } = this.props;
@@ -269,6 +288,18 @@ class PrimaryInterface extends Component {
 			node.ring.clear();
 			node.ring.lineStyle(2, 0xFFFFFF, 1);
 			node.ring.drawCircle(0, 0, ringSize);
+
+			if(!node.nearbyPointNodes) this.getNearbyPointNodes(node);
+			if(ringSize < node.lastRingSize) node.loopCounter ++;
+			for(let nearbyPointNode of node.nearbyPointNodes) {
+				if(nearbyPointNode.distance <= ringSize && nearbyPointNode.counter < node.loopCounter) {
+					playNote(1, 0, nearbyPointNode.ref.noteType);
+					nearbyPointNode.counter = node.loopCounter;
+				}
+			}
+
+			node.lastRingSize = ringSize;
+
 		}
 		
 		// pan controls
@@ -303,6 +334,10 @@ class PrimaryInterface extends Component {
 		// check if length of any node arrays changed, if so do an update
 		if(checkDifferenceAny(this.props, nextProps, nodeTypeKeys.map(key => 'stage.'+key+'.length'))) {
 			this.generateNodeInstances(nextProps.stage);
+			for(let attrs of nextProps.stage.originRingNodes) {
+				const node = this.originRingNodes[attrs.id];
+				this.getNearbyPointNodes(node, nextProps.stage.pointNodes);
+			}
 		}
 
 		// update active node if relevant

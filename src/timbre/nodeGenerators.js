@@ -40,6 +40,8 @@ export function createRingNode(_attrs) {
 	node.inited = false;
 	node.interactive = true;
 	node.buttonMode = true;
+	node.lastRingSize = 0;
+	node.loopCounter = 0;
 	node.hitArea = new Rectangle(-10, -10, 20, 20);
 	node.scale.set(attrs.scale);
 	node.position.set(attrs.position.x, attrs.position.y);
