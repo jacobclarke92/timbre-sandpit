@@ -2,7 +2,6 @@ import React, { Component } from 'react'
 import { connect } from 'react-redux'
 import classname from 'classname'
 
-import modes from '../../constants/modes'
 import noteColors from '../../constants/noteColors'
 import noteStrings from '../../constants/noteStrings'
 import * as NodeTypes from '../../constants/nodeTypes'

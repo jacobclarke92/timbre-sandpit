@@ -181,7 +181,7 @@ button.button-icon svg {
 .ui > div:not(:last-child) {
   margin-bottom: 5px;
 }
-.ui .ui-global {
+.ui-global {
   display: -webkit-flex;
   display: -ms-flexbox;
   display: flex;
@@ -233,6 +233,18 @@ button.button-icon svg {
 .interface-container > .mappings-interface p,
 .interface-container > .fx-interface p {
   font-size: 24px;
+}
+.ui-properties {
+  position: fixed;
+  left: 0;
+  bottom: -100px;
+  width: 100vw;
+  height: 100px;
+  background-color: #FDFFFC;
+  transition: bottom 0.2s ease-in-out;
+}
+.ui-properties.active {
+  bottom: 0;
 }
 .beat-indicator {
   display: inline-block;

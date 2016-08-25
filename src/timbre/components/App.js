@@ -6,8 +6,8 @@ import { STAGE, OSCILLATORS, MAPPINGS, FX } from '../constants/uiViews'
 import { addKeyListener } from '../utils/keyUtils'
 import { changeView } from '../reducers/gui'
 
-import Envelope from './Envelope'
 import TopUI from './TopUI'
+import BottomUI from './BottomUI'
 import MusicalityInterface from './MusicalityInterface'
 import PrimaryInterface from './PrimaryInterface'
 import OscillatorsInterface from './OscillatorsInterface'
@@ -38,6 +38,7 @@ class App extends Component {
 					{view == MAPPINGS && <MappingsInterface />}
 					{view == FX && <FxInterface />}
 				</div>
+				<BottomUI />
 			</main>
 		)
 	}

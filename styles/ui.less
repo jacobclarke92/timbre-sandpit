@@ -2,7 +2,7 @@
 	display: flex;
 	flex-shrink: 0;
 	flex-direction: column;
-    height: @ui-height - @gutter*2;
+    height: @ui-top-height - @gutter*2;
     padding: @gutter;
 
     >div:first-child {
@@ -13,28 +13,24 @@
     >div:not(:last-child) {
     	margin-bottom: @gutter;
     }
+}
 
-    .ui-global {
-    	display: flex;
-    	flex-wrap: nowrap;
-    	justify-content: space-between;
-    }
+.ui-global {
+	display: flex;
+	flex-wrap: nowrap;
+	justify-content: space-between;
+}
 
-    .ui-view {
+.ui-view {
 
-    }
-
-    .ui-selection {
-
-    }
 }
 
 .interface-container {
     position: absolute;
-    top: @ui-height;
+    top: @ui-top-height;
     left: 0;
     width: 100vw;
-    height: calc(100vh ~"-" @ui-height);
+    height: calc(100vh ~"-" @ui-top-height);
 
     > .primary-interface {
         .cover();
@@ -54,6 +50,20 @@
         p {
             font-size: 24px;
         }
+    }
+}
+
+.ui-properties {
+    position: fixed;
+    left: 0;
+    bottom: -@ui-bottom-height;
+    width: 100vw;
+    height: @ui-bottom-height;
+    background-color: @white;
+    transition: bottom 0.2s ease-in-out;
+
+    &.active {
+        bottom: 0;
     }
 }
 

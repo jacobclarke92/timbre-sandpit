@@ -15,7 +15,7 @@ import Button from './ui/Button'
 import ButtonIcon from './ui/ButtonIcon'
 import NumberInput from './ui/NumberInput'
 import BeatIndicator from './ui/BeatIndicator'
-import Tools from './ui/Tools'
+import ToolsUI from './ui/ToolsUI'
 
 const views = [
 	{type: UiViews.STAGE, icon: 'stage', label: 'Stage'},
@@ -66,7 +66,7 @@ class TopUI extends Component {
 		const { gui } = this.props;
 		const { modeString, scaleString, scale } = this.props.musicality;
 		const { playing, bpm, meterBeats, meterTime } = this.props.transport;
-		const ToolUi = Tools[gui.tool] || null;
+		const ToolUI = ToolsUI[gui.tool] || null;
 		return (
 			<div className="ui">
 				<div className="ui-global">
@@ -101,7 +101,7 @@ class TopUI extends Component {
 					</div>
 				</div>
 				<div className="ui-selection">
-					{ToolUi && <ToolUi />}
+					{ToolUI && <ToolUI />}
 				</div>
 				{this.props.showIcons && 
 					<div className="ui-icons">
