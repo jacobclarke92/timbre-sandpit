@@ -1,6 +1,7 @@
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
 import PIXI, { Container, Graphics, Sprite } from 'pixi.js'
+import { Loop } from 'tone'
 import _throttle from 'lodash/throttle'
 import _get from 'lodash/get'
 import $ from 'jquery'
@@ -88,12 +89,14 @@ class PrimaryInterface extends Component {
 			this.stage.addChild(dots);
 		}
 
+		this.activeNode = null;
 		this.activeNodeIndicator = new Graphics();
 		this.activeNodeIndicator.lineStyle(2, 0xFFFFFF, 0.5);
 		this.activeNodeIndicator.drawCircle(0, 0, 15);
 		this.activeNodeIndicator.cacheAsBitmap = true;
 		this.stage.addChild(this.activeNodeIndicator);
 
+		// state vars
 		this.mouseMoved = false;
 		this.mouseDown = false;
 		this.stageCursor = new Point(0,0);
@@ -107,8 +110,9 @@ class PrimaryInterface extends Component {
 			this[nodeTypeLookup[nodeKey]] = {};
 		}
 
-		this.activeNode = null;
-
+		// transport callback
+		this.loop = new Loop(::this.tick, this.props.transport.meterTime+'n');
+		this.beat = -1;
 
 		// bind scrollwheel to sizing anchor nodes
 		$(window).on('mousewheel DOMMouseScroll', ::this.handleMousewheel);
@@ -174,6 +178,13 @@ class PrimaryInterface extends Component {
 			this.stage.position.x += this.cursor.x - this.lastCursor.x;
 			this.stage.position.y += this.cursor.y - this.lastCursor.y;
 		}
+	}
+
+	tick() {
+		this.beat ++;
+		if(this.beat >= this.props.transport.meterBeats) this.beat = 0;
+		this.renderer.backgroundColor = this.beat === 0 ? 0x0f0f0f : 0x050505;
+		setTimeout(() => this.renderer.backgroundColor = 0x000, 100);
 	}
 
 	createNode(event) {
@@ -267,7 +278,7 @@ class PrimaryInterface extends Component {
 		const { gui, stage, transport } = this.props;
 		const { pointNodes, originRingNodes } = stage;
 		const elapsed = Date.now() - transport.startTime;
-		const beatMS = (1000*60)/transport.bpm;
+		const beatMS = (1000*60)/transport.bpm; // idk why divide 2 okay
 
 		// active node indiciator
 		if(this.activeNode) {
@@ -320,7 +331,13 @@ class PrimaryInterface extends Component {
 	componentWillReceiveProps(nextProps) {
 
 		// force animation to start again if props updates
-		if(nextProps.transport.playing && !this.props.transport.playing) setTimeout(() => this.animate());
+		if(nextProps.transport.playing && !this.props.transport.playing) {
+			setTimeout(() => this.animate());
+			this.beat = -1;
+			this.loop.start(0);
+		}else if(!nextProps.transport.playing && this.props.transport.playing) {
+			this.loop.stop();
+		}
 
 		// redraw coloured nodes if scale or mode changes
 		if(checkDifferenceAny(this.props, nextProps, ['musicality.scale', 'musicality.modeString'])) {

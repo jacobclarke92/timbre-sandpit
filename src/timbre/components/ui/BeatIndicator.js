@@ -25,7 +25,7 @@ class BeatIndicator extends Component {
 		if(nextProps.transport.playing && !this.props.transport.playing) {
 			this.beat = -1;
 			this.loop.start(0);
-		}else{
+		}else if(!nextProps.transport.playing && this.props.transport.playing) {
 			this.loop.stop();
 		}
 	}
