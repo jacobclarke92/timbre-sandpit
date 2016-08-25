@@ -12,10 +12,11 @@ import { checkDifferenceAny } from '../utils/lifecycleUtils'
 import { getPixelDensity, addResizeCallback, triggerResize } from '../utils/screenUtils'
 import { isUpKeyPressed, isDownKeyPressed, isLeftKeyPressed, isRightKeyPressed, addKeyListener } from '../utils/keyUtils'
 
-import { bindNodeEvents } from '../nodeEventHandlers'
+import { beatPX } from '../constants/globals'
 import noteColors from '../constants/noteColors'
 import * as NoteTypes from '../constants/noteTypes'
 import * as ActionTypes from '../constants/actionTypes'
+import { bindNodeEvents } from '../nodeEventHandlers'
 import { createNode, removeNode } from '../reducers/stage'
 import { getRandomNote, getAscendingNote, getDescendingNote, playNote } from '../sound'
 import { createPointNode, redrawPointNode, createRingNode, createArcNode, createRadarNode } from '../nodeGenerators'
@@ -47,7 +48,12 @@ class PrimaryInterface extends Component {
 		this.handleResize();
 			
 		// init renderer
-		this.renderer = new PIXI.autoDetectRenderer(this.width/getPixelDensity(), this.height/getPixelDensity(), {resolution: getPixelDensity(), transparent: false, backgroundColor: 0x000000, antialiasing: true});
+		this.renderer = new PIXI.autoDetectRenderer(this.width/getPixelDensity(), this.height/getPixelDensity(), {
+			resolution: getPixelDensity(), 
+			transparent: false, 
+			backgroundColor: 0x000000, 
+			antialiasing: true
+		});
 		this.canvas = this.renderer.view;
 		this.$container.append(this.canvas);
 
@@ -172,13 +178,15 @@ class PrimaryInterface extends Component {
 	createNode(event) {
 		if(!event.target || !event.data) return;
 		const spawnPoint = event.data.getLocalPosition(event.target);
+		const nodeType = this.props.gui.tool;
 		const attrs = {
 			id: newId(), 
 			position: {x: spawnPoint.x, y: spawnPoint.y},
 			noteType: _get(this.props.gui, 'toolSettings.noteType'),
 			noteIndex: _get(this.props.gui, 'toolSettings.noteIndex'),
 		}
-		this.props.dispatch(createNode(this.props.gui.tool, attrs));
+		// if(nodeType == ORIGIN_RING_NODE) attrs.beats = this.props.transport.meterBeats;
+		this.props.dispatch(createNode(nodeType, attrs));
 	}
 
 	removeNode(nodeInstance) {
@@ -239,6 +247,8 @@ class PrimaryInterface extends Component {
 
 		const { gui, stage, transport } = this.props;
 		const { pointNodes, originRingNodes } = stage;
+		const elapsed = Date.now() - transport.startTime;
+		const beatMS = (1000*60)/transport.bpm;
 
 		// active node indiciator
 		if(this.activeNode) {
@@ -248,6 +258,17 @@ class PrimaryInterface extends Component {
 			this.activeNodeIndicator.scale.set(1 + Math.cos(indicatorOsc)*0.05);
 		}else{
 			this.activeNodeIndicator.alpha = 0;
+		}
+
+		for(let attrs of originRingNodes) {
+			const node = this.originRingNodes[attrs.id];
+			const loopTime = beatMS * node.beats;
+			const currentTime = elapsed % loopTime;
+			const percent = currentTime/loopTime;
+			const ringSize = beatPX * (percent*node.beats);
+			node.ring.clear();
+			node.ring.lineStyle(2, 0xFFFFFF, 1);
+			node.ring.drawCircle(0, 0, ringSize);
 		}
 		
 		// pan controls

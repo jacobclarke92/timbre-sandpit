@@ -1,10 +1,9 @@
-import PIXI, { Container, Graphics, Sprite } from 'pixi.js'
+import PIXI, { Container, Graphics, Sprite, Rectangle } from 'pixi.js'
 
 import newId from './utils/newId'
 import Point from './Point'
 
-import * as NoteTypes from './constants/noteTypes'
-import noteColors from './constants/noteColors'
+import { redrawPointNode, redrawRingGuides } from './nodeGraphics'
 
 let store = null;
 export function receiveStore(_store) {
@@ -14,24 +13,19 @@ export function receiveStore(_store) {
 const defaultNodeAttrs = {
 	position: new Point(0,0),
 	scale: 1,
-	radius: 4,
-	noteType: NoteTypes.RANDOM,
 };
 
 export function createRingNode(_attrs) {
 	const attrs = {...defaultNodeAttrs, ..._attrs};
+	const state = store.getState();
 
 	const node = new Container();
 	const graphic = new Graphics();
-
-	node.id = attrs.id || newId();
-	node.nodeType = attrs.nodeType;
-	node.inited = false;
-	node.interactive = true;
-	node.buttonMode = true;
-	node.radius = attrs.radius;
-	node.scale.set(attrs.scale);
-	node.position.set(attrs.position.x, attrs.position.y);
+	node.graphic = graphic;
+	const ring = new Graphics();
+	node.ring = ring;
+	const guides = new Graphics();
+	node.guides = guides;
 
 	graphic.lineStyle(2, 0xFFFFFF, 1);
 	graphic.moveTo(0, -10);
@@ -39,9 +33,20 @@ export function createRingNode(_attrs) {
 	graphic.moveTo(-10, 0);
 	graphic.lineTo(10, 0);
 	graphic.cacheAsBitmap = true;
+	redrawRingGuides(attrs, node);
 
-	node.graphic = graphic;
+	node.id = attrs.id || newId();
+	node.nodeType = attrs.nodeType;
+	node.inited = false;
+	node.interactive = true;
+	node.buttonMode = true;
+	node.hitArea = new Rectangle(-10, -10, 20, 20);
+	node.scale.set(attrs.scale);
+	node.position.set(attrs.position.x, attrs.position.y);
+
 	node.addChild(graphic);
+	node.addChild(ring);
+	node.addChild(guides);
 
 	return node;
 }
@@ -87,40 +92,6 @@ export function createPointNode(_attrs) {
 	node.position.set(attrs.position.x, attrs.position.y);
 	 
 	return node;
-}
-
-export function redrawPointNode(_attrs, node) {
-	if(!_attrs || !node) return;
-
-	const attrs = {...defaultNodeAttrs, ..._attrs};
-	const state = store.getState();
-	const { scale, notes } = state.musicality;
-	
-	let color = 0xFFFFFF;
-	switch(attrs.noteType) {
-		case NoteTypes.UP:
-			node.rotation = -Math.PI/2;
-			break;
-		case NoteTypes.DOWN:
-			node.rotation = Math.PI/2;
-			break;
-		case NoteTypes.NOTE:
-			const note = (scale + notes[attrs.noteIndex % notes.length]) % 12;
-			color = noteColors[note];
-			break;
-	}
-	node.graphic.cacheAsBitmap = false;
-	node.graphic.clear();
-	node.graphic.beginFill(color);
-	node.graphic.drawCircle(0, 0, attrs.radius);
-	if(attrs.noteType == NoteTypes.UP || attrs.noteType == NoteTypes.DOWN) {
-		node.graphic.drawPolygon([
-			0,-attrs.radius, 
-			0, attrs.radius,
-			attrs.radius*3, 0,
-		]);
-	}
-	node.graphic.cacheAsBitmap = true;
 }
 
 export function createArcNode(_attrs) {

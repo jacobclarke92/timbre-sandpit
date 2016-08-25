@@ -1,5 +1,5 @@
 import * as ActionTypes from '../constants/actionTypes'
-import { nodeTypeLookup } from '../constants/nodeTypes'
+import { nodeTypeLookup, ARC_NODE, POINT_NODE, ORIGIN_RING_NODE, ORIGIN_RADAR_NODE } from '../constants/nodeTypes'
 import * as NoteTypes from '../constants/noteTypes'
 
 const initialState = {
@@ -39,12 +39,17 @@ export default function (state = initialState, action) {
 const defaultNodeAttrs = {
 	position: {x: 0, y: 0},
 	scale: 1,
-	radius: 4,
-	noteType: NoteTypes.RANDOM,
+};
+
+const defaultNodes = {
+	[ARC_NODE]: {...defaultNodeAttrs, circ: Math.PI/2, angle: 0, noteType: NoteTypes.RANDOM},
+	[POINT_NODE]: {...defaultNodeAttrs, radius: 4, noteType: NoteTypes.RANDOM},
+	[ORIGIN_RING_NODE]: {...defaultNodeAttrs, bars: 4},
+	[ORIGIN_RADAR_NODE]: {...defaultNodeAttrs, bars: 4},
 };
 
 export function createNode(nodeType, nodeAttrs = {}) {
-	const node = {...defaultNodeAttrs, ...nodeAttrs, nodeType};
+	const node = {...defaultNodes[nodeType], ...nodeAttrs, nodeType};
 	console.log('Adding', nodeType, nodeAttrs);
 	return {type: ActionTypes.ADD_NODE, nodeType, node};
 }
