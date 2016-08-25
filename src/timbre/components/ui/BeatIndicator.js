@@ -17,8 +17,6 @@ class BeatIndicator extends Component {
 
 	componentDidMount() {
 		this.loop = new Loop(::this.tick, this.props.transport.meterTime+'n');
-		console.log(this.props.transport.playing);
-		if(this.props.transport.playing) setTimeout(() => this.loop.start(0), 100);
 	}
 
 	componentWillReceiveProps(nextProps) {

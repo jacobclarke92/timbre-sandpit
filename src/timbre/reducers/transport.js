@@ -5,11 +5,9 @@ const initialState = {
 	bpm: 128,
 	meterBeats: 4,
 	meterTime: 4,
-	playing: true,
+	playing: false,
 	startTime: Date.now(),
 };
-
-setBpm(initialState.bpm);
 
 export default function(state = initialState, action) {
 	switch(action.type) {

@@ -19,7 +19,7 @@ const initialToolSettings = {
 
 const initialState = {
 	view: UiViews.STAGE,
-	tool: NodeTypes.POINT_NODE,
+	tool: NodeTypes.ORIGIN_RING_NODE,
 	toolSettings: initialToolSettings[NodeTypes.POINT_NODE],
 	_toolSettings: {...initialToolSettings},
 	activeNode: null,
