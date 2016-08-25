@@ -287,7 +287,7 @@ class PrimaryInterface extends Component {
 		// update active node if relevant
 		const activeNode = this.props.gui.activeNode;
 		const nextActiveNode = nextProps.gui.activeNode;
-		if(activeNode && nextActiveNode && checkDifferenceAny(activeNode, nextActiveNode, ['noteType', 'noteIndex'])) {
+		if(activeNode && nextActiveNode && activeNode.id == nextActiveNode.id && checkDifferenceAny(activeNode, nextActiveNode, ['noteType', 'noteIndex'])) {
 			const key = nodeTypeLookup[nextActiveNode.nodeType];
 			redrawPointNode(nextActiveNode, this[key][nextActiveNode.id]);
 		}
