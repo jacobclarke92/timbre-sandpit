@@ -6,19 +6,20 @@ import _get from 'lodash/get'
 import $ from 'jquery'
 
 import Point from '../Point'
-import { getPixelDensity, addResizeCallback, triggerResize } from '../utils/screenUtils'
-import { dist, clamp, inBounds } from '../utils/mathUtils'
-import { isUpKeyPressed, isDownKeyPressed, isLeftKeyPressed, isRightKeyPressed, addKeyListener } from '../utils/keyUtils'
 import newId from '../utils/newId'
+import { dist, clamp, inBounds } from '../utils/mathUtils'
+import { checkDifferenceAny } from '../utils/lifecycleUtils'
+import { getPixelDensity, addResizeCallback, triggerResize } from '../utils/screenUtils'
+import { isUpKeyPressed, isDownKeyPressed, isLeftKeyPressed, isRightKeyPressed, addKeyListener } from '../utils/keyUtils'
 
+import { bindNodeEvents } from '../nodeEventHandlers'
 import noteColors from '../constants/noteColors'
 import * as NoteTypes from '../constants/noteTypes'
-import * as NodeTypes from '../constants/nodeTypes'
 import * as ActionTypes from '../constants/actionTypes'
 import { createNode, removeNode } from '../reducers/stage'
 import { getRandomNote, getAscendingNote, getDescendingNote, playNote } from '../sound'
 import { createPointNode, redrawPointNode, createRingNode, createArcNode, createRadarNode } from '../nodeGenerators'
-import { bindNodeEvents } from '../nodeEventHandlers'
+import { nodeTypeLookup, nodeTypeKeys, POINT_NODE, ARC_NODE, ORIGIN_RING_NODE, ORIGIN_RADAR_NODE } from '../constants/nodeTypes'
 
 const scaleEase = 10;
 const mouseMoveThrottle = 1000/50; // 50fps
@@ -86,8 +87,6 @@ class PrimaryInterface extends Component {
 		this.activeNodeIndicator.cacheAsBitmap = true;
 		this.stage.addChild(this.activeNodeIndicator);
 
-		this.fxRipples = [];
-		this.placing = false;
 		this.mouseMoved = false;
 		this.mouseDown = false;
 		this.stageCursor = new Point(0,0);
@@ -95,11 +94,11 @@ class PrimaryInterface extends Component {
 		this.cursor = new Point(0,0);
 		this.lastCursor = new Point(0,0);
 
+		// instanciate local references of pixi node instances
 		this.initedNodeIds = [];
-		this.pointNodes = {};
-		this.originRingNodes = {};
-		this.arcNodes = {};
-		this.originRadarNodes = {};
+		for(let nodeKey of Object.keys(nodeTypeLookup)) {
+			this[nodeTypeLookup[nodeKey]] = {};
+		}
 
 		this.activeNode = null;
 
@@ -114,6 +113,7 @@ class PrimaryInterface extends Component {
 		setTimeout(() => triggerResize(), 10);
 
 		this.mounted = true;
+		this.generateNodeInstances();
 		this.animate();
 
 	}
@@ -189,18 +189,8 @@ class PrimaryInterface extends Component {
 
 	// for setting active node selection
 	setActiveNode(nodeInstance) {
-
-		// this bit is dumb
-		let lookup = '';
-		switch(nodeInstance.nodeType) {
-			case NodeTypes.ARC_NODE: lookup = 'arcNodes'; break;
-			case NodeTypes.POINT_NODE: lookup = 'pointNodes'; break;
-			case NodeTypes.ORIGIN_RING_NODE: lookup = 'ringNodes'; break;
-			case NodeTypes.ORIGIN_RADAR_NODE: lookup = 'radarNodes'; break;
-			default: return false;
-		}
-
-		const actualNode = this.props.stage[lookup].reduce((prev, node) => (!prev && node.id == nodeInstance.id) ? node : prev, null);
+		const key = nodeTypeLookup[nodeInstance.nodeType];
+		const actualNode = this.props.stage[key].reduce((prev, node) => (!prev && node.id == nodeInstance.id) ? node : prev, null);
 		this.activeNode = nodeInstance;
 		this.props.dispatch({type: ActionTypes.SET_ACTIVE_NODE, node: actualNode});
 	}
@@ -220,38 +210,35 @@ class PrimaryInterface extends Component {
 		this.clearActiveNode();
 	}
 
+	// generate a pixi instance of a node
 	createNodeInstance(nodeType, nodeAttrs)  {
 		let node = null;
 		switch(nodeType) {
-			case NodeTypes.POINT_NODE:
-				node = createPointNode(nodeAttrs);
-				this.stage.addChild(node);
-				this.pointNodes[nodeAttrs.id] = node;
-				this.initedNodeIds.push(nodeAttrs.id);
-				break;
-
-			case NodeTypes.ORIGIN_RING_NODE:
-				node = createRingNode(nodeAttrs);
-				this.stage.addChild(node);
-				this.ringNodes[nodeAttrs.id] = node;
-				this.initedNodeIds.push(nodeAttrs.id);
-				break;
+			case POINT_NODE: node = createPointNode(nodeAttrs); break;
+			case ORIGIN_RING_NODE: node = createRingNode(nodeAttrs); break;
+			default: console.log('Failed to create node instance', nodeType, nodeAttrs); return;
 		}
-		if(node) bindNodeEvents.call(this, nodeType, node);
+		this.stage.addChild(node);
+		this[nodeTypeLookup[nodeType]][nodeAttrs.id] = node;
+		this.initedNodeIds.push(nodeAttrs.id);
+		bindNodeEvents.call(this, nodeType, node);
+	}
+
+	// go over all node types in stage store and check if an instance has been generated
+	generateNodeInstances(stage = this.props.stage) {
+		for(let nodeKey of Object.keys(nodeTypeLookup)) {
+			for(let node of stage[nodeTypeLookup[nodeKey]]) {
+				if(this.initedNodeIds.indexOf(node.id) < 0) {
+					this.createNodeInstance(nodeKey, node);
+				}
+			}
+		}
 	}
 
 	animate() {
 
 		const { gui, stage, transport } = this.props;
 		const { pointNodes, originRingNodes } = stage;
-
-		for(let pointNode of pointNodes) {
-			// instanciate a pixi pointNode if it doesn't exist - just created or on load
-			if(this.initedNodeIds.indexOf(pointNode.id) < 0) {
-				console.log('Creating PIXI pointNode');
-				this.createNodeInstance(NodeTypes.POINT_NODE, pointNode)
-			}
-		}
 
 		// active node indiciator
 		if(this.activeNode) {
@@ -284,14 +271,16 @@ class PrimaryInterface extends Component {
 		if(nextProps.transport.playing && !this.props.transport.playing) setTimeout(() => this.animate());
 
 		// redraw coloured nodes if scale or mode changes
-		if(nextProps.musicality.scale != this.props.musicality.scale
-			|| nextProps.musicality.modeString != this.props.musicality.modeString) {
-
+		if(checkDifferenceAny(this.props, nextProps, ['musicality.scale', 'musicality.modeString'])) {
 			for(let pointNode of nextProps.stage.pointNodes) {
 				if(pointNode.noteType == NoteTypes.NOTE) {
 					redrawPointNode(pointNode, this.pointNodes[pointNode.id]);
 				}
 			}
+		}
+		
+		if(checkDifferenceAny(this.props, nextProps, nodeTypeKeys.map(key => 'stage.'+key+'.length'))) {
+			this.generateNodeInstances(nextProps.stage);
 		}
 	}
 

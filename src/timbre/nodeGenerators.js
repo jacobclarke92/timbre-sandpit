@@ -33,8 +33,13 @@ export function createRingNode(_attrs) {
 	node.scale.set(attrs.scale);
 	node.position.set(attrs.position.x, attrs.position.y);
 
-	graphic.beginFill(0xFFFFFF);
-	graphic.drawCircle(0, 0, node.radius);
+	graphic.lineStyle(2, 0xFFFFFF, 1);
+	graphic.moveTo(0, -10);
+	graphic.lineTo(0, 10);
+	graphic.moveTo(-10, 0);
+	graphic.lineTo(10, 0);
+	graphic.cacheAsBitmap = true;
+	
 	node.graphic = graphic;
 	node.addChild(graphic);
 

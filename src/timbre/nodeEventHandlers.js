@@ -9,6 +9,7 @@ export function bindNodeEvents(nodeType, node) {
 	node.on('mouseout', event => this.hoverNode = null);
 	
 	switch(nodeType) {
+		case NodeTypes.ORIGIN_RING_NODE:
 		case NodeTypes.POINT_NODE:
 			node.on('mousedown', pointNodePointerDown.bind(this));
 			node.on('touchstart', pointNodePointerDown.bind(this));
@@ -28,7 +29,6 @@ export function pointNodePointerUp(event) {
 		this.setActiveNode(event.target);
 	}
 
-	this.placing = false;
 	this.mouseMoved = false;
 	this.mouseDown = false;
 }
