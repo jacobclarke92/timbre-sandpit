@@ -1,5 +1,5 @@
 import * as ActionTypes from '../constants/actionTypes'
-import * as NodeTypes from '../constants/nodeTypes'
+import { nodeTypeLookup } from '../constants/nodeTypes'
 import * as NoteTypes from '../constants/noteTypes'
 
 const initialState = {
@@ -10,46 +10,27 @@ const initialState = {
 };
 
 export default function (state = initialState, action) {
+	let key = null;
 	switch(action.type) {
-		case ActionTypes.ADD_RING_NODE:
+		case ActionTypes.ADD_NODE:
+			key = nodeTypeLookup[action.nodeType];
 			return {
 				...state,
-				originRingNodes: [...state.originRingNodes, action.node]
+				[key]: [...state[key], action.node],
 			}
-		case ActionTypes.REMOVE_RING_NODE:
+
+		case ActionTypes.REMOVE_NODE:
+			key = nodeTypeLookup[action.nodeType];
 			return {
 				...state,
-				originRingNodes: state.originRingNodes.filter(node => node.id != action.id),
+				[key]: state[key].filter(node => node.id != action.id),
 			}
-		case ActionTypes.ADD_RADAR_NODE:
+
+		case ActionTypes.UPDATE_NODE:
+			key = nodeTypeLookup[action.nodeType];
 			return {
 				...state,
-				originRadarNodes: [...state.originRadarNodes, action.node]
-			}
-		case ActionTypes.REMOVE_RADAR_NODE:
-			return {
-				...state,
-				originRadarNodes: state.originRadarNodes.filter(node => node.id != action.id),
-			}
-		case ActionTypes.ADD_POINT_NODE:
-			return {
-				...state,
-				pointNodes: [...state.pointNodes, action.node]
-			}
-		case ActionTypes.REMOVE_POINT_NODE:
-			return {
-				...state,
-				pointNodes: state.pointNodes.filter(node => node.id != action.id),
-			}
-		case ActionTypes.ADD_ARC_NODE:
-			return {
-				...state,
-				arcNodes: [...state.arcNodes, action.node]
-			}
-		case ActionTypes.REMOVE_ARC_NODE:
-			return {
-				...state,
-				arcNodes: state.arcNodes.filter(node => node.id != action.id),
+				[key]: state[key].map(node => node.id == action.node.id ? action.node : node),
 			}
 	}
 	return state;
@@ -65,33 +46,13 @@ const defaultNodeAttrs = {
 export function createNode(nodeType, nodeAttrs = {}) {
 	const node = {...defaultNodeAttrs, ...nodeAttrs, nodeType};
 	console.log('Adding', nodeType, nodeAttrs);
-	switch(nodeType) {
-		case NodeTypes.ORIGIN_RING_NODE:
-			return {type: ActionTypes.ADD_RING_NODE, node}; break;
-
-		case NodeTypes.ORIGIN_RADAR_NODE:
-			return {type: ActionTypes.ADD_RADAR_NODE, node}; break;
-
-		case NodeTypes.POINT_NODE:
-			return {type: ActionTypes.ADD_POINT_NODE, node}; break;
-
-		case NodeTypes.ARC_NODE:
-			return {type: ActionTypes.ADD_ARC_NODE, node}; break;
-	}
+	return {type: ActionTypes.ADD_NODE, nodeType, node};
 }
 
 export function removeNode(nodeType, id) {
-	switch(nodeType) {
-		case NodeTypes.ORIGIN_RING_NODE:
-			return {type: ActionTypes.REMOVE_RING_NODE, id}; break;
+	return {type: ActionTypes.REMOVE_NODE, nodeType, id};
+}
 
-		case NodeTypes.ORIGIN_RADAR_NODE:
-			return {type: ActionTypes.REMOVE_RADAR_NODE, id}; break;
-
-		case NodeTypes.POINT_NODE:
-			return {type: ActionTypes.REMOVE_POINT_NODE, id}; break;
-
-		case NodeTypes.ARC_NODE:
-			return {type: ActionTypes.REMOVE_ARC_NODE, id}; break;
-	}
+export function updateNode(nodeType, node) {
+	return {type: ActionTypes.UPDATE_NODE, nodeType, node};
 }
