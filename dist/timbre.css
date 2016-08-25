@@ -1,3 +1,20 @@
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin-top: 0;
+  margin-bottom: 0.5em;
+}
+h4,
+h5,
+h6 {
+  text-transform: uppercase;
+}
+.caps {
+  text-transform: uppercase;
+}
 .margin-top-xsmall {
   margin-top: 5px;
 }
@@ -136,31 +153,6 @@ button.button-icon svg {
   margin-bottom: 0;
   display: block;
 }
-.scale-color {
-  cursor: pointer;
-  width: 36px;
-  height: 36px;
-  display: -webkit-inline-flex;
-  display: -ms-inline-flexbox;
-  display: inline-flex;
-  -webkit-justify-content: center;
-      -ms-flex-pack: center;
-          justify-content: center;
-  -webkit-align-items: center;
-      -ms-flex-align: center;
-          align-items: center;
-  color: white;
-  font-weight: bolder;
-  border: 1px solid currentColor;
-  text-shadow: 0px 0px 6px rgba(0, 0, 0, 0.35);
-  vertical-align: top;
-}
-.scale-color.active {
-  border-color: #64B6AC;
-  border-width: 2px;
-  width: 34px;
-  height: 34px;
-}
 .ui {
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -237,14 +229,40 @@ button.button-icon svg {
 .ui-properties {
   position: fixed;
   left: 0;
-  bottom: -100px;
+  bottom: -110px;
   width: 100vw;
   height: 100px;
+  padding: 5px;
   background-color: #FDFFFC;
   transition: bottom 0.2s ease-in-out;
 }
 .ui-properties.active {
   bottom: 0;
+}
+.scale-color {
+  cursor: pointer;
+  width: 36px;
+  height: 36px;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-justify-content: center;
+      -ms-flex-pack: center;
+          justify-content: center;
+  -webkit-align-items: center;
+      -ms-flex-align: center;
+          align-items: center;
+  color: white;
+  font-weight: bolder;
+  border: 1px solid currentColor;
+  text-shadow: 0px 0px 6px rgba(0, 0, 0, 0.35);
+  vertical-align: top;
+}
+.scale-color.active {
+  border-color: #64B6AC;
+  border-width: 2px;
+  width: 34px;
+  height: 34px;
 }
 .beat-indicator {
   display: inline-block;
@@ -645,6 +663,7 @@ body {
   font-family: Jura, sans-serif;
   font-weight: 500;
   overflow-y: hidden;
+  color: #444;
 }
 .app {
   position: absolute;

@@ -83,22 +83,3 @@ button.button-icon {
 		display: block;
 	}
 }
-
-.scale-color {
-	cursor: pointer;
-    .square(24px + @gutter*2 + @border-width*2);
-    display: inline-flex;
-    justify-content: center;
-    align-items: center;
-    color: white;
-    font-weight: bolder;
-    border: @border-width solid currentColor;
-    text-shadow: 0px 0px 6px rgba(0,0,0,0.35);
-    vertical-align: top;
-
-    &.active {
-    	border-color: @primary;
-    	border-width: @border-width*2;
-    	.square(24px + @gutter*2);
-    }
-}

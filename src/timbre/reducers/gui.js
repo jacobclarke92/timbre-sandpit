@@ -54,6 +54,11 @@ export default function(state = initialState, action) {
 
 		case ActionTypes.CLEAR_ACTIVE_NODE:
 			return {...state, activeNode: null};
+
+		case ActionTypes.UPDATE_NODE:
+			if(state.activeNode && state.activeNode.id == action.node.id) {
+				return {...state, activeNode: {...action.node}};
+			}
 	}
 	return state;
 }

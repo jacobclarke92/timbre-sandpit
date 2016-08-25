@@ -18,6 +18,7 @@ class BottomUI extends Component {
 		const NodeUI = gui.activeNode ? (PropertiesUI[gui.activeNode.nodeType] || null) : null;
 		return (
 			<div className={classname('ui-properties', gui.activeNode && 'active')}>
+				<h4 className="caps">Properties</h4>
 				{NodeUI && <NodeUI />}
 			</div>
 		)

@@ -278,9 +278,18 @@ class PrimaryInterface extends Component {
 				}
 			}
 		}
-		
+
+		// check if length of any node arrays changed, if so do an update
 		if(checkDifferenceAny(this.props, nextProps, nodeTypeKeys.map(key => 'stage.'+key+'.length'))) {
 			this.generateNodeInstances(nextProps.stage);
+		}
+
+		// update active node if relevant
+		const activeNode = this.props.gui.activeNode;
+		const nextActiveNode = nextProps.gui.activeNode;
+		if(activeNode && nextActiveNode && checkDifferenceAny(activeNode, nextActiveNode, ['noteType', 'noteIndex'])) {
+			const key = nodeTypeLookup[nextActiveNode.nodeType];
+			redrawPointNode(nextActiveNode, this[key][nextActiveNode.id]);
 		}
 	}
 
