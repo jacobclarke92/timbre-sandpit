@@ -9,6 +9,8 @@ const initialState = {
 	startTime: Date.now(),
 };
 
+setBpm(initialState.bpm);
+
 export default function(state = initialState, action) {
 	switch(action.type) {
 

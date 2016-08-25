@@ -44,7 +44,7 @@ const defaultNodeAttrs = {
 const defaultNodes = {
 	[ARC_NODE]: {...defaultNodeAttrs, circ: Math.PI/2, angle: 0, noteType: NoteTypes.RANDOM},
 	[POINT_NODE]: {...defaultNodeAttrs, radius: 4, noteType: NoteTypes.RANDOM},
-	[ORIGIN_RING_NODE]: {...defaultNodeAttrs, bars: 4},
+	[ORIGIN_RING_NODE]: {...defaultNodeAttrs, bars: 4, beats: 4},
 	[ORIGIN_RADAR_NODE]: {...defaultNodeAttrs, bars: 4},
 };
 

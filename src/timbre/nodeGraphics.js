@@ -44,15 +44,12 @@ export function redrawPointNode(attrs, node) {
 export function redrawRingGuides(attrs, node) {
 	if(!attrs || !node) return;
 
-	const state = store.getState();
-	const { meterBeats } = state.transport;
-
-	node.beats = attrs.bars * meterBeats;
-	node.radius = node.beats * beatPX;
+	node.totalBeats = attrs.bars * attrs.beats;
+	node.radius = node.totalBeats * beatPX;
 	node.guides.cacheAsBitmap = false;
 	node.guides.clear();
-	for(let beat = 0; beat < node.beats+1; beat ++) {
-		const bar = beat % meterBeats === 0;
+	for(let beat = 0; beat < node.totalBeats+1; beat ++) {
+		const bar = beat % attrs.beats === 0;
 		if(bar) node.guides.lineStyle(2, 0xFFFFFF, 0.35);
 		else node.guides.lineStyle(2, 0xFFFFFF, 0.15);
 		node.guides.drawCircle(0, 0, beatPX*beat);

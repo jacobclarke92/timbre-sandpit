@@ -10,6 +10,7 @@ import { RANDOM, UP, DOWN, NOTE } from '../../constants/noteTypes'
 import { updateNode } from '../../reducers/stage'
 
 import ButtonIcon from './ButtonIcon'
+import NumberInput from './NumberInput'
 
 class PointNodeProperties extends Component {
 
@@ -47,6 +48,28 @@ class PointNodeProperties extends Component {
 	}
 }
 
+class RingNodeProperties extends Component {
+
+	updateProperty(key, value) {
+		const { activeNode } = this.props.gui;
+		if(!activeNode) return;
+		const node = {...activeNode, [key]: value};
+		this.props.dispatch(updateNode(node.nodeType, node));
+	}
+
+	render() {
+		const { dispatch } = this.props;
+		const { activeNode } = this.props.gui;
+		return (
+			<div>
+				<NumberInput label="Beats" min={2} max={7} value={activeNode.beats} onChange={value => this.updateProperty('beats', value)} style={{width: 80}} />
+				<NumberInput label="Bars" min={1} max={8} value={activeNode.bars} onChange={value => this.updateProperty('bars', value)} style={{width: 80}} />
+			</div>
+		)
+	}
+}
+
 export default {
 	[NodeTypes.POINT_NODE]: connect(({gui, musicality}) => ({gui, musicality}))(PointNodeProperties),
+	[NodeTypes.ORIGIN_RING_NODE]: connect(({gui, musicality}) => ({gui, musicality}))(RingNodeProperties),
 }

@@ -183,7 +183,7 @@ class PrimaryInterface extends Component {
 	tick() {
 		this.beat ++;
 		if(this.beat >= this.props.transport.meterBeats) this.beat = 0;
-		this.renderer.backgroundColor = this.beat === 0 ? 0x0f0f0f : 0x050505;
+		this.renderer.backgroundColor = this.beat === 0 ? 0x050505 : 0x020202;
 		setTimeout(() => this.renderer.backgroundColor = 0x000, 100);
 	}
 
@@ -292,10 +292,10 @@ class PrimaryInterface extends Component {
 
 		for(let attrs of originRingNodes) {
 			const node = this.originRingNodes[attrs.id];
-			const loopTime = beatMS * node.beats;
+			const loopTime = beatMS * node.totalBeats;
 			const currentTime = elapsed % loopTime;
 			const percent = currentTime/loopTime;
-			const ringSize = beatPX * (percent*node.beats);
+			const ringSize = beatPX * (percent*node.totalBeats);
 			node.ring.clear();
 			node.ring.lineStyle(2, 0xFFFFFF, 1);
 			node.ring.drawCircle(0, 0, ringSize);
@@ -304,6 +304,7 @@ class PrimaryInterface extends Component {
 			if(ringSize < node.lastRingSize) node.loopCounter ++;
 			for(let nearbyPointNode of node.nearbyPointNodes) {
 				if(nearbyPointNode.distance <= ringSize && nearbyPointNode.counter < node.loopCounter) {
+					console.log('play note');
 					playNote(1, 0, nearbyPointNode.ref.noteType);
 					nearbyPointNode.counter = node.loopCounter;
 				}
@@ -360,9 +361,13 @@ class PrimaryInterface extends Component {
 		// update active node if relevant
 		const activeNode = this.props.gui.activeNode;
 		const nextActiveNode = nextProps.gui.activeNode;
-		if(activeNode && nextActiveNode && activeNode.id == nextActiveNode.id && checkDifferenceAny(activeNode, nextActiveNode, ['noteType', 'noteIndex'])) {
+		if(activeNode && nextActiveNode && activeNode.id == nextActiveNode.id) {
 			const key = nodeTypeLookup[nextActiveNode.nodeType];
-			redrawPointNode(nextActiveNode, this[key][nextActiveNode.id]);
+			if(checkDifferenceAny(activeNode, nextActiveNode, ['noteType', 'noteIndex'])) {
+				redrawPointNode(nextActiveNode, this[key][nextActiveNode.id]);
+			}else if(checkDifferenceAny(activeNode, nextActiveNode, ['bars', 'beats'])) {
+				redrawRingGuides(nextActiveNode, this[key][nextActiveNode.id]);
+			}
 		}
 	}
 
