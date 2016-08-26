@@ -1,6 +1,6 @@
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
-import PIXI, { Container, Graphics, Sprite } from 'pixi.js'
+import PIXI, { Container, Graphics, Sprite, Text } from 'pixi.js'
 import { Loop } from 'tone'
 import _throttle from 'lodash/throttle'
 import _get from 'lodash/get'
@@ -35,6 +35,7 @@ class PrimaryInterface extends Component {
 		maxZoom: 2,
 		minZoom: 0.5,
 		showDebugDots: false,
+		showFPS: true,
 	};
 
 	constructor(props) {
@@ -75,6 +76,10 @@ class PrimaryInterface extends Component {
 		this.stage.on('mouseup', event => this.handlePointerUp(event));
 		this.stage.on('touchend', event => this.handlePointerUp(event));
 
+		// wrapper for stage
+		this.stageWrapper = new Container();
+		this.stageWrapper.addChild(this.stage);
+
 		// debug rainbow dots
 		if(this.props.showDebugDots) {
 			const dots = new Graphics();
@@ -87,6 +92,16 @@ class PrimaryInterface extends Component {
 			}
 			dots.cacheAsBitmap = true;
 			this.stage.addChild(dots);
+		}
+
+		// fps counter
+		if(this.props.showFPS) {
+			this.fps = new Text('', {font: '16px Orbitron', fontWeight: '500', fill: 'white'});
+			this.fps.position = {x: 5, y: 5};
+			this.fpsCache = new Array(60).map(t => 60);
+			this.lastFps = Date.now();
+			// wait for font to load / fps to stabilize
+			setTimeout(() => this.stageWrapper.addChild(this.fps), 1000); 
 		}
 
 		this.activeNode = null;
@@ -279,9 +294,10 @@ class PrimaryInterface extends Component {
 
 	animate() {
 
-		const { gui, stage, transport, musicality } = this.props;
+		const { gui, stage, transport, musicality, showFPS } = this.props;
 		const { pointNodes, originRingNodes } = stage;
-		const elapsed = Date.now() - transport.startTime;
+		const now = Date.now();
+		const elapsed = now - transport.startTime;
 		const beatMS = (1000*60)/transport.bpm; // idk why divide 2 okay
 
 		// active node indiciator
@@ -349,8 +365,17 @@ class PrimaryInterface extends Component {
 		const stageScale = this.stage.scale.x;
 		this.stage.scale.set(stageScale + (this.aimScale - stageScale)/scaleEase);
 
+		if(showFPS) {
+			const currentFps = 1/(now-this.lastFps)*1000;
+			this.fpsCache.push(currentFps);
+			this.fpsCache.shift();
+			const fps = this.fpsCache.reduce((prev, current) => prev+current, 0)/this.fpsCache.length;
+			this.fps.text = Math.round(fps);
+			this.lastFps = now;
+		}
+
 		// render and animation loop 
-		this.renderer.render(this.stage);
+		this.renderer.render(this.stageWrapper);
 		if(transport.playing) requestAnimationFrame(this.animate.bind(this));
 	}
 
