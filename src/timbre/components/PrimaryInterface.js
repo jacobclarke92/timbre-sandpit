@@ -97,8 +97,8 @@ class PrimaryInterface extends Component {
 		this.stage.addChild(this.activeNodeIndicator);
 
 		this.ringsFX = [];
-		this.ringFX = new Graphics();
-		this.stage.addChild(this.ringFX);
+		this.fxContainer = new Container();
+		this.stage.addChild(this.fxContainer);
 
 		// state vars
 		this.mouseMoved = false;
@@ -310,14 +310,16 @@ class PrimaryInterface extends Component {
 				if(nearbyPointNode.distance <= ringSize && nearbyPointNode.counter < node.loopCounter) {
 					nearbyPointNode.counter = node.loopCounter;
 					const noteIndex = playNote(nearbyPointNode.ref, attrs.synthId);
-					this.ringsFX.push({
-						id: newId(),
-						position: nearbyPointNode.ref.position,
-						counter: 0,
-						opacity: 1,
-						radius: 0,
-						color: noteColors[(noteIndex + musicality.scale)%12],
-					});
+					const ring = new Graphics();
+					const ringColor = noteColors[(noteIndex + musicality.scale)%12];
+					ring.lineStyle(3, ringColor, 1);
+					ring.drawCircle(0, 0, beatPX*3);
+					ring.cacheAsBitmap = true;
+					ring.scale.set(0);
+					ring.position = nearbyPointNode.ref.position;
+					ring.counter = 0;
+					this.fxContainer.addChild(ring);
+					this.ringsFX.push(ring);
 				}
 			}
 
@@ -326,16 +328,16 @@ class PrimaryInterface extends Component {
 		}
 		
 		// render FX rings
-		this.ringFX.clear();
-		for(let ringFX of this.ringsFX) {
-			ringFX.radius += transport.bpm/200; // just eyeballed this one
-			if(++ringFX.counter >= 60) {
-				if(ringFX.opacity > 0) ringFX.opacity -= 0.05;
+		for(let i=0; i < this.ringsFX.length; i ++) {
+			const ring = this.ringsFX[i];
+			ring.scale.set(ring.scale.x + transport.bpm/11000); // just eyeballed this one
+			if(++ring.counter >= 60) {
+				if(ring.alpha > 0) ring.alpha -= 0.05;
+				else this.fxContainer.removeChild(ring);
 			}
-			this.ringFX.lineStyle(2, ringFX.color, ringFX.opacity);
-			this.ringFX.drawCircle(ringFX.position.x, ringFX.position.y, ringFX.radius);
 		}
-		this.ringsFX = this.ringsFX.filter(ring => ring.opacity > 0);
+		// remove invisible rings from array
+		this.ringsFX = this.ringsFX.filter(ring => ring.alpha > 0);
 
 		// pan controls
 		if(isUpKeyPressed()) this.stage.position.y += scaleEase;
