@@ -1,4 +1,5 @@
 import React, { Component } from 'react'
+import classname from 'classname'
 import _throttle from 'lodash/throttle'
 
 import * as screenUtils from '../../utils/screenUtils'
@@ -7,11 +8,13 @@ export default class NumberInput extends Component {
 
 	static defaultProps = {
 		label: 'Label',
+		className: '',
 		step: 1,
 	};
 
 	constructor(props) {
 		super(props);
+		this.state = { invalid: false, dirtyValue: props.value };
 		this.mouseDown = false;
 		this.handleMouseMove = _throttle(this.handleMouseMove.bind(this), 1000/60);
 		document.addEventListener('mouseup', ::this.handleMouseUp);
@@ -44,17 +47,37 @@ export default class NumberInput extends Component {
 		}
 	}
 
+	isValid(value) {
+		const { min, max } = this.props;
+		return !(!value || (value && (value < min || value > max)));
+	}
+
+	handleChange(value) {
+		if(value && typeof value == 'string') value = parseFloat(value);
+		const invalid = !this.isValid(value);
+		this.setState({invalid, dirtyValue: value});
+		if(!invalid) this.props.onChange(value);
+	}
+
+	componentWillReceiveProps(nextProps) {
+		if(nextProps.value != this.state.dirtyValue) {
+			this.setState({invalid: false, dirtyValue: nextProps.value});
+		}
+	}
+
 	render() {
-		const { value, label, onChange, ...rest } = this.props;
+		const { value, label, onChange, className, ...rest } = this.props;
 		return (
 			<label>
 				{label && label+': '}
 				<input 
 					type="number" 
-					value={value} 
+					value={this.state.dirtyValue} 
 					size={3} 
-					onChange={event => onChange(event.target.value)} {...rest}
-					onMouseDown={::this.handleMouseDown} />
+					className={classname(className, this.state.invalid && 'invalid')}
+					onChange={event => this.handleChange(event.target.value)}
+					onMouseDown={::this.handleMouseDown} 
+					{...rest} />
 			</label>
 		)
 	}

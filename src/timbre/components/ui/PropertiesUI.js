@@ -64,6 +64,7 @@ class RingNodeProperties extends Component {
 			<div>
 				<NumberInput label="Beats" min={2} max={7} value={activeNode.beats} onChange={value => this.updateProperty('beats', value)} style={{width: 80}} />
 				<NumberInput label="Bars" min={1} max={8} value={activeNode.bars} onChange={value => this.updateProperty('bars', value)} style={{width: 80}} />
+				<NumberInput label="Speed" min={1} max={16} value={activeNode.speed} onChange={value => this.updateProperty('speed', value)} style={{width: 80}} />
 			</div>
 		)
 	}

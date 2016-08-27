@@ -347,8 +347,8 @@ class PrimaryInterface extends Component {
 	scheduleRingNodeNotes(ringNodeInstance, ringNode) {
 		if(!ringNodeInstance.nearbyPointNodes) this.getNearbyPointNodes(ringNodeInstance);
 		for(let nearbyPointNode of ringNodeInstance.nearbyPointNodes) {
-			const ticks = Math.floor((nearbyPointNode.distance / BEAT_PX) * METER_TICKS);
-			const triggerTime = Transport.toTicks() + ticks;
+			const ticks = ((nearbyPointNode.distance / BEAT_PX) * METER_TICKS)/ringNodeInstance.loop.playbackRate;
+			const triggerTime = Transport.toTicks() + Math.floor(ticks);
 			const eventId = Transport.scheduleOnce(() => this.triggerNote(ringNode, nearbyPointNode.ref, eventId), triggerTime+'i');
 			nearbyPointNode.ref.scheduledNotes.push(eventId);
 		}
@@ -373,6 +373,7 @@ class PrimaryInterface extends Component {
 		const noteIndex = playNote(nodeInstance, originNode.synthId);
 		const ringColor = noteColors[(noteIndex + musicality.scale)%12];
 		const ring = createRingFX(nodeInstance.position, ringColor);
+		ring.speed = originNode.speed;
 		this.fxContainer.addChild(ring);
 		this.ringsFX.push(ring);
 		if(eventId && nodeInstance.scheduledNotes) nodeInstance.scheduledNotes = nodeInstance.scheduledNotes.filter(id => id != eventId);
@@ -405,7 +406,7 @@ class PrimaryInterface extends Component {
 		
 		// render FX rings
 		for(let ring of this.ringsFX) {
-			ring.scale.set(ring.scale.x + transport.bpm/11000); // just eyeballed this one
+			ring.scale.set(ring.scale.x + (transport.bpm/11000)*ring.speed); // just eyeballed this one
 			if(++ring.counter >= 60) {
 				if(ring.alpha > 0) ring.alpha -= 0.05;
 				else this.fxContainer.removeChild(ring);
@@ -491,12 +492,19 @@ class PrimaryInterface extends Component {
 		const nextActiveNode = nextProps.gui.activeNode;
 		if(activeNode && nextActiveNode && activeNode.id == nextActiveNode.id) {
 			const key = nodeTypeLookup[nextActiveNode.nodeType];
-			if(checkDifferenceAny(activeNode, nextActiveNode, ['noteType', 'noteIndex'])) {
-				redrawPointNode(nextActiveNode, this[key][nextActiveNode.id]);
-			}else if(checkDifferenceAny(activeNode, nextActiveNode, ['bars', 'beats'])) {
+			if(activeNode.nodeType == POINT_NODE) {
+				if(checkDifferenceAny(activeNode, nextActiveNode, ['noteType', 'noteIndex'])) {
+					redrawPointNode(nextActiveNode, this[key][nextActiveNode.id]);
+				}	
+			} else if(activeNode.nodeType == ORIGIN_RING_NODE) {
 				const ringNode = this[key][nextActiveNode.id];
-				redrawRingGuides(nextActiveNode, ringNode);
-				ringNode.loop.interval = '0:'+(nextActiveNode.bars * nextActiveNode.beats)+':0';
+				if(checkDifferenceAny(activeNode, nextActiveNode, ['bars', 'beats'])) {
+					redrawRingGuides(nextActiveNode, ringNode);
+					ringNode.loop.interval = '0:'+(nextActiveNode.bars * nextActiveNode.beats)+':0';
+				}
+				if(checkDifferenceAny(activeNode, nextActiveNode, 'speed')) {
+					ringNode.loop.playbackRate = nextActiveNode.speed;
+				}
 			}
 		}
 

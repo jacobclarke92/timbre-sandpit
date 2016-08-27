@@ -12,6 +12,7 @@ export function bindNodeEvents(nodeType, node, attrs = {}) {
 	switch(nodeType) {
 		case NodeTypes.ORIGIN_RING_NODE:
 			node.loop = new Loop(() => this.scheduleRingNodeNotes(node, attrs), '0:'+(attrs.bars * attrs.beats)+':0');
+			node.loop.playbackRate = attrs.speed;
 			node.loop.start(0);
 			// continues 
 		case NodeTypes.POINT_NODE:
