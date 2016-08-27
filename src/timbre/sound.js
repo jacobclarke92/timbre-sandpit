@@ -69,7 +69,7 @@ export function playNote(node, synthId) {
 
 	const synth = getSynth(synthData);
 
-	const { mode, scale, octave } = _get(state, 'musicality', {});
+	const { mode, notes, scale, octave } = _get(state, 'musicality', {});
 	const adsr = synthData.envelope;
 
 	// decide what note ot play next

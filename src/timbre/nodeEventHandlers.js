@@ -1,7 +1,8 @@
+import { Loop } from 'tone'
 import * as NodeTypes from './constants/nodeTypes'
 
 // called in scope of PrimaryInterface class
-export function bindNodeEvents(nodeType, node) {
+export function bindNodeEvents(nodeType, node, attrs = {}) {
 	if(!node || !nodeType) return;
 
 	// bind all node hovers with setting hoverNode
@@ -10,6 +11,9 @@ export function bindNodeEvents(nodeType, node) {
 	
 	switch(nodeType) {
 		case NodeTypes.ORIGIN_RING_NODE:
+			node.loop = new Loop(() => this.scheduleRingNodeNotes(node, attrs), '0:'+(attrs.bars * attrs.beats)+':0');
+			node.loop.start(0);
+			// continues 
 		case NodeTypes.POINT_NODE:
 			node.on('mousedown', pointNodePointerDown.bind(this));
 			node.on('touchstart', pointNodePointerDown.bind(this));

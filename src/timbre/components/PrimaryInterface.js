@@ -1,7 +1,7 @@
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
 import PIXI, { Container, Graphics, Sprite, Text } from 'pixi.js'
-import { Loop } from 'tone'
+import Tone, { Loop, Transport } from 'tone'
 import _throttle from 'lodash/throttle'
 import _get from 'lodash/get'
 import $ from 'jquery'
@@ -13,12 +13,12 @@ import { checkDifferenceAny } from '../utils/lifecycleUtils'
 import { getPixelDensity, addResizeCallback, triggerResize } from '../utils/screenUtils'
 import { isUpKeyPressed, isDownKeyPressed, isLeftKeyPressed, isRightKeyPressed, addKeyListener } from '../utils/keyUtils'
 
-import { beatPX } from '../constants/globals'
 import noteColors from '../constants/noteColors'
 import * as NoteTypes from '../constants/noteTypes'
 import * as ActionTypes from '../constants/actionTypes'
 import { bindNodeEvents } from '../nodeEventHandlers'
 import { createNode, removeNode } from '../reducers/stage'
+import { BEAT_PX, METER_TICKS } from '../constants/globals'
 import { getRandomNote, getAscendingNote, getDescendingNote, playNote } from '../sound'
 import { createRingFX, redrawPointNode, redrawRingGuides } from '../nodeGraphics'
 import { createPointNode, createRingNode, createArcNode, createRadarNode } from '../nodeGenerators'
@@ -144,7 +144,7 @@ class PrimaryInterface extends Component {
 		setTimeout(() => triggerResize(), 10);
 
 		this.mounted = true;
-		this.generateNodeInstances();
+		this.createMissingNodeInstances();
 		this.animate();
 
 	}
@@ -154,7 +154,6 @@ class PrimaryInterface extends Component {
 		this.height = this.$container.height();
 		this.offsetY = this.$container.offset().top;
 		if(this.renderer) this.renderer.resize(this.width/getPixelDensity(), this.height/getPixelDensity());
-		console.log(this.width, this.height);
 	}
 
 	handleMousewheel(event) {
@@ -268,18 +267,21 @@ class PrimaryInterface extends Component {
 		this.stage.addChild(node);
 		this[nodeTypeLookup[nodeType]][nodeAttrs.id] = node;
 		this.initedNodeIds.push(nodeAttrs.id);
-		bindNodeEvents.call(this, nodeType, node);
+		bindNodeEvents.call(this, nodeType, node, nodeAttrs);
 	}
 
-	// go over all node types in stage store and check if an instance has been generated
-	generateNodeInstances(stage = this.props.stage) {
+	// go over all node types in stage store and generated new instances where required
+	createMissingNodeInstances(stage = this.props.stage) {
+		const newNodes = [];
 		for(let nodeKey of Object.keys(nodeTypeLookup)) {
 			for(let node of stage[nodeTypeLookup[nodeKey]]) {
 				if(this.initedNodeIds.indexOf(node.id) < 0) {
 					this.createNodeInstance(nodeKey, node);
+					newNodes.push(node);
 				}
 			}
 		}
+		return newNodes;
 	}
 
 	// returns an array of nearby point nodes given a node with a radius attribute
@@ -301,15 +303,29 @@ class PrimaryInterface extends Component {
 		}
 	}
 
+	// called by every ring node at the beginning of its loop
+	scheduleRingNodeNotes(ringNodeInstance, ringNode) {
+		if(!ringNodeInstance.nearbyPointNodes) this.getNearbyPointNodes(ringNodeInstance);
+		for(let nearbyPointNode of ringNodeInstance.nearbyPointNodes) {
+			const ticks = Math.floor((nearbyPointNode.distance / BEAT_PX) * METER_TICKS);
+			const triggerTime = Transport.toTicks() + ticks;
+			Transport.scheduleOnce(() => this.triggerNote(ringNode, nearbyPointNode.ref), triggerTime+'i');
+		}
+	}
+
+	triggerNote(originNode, nodeInstance) {
+		const { musicality } = this.props;
+		const noteIndex = playNote(nodeInstance, originNode.synthId);
+		const ringColor = noteColors[(noteIndex + musicality.scale)%12];
+		const ring = createRingFX(nodeInstance.position, ringColor);
+		this.fxContainer.addChild(ring);
+		this.ringsFX.push(ring);
+	}
+
 	// pixi animation loop
 	animate() {
 		const { gui, stage, transport, musicality, showFPS } = this.props;
 		const { pointNodes, originRingNodes } = stage;
-
-		// create timing vars
-		const now = Date.now();
-		const elapsed = now - transport.startTime;
-		const beatMS = (1000*60)/transport.bpm; // idk why divide 2 okay
 
 		// active node indiciator
 		if(this.activeNode) {
@@ -321,40 +337,14 @@ class PrimaryInterface extends Component {
 			this.activeNodeIndicator.renderable = false;
 		}
 
-		// deal with ring nodes
+		// redraw ring nodes
 		for(let attrs of originRingNodes) {
 			const node = this.originRingNodes[attrs.id];
-
-			// redraw ring
-			const loopTime = beatMS * node.totalBeats;
-			const currentTime = elapsed % loopTime;
-			const percent = currentTime/loopTime;
-			const ringSize = beatPX * (percent*node.totalBeats);
+			const ringSize = BEAT_PX * (node.loop.progress * (attrs.bars * attrs.beats));
 			node.ring.clear();
 			node.ring.lineStyle(2, 0xFFFFFF, 1);
 			node.ring.drawCircle(0, 0, ringSize);
 			node.guides.renderable = gui.showGuides;
-
-			// fetch nearby point nodes if haven't yet
-			if(!node.nearbyPointNodes) this.getNearbyPointNodes(node);
-
-			// increment loop counter if starting from 0 again
-			if(ringSize < node.lastRingSize && ringSize <= 3) node.loopCounter ++;
-
-			// check if any nearby nodes need to play
-			for(let nearbyPointNode of node.nearbyPointNodes) {
-				if(nearbyPointNode.distance <= ringSize && nearbyPointNode.counter < node.loopCounter) {
-					nearbyPointNode.counter = node.loopCounter;
-					const noteIndex = playNote(nearbyPointNode.ref, attrs.synthId);
-					const ringColor = noteColors[(noteIndex + musicality.scale)%12];
-					const ring = createRingFX(nearbyPointNode.ref.position, ringColor);
-					this.fxContainer.addChild(ring);
-					this.ringsFX.push(ring);
-				}
-			}
-
-			node.lastRingSize = ringSize;
-
 		}
 		
 		// render FX rings
@@ -379,6 +369,7 @@ class PrimaryInterface extends Component {
 		this.stage.scale.set(stageScale + (this.aimScale - stageScale)/scaleEase);
 
 		if(showFPS) {
+			const now = Date.now();
 			const currentFps = 1/(now-this.lastFps)*1000;
 			this.fpsCache.push(currentFps);
 			this.fpsCache.shift();
@@ -392,6 +383,7 @@ class PrimaryInterface extends Component {
 		if(transport.playing) requestAnimationFrame(this.animate.bind(this));
 	}
 
+	// this lifecycle event is primarily used for updating pixi instances where needed when the store changes
 	componentWillReceiveProps(nextProps) {
 
 		// force animation to start again if props updates
@@ -412,16 +404,32 @@ class PrimaryInterface extends Component {
 			}
 		}
 
-		// check if length of any node arrays changed, if so do an update
+		// check if length of any node arrays changed, if so do any relevant updates
 		if(checkDifferenceAny(this.props, nextProps, nodeTypeKeys.map(key => 'stage.'+key+'.length'))) {
-			this.generateNodeInstances(nextProps.stage);
-			for(let attrs of nextProps.stage.originRingNodes) {
-				const node = this.originRingNodes[attrs.id];
-				this.getNearbyPointNodes(node, nextProps.stage.pointNodes);
+			
+			// create missing pixi node instances -- returns the nodes that are new (not the instances)
+			const newNodes = this.createMissingNodeInstances(nextProps.stage);
+
+			// iterate over ring nodes
+			for(let ringNode of nextProps.stage.originRingNodes) {
+				const ringNodeInstance = this.originRingNodes[ringNode.id];
+				const ringSize = BEAT_PX * (ringNodeInstance.loop.progress * (ringNode.bars * ringNode.beats));
+				this.getNearbyPointNodes(ringNodeInstance, nextProps.stage.pointNodes);
+
+				// check if new node (if a point node) is yet to be crossed by a ring node, if so schedule specifically for it
+				for(let newNode of newNodes) {
+					const nearbyPointNode = ringNodeInstance.nearbyPointNodes.reduce((prev, current) => current.id == newNode.id ? current : prev, null);
+					if(nearbyPointNode && nearbyPointNode.distance > ringSize) {
+						const ticks = Math.floor(((nearbyPointNode.distance - ringSize) / BEAT_PX) * METER_TICKS);
+						const triggerTime = Transport.toTicks() + ticks;
+						Transport.scheduleOnce(() => this.triggerNote(ringNode, nearbyPointNode.ref), triggerTime+'i');
+					}
+				}
 			}
 		}
 
 		// update active node if relevant
+		// the alternative would be to deep-check all nodes, this is cheaper, simpler and just as effective
 		const activeNode = this.props.gui.activeNode;
 		const nextActiveNode = nextProps.gui.activeNode;
 		if(activeNode && nextActiveNode && activeNode.id == nextActiveNode.id) {
@@ -429,7 +437,9 @@ class PrimaryInterface extends Component {
 			if(checkDifferenceAny(activeNode, nextActiveNode, ['noteType', 'noteIndex'])) {
 				redrawPointNode(nextActiveNode, this[key][nextActiveNode.id]);
 			}else if(checkDifferenceAny(activeNode, nextActiveNode, ['bars', 'beats'])) {
-				redrawRingGuides(nextActiveNode, this[key][nextActiveNode.id]);
+				const ringNode = this[key][nextActiveNode.id];
+				redrawRingGuides(nextActiveNode, ringNode);
+				ringNode.loop.interval = '0:'+(nextActiveNode.bars * nextActiveNode.beats)+':0';
 			}
 		}
 	}

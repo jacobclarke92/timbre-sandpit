@@ -21,11 +21,11 @@ export function createRingNode(_attrs) {
 
 	const node = new Container();
 	const graphic = new Graphics();
-	node.graphic = graphic;
-	const ring = new Graphics();
-	node.ring = ring;
 	const guides = new Graphics();
+	const ring = new Graphics();
+	node.graphic = graphic;
 	node.guides = guides;
+	node.ring = ring;
 
 	graphic.lineStyle(2, 0xFFFFFF, 1);
 	graphic.moveTo(0, -10);
@@ -33,6 +33,7 @@ export function createRingNode(_attrs) {
 	graphic.moveTo(-10, 0);
 	graphic.lineTo(10, 0);
 	graphic.cacheAsBitmap = true;
+
 	redrawRingGuides(attrs, node);
 
 	node.id = attrs.id || newId();
@@ -40,8 +41,6 @@ export function createRingNode(_attrs) {
 	node.inited = false;
 	node.interactive = true;
 	node.buttonMode = true;
-	node.lastRingSize = 0;
-	node.loopCounter = 0;
 	node.hitArea = new Rectangle(-10, -10, 20, 20);
 	node.scale.set(attrs.scale);
 	node.position.set(attrs.position.x, attrs.position.y);
