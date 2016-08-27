@@ -122,6 +122,7 @@ class PrimaryInterface extends Component {
 		this.lastStageCursor = new Point(0,0);
 		this.cursor = new Point(0,0);
 		this.lastCursor = new Point(0,0);
+		this.mouseDownPosition = new Point(0,0);
 
 		// instanciate local references of pixi node instances
 		this.initedNodeIds = [];
@@ -167,9 +168,11 @@ class PrimaryInterface extends Component {
 	handlePointerDown(event) {
 		this.mouseDown = true;
 		this.mouseMoved = false;
+		this.mouseDownPosition = new Point(event.data.originalEvent.clientX, event.data.originalEvent.clientY - this.offsetY);
 	}
 
 	handlePointerUp(event) {
+		console.log('pointer up');
 		this.mouseDown = false;
 		if(!this.mouseMoved) {
 			if(this.activeNode) this.clearActiveNode();
@@ -178,25 +181,30 @@ class PrimaryInterface extends Component {
 	}
 
 	handlePointerMove(event) {
-		// update last mouse vars
-		this.mouseMoved = true;
-		this.lastCursor = this.cursor;
-		this.lastStageCursor = this.stageCursor;
-		
 		// update mouse vars
 		this.cursor = new Point(event.data.originalEvent.clientX, event.data.originalEvent.clientY - this.offsetY);
 		this.stageCursor = event.data.getLocalPosition(this.stage);
-		
+
 		// reposition stage pivot to mouse position for zooming
 		this.stage.position.x += (this.stageCursor.x - this.stage.pivot.x) * this.stage.scale.x;
 		this.stage.position.y += (this.stageCursor.y - this.stage.pivot.y) * this.stage.scale.y;
 		this.stage.pivot = this.stageCursor;
+
+		// have a minimum distance before start panning
+		if(this.mouseDown && !this.mouseMoved && this.cursor.distance(this.mouseDownPosition) < 10) return true;
+
+		// update last mouse vars
+		this.mouseMoved = true;
 
 		// pan stage if dragging
 		if(this.mouseDown) {
 			this.stage.position.x += this.cursor.x - this.lastCursor.x;
 			this.stage.position.y += this.cursor.y - this.lastCursor.y;
 		}
+
+		// set mouse vars for next event
+		this.lastCursor = this.cursor;
+		this.lastStageCursor = this.stageCursor;
 	}
 
 	tick() {
