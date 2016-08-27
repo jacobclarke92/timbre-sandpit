@@ -63,7 +63,7 @@ class TopUI extends Component {
 	}
 
 	render() {
-		const { gui } = this.props;
+		const { gui, dispatch } = this.props;
 		const { modeString, scaleString, scale } = this.props.musicality;
 		const { playing, bpm, meterBeats, meterTime } = this.props.transport;
 		const ToolUI = ToolsUI[gui.tool] || null;
@@ -73,7 +73,7 @@ class TopUI extends Component {
 					<div>
 						<ButtonIcon icon={playing ? 'pause' : 'play'} selected={playing} onClick={() => this.handlePlayPause()} />
 						{views.map((view, i) => 
-							<Button key={i} {...view} selected={gui.view == view.type} onClick={() => this.props.dispatch(changeView(view.type))} />
+							<Button key={i} {...view} selected={gui.view == view.type} onClick={() => dispatch(changeView(view.type))} />
 						)}
 					</div>
 					<div>
@@ -96,8 +96,10 @@ class TopUI extends Component {
 				<div className="ui-view">
 					<div>
 						{tools.map((tool, i) => 
-							<ButtonIcon key={i} {...tool} selected={gui.tool == tool.type} onClick={() => this.props.dispatch(changeTool(tool.type))} />
+							<ButtonIcon key={i} {...tool} selected={gui.tool == tool.type} onClick={() => dispatch(changeTool(tool.type))} />
 						)}
+						<hr className="vertical" />
+						<ButtonIcon icon="radar" label="Hide guides" selected={!gui.showGuides} onClick={() => dispatch({type: gui.showGuides ? ActionTypes.HIDE_GUIDES : ActionTypes.SHOW_GUIDES})} />
 					</div>
 				</div>
 				<div className="ui-selection">

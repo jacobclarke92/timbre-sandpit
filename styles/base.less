@@ -1,6 +1,6 @@
 select {
-    height: 30px;
     width: 150px;
+    height: 30px;
 }
 label {
 	display: inline-block;
@@ -11,9 +11,9 @@ label {
 }
 input[type='range'] {
 	display: block;
-	-webkit-appearance: slider-vertical;
 	width: 8px;
 	height: 70px;
+	-webkit-appearance: slider-vertical;
 }
 label>input, 
 label>select,
@@ -28,17 +28,16 @@ label>.Select {
 }
 
 input[type='number'] {
+	min-width: 30px;
+	max-width: 100px;
+	outline: 0;
+	padding: 8px 5px 2px 6px;
+	border: 0;
+	background-color: @primary-light;
+	color: @primary;
 	font-family: Orbitron, sans-serif;
 	font-weight: 900;
 	font-size: 1.2rem;
-	min-width: 30px;
-	max-width: 100px;
-	border: @border-width solid @primary;
-	background-color: @primary-light;
-	color: @primary;
-	border: 0;
-	outline: 0;
-	padding: 8px 5px 2px 6px;
 }
 
 button + button,
@@ -50,14 +49,14 @@ button + .scale-color,
 
 button {
 	cursor: pointer;
+	padding: 5px 8px;
+	vertical-align: top;
 	outline: none;
 	border: @border-width solid @secondary;
 	background-color: @secondary-light;
 	color: @secondary;
-	padding: 5px 8px;
 	text-align: center;
 	font-family: @serif-font-family;
-	vertical-align: top;
 
 	&.active {
 		border-color: @primary;
@@ -72,9 +71,9 @@ button {
 			fill: currentColor !important;
 		}
 		+ span {
+			padding: 0 5px 0 3px;
 			vertical-align: top;
 			line-height: 24px;
-			padding: 0 5px 0 3px;
 		}
 	}
 }
@@ -84,5 +83,20 @@ button.button-icon {
 	svg {
 		margin-bottom: 0;
 		display: block;
+	}
+}
+
+hr {
+	border: none;
+	border-top: 1px solid @light-grey;
+
+	&.vertical {
+		position: relative;
+		display: inline-block;
+		height: 100%;
+		min-height: 36px;
+		margin: 0 @gutter*2;
+		border-top: none;
+		border-left: 1px solid @light-grey;
 	}
 }

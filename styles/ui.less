@@ -1,9 +1,9 @@
 .ui {
-	display: flex;
-	flex-shrink: 0;
-	flex-direction: column;
     height: @ui-top-height - @gutter*2;
     padding: @gutter;
+    display: flex;
+    flex-shrink: 0;
+    flex-direction: column;
 
     >div:first-child {
     	padding-bottom: @gutter;
@@ -40,12 +40,12 @@
     > .mappings-interface,
     > .fx-interface {
         .cover();
-        background-color: fade(@white, 75%);
         display: flex;
         justify-content: center;
         align-items: center;
         flex-direction: column;
         overflow: auto;
+        background-color: fade(@white, 75%);
 
         p {
             font-size: 24px;
@@ -75,22 +75,22 @@
     display: inline-flex;
     justify-content: center;
     align-items: center;
+    vertical-align: top;
+    border: @border-width solid currentColor;
     color: white;
     font-weight: bolder;
-    border: @border-width solid currentColor;
     text-shadow: 0px 0px 6px rgba(0,0,0,0.35);
-    vertical-align: top;
 
     &.active {
+        .square(24px + @gutter*2);
         border-color: @primary;
         border-width: @border-width*2;
-        .square(24px + @gutter*2);
     }
 }
 
 .beat-indicator {
-    display: inline-block;
     .square(8px);
+    display: inline-block;
     border: 1px solid @grey;
    
     &.downbeat {
@@ -115,6 +115,6 @@
     display: block;
     width: 150px;
     height: 50px;
-    background-color: black;
     margin-bottom: @gutter;
+    background-color: black;
 }

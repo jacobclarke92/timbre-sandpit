@@ -23,6 +23,7 @@ const initialState = {
 	toolSettings: initialToolSettings[NodeTypes.POINT_NODE],
 	_toolSettings: {...initialToolSettings},
 	activeNode: null,
+	showGuides: true,
 };
 
 export default function(state = initialState, action) {
@@ -59,6 +60,12 @@ export default function(state = initialState, action) {
 			if(state.activeNode && state.activeNode.id == action.node.id) {
 				return {...state, activeNode: {...action.node}};
 			}
+
+		case ActionTypes.SHOW_GUIDES:
+			return {...state, showGuides: true};
+
+		case ActionTypes.HIDE_GUIDES:
+			return {...state, showGuides: false};
 	}
 	return state;
 }

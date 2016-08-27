@@ -1,11 +1,23 @@
+import { Graphics } from 'pixi.js'
 
 import { beatPX } from './constants/globals'
-import * as NoteTypes from './constants/noteTypes'
 import noteColors from './constants/noteColors'
+import * as NoteTypes from './constants/noteTypes'
 
 let store = null;
 export function receiveStore(_store) {
 	store = _store;
+}
+
+export function createRingFX(position, color) {
+	const ring = new Graphics();
+	ring.lineStyle(3, color, 1);
+	ring.drawCircle(0, 0, beatPX*3);
+	ring.cacheAsBitmap = true;
+	ring.scale.set(0);
+	ring.position = position;
+	ring.counter = 0;
+	return ring;
 }
 
 export function redrawPointNode(attrs, node) {

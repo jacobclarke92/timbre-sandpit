@@ -20,7 +20,7 @@ import * as ActionTypes from '../constants/actionTypes'
 import { bindNodeEvents } from '../nodeEventHandlers'
 import { createNode, removeNode } from '../reducers/stage'
 import { getRandomNote, getAscendingNote, getDescendingNote, playNote } from '../sound'
-import { redrawPointNode, redrawRingGuides } from '../nodeGraphics'
+import { createRingFX, redrawPointNode, redrawRingGuides } from '../nodeGraphics'
 import { createPointNode, createRingNode, createArcNode, createRadarNode } from '../nodeGenerators'
 import { nodeTypeLookup, nodeTypeKeys, POINT_NODE, ARC_NODE, ORIGIN_RING_NODE, ORIGIN_RADAR_NODE } from '../constants/nodeTypes'
 
@@ -172,7 +172,6 @@ class PrimaryInterface extends Component {
 	}
 
 	handlePointerUp(event) {
-		console.log('pointer up');
 		this.mouseDown = false;
 		if(!this.mouseMoved) {
 			if(this.activeNode) this.clearActiveNode();
@@ -181,7 +180,7 @@ class PrimaryInterface extends Component {
 	}
 
 	handlePointerMove(event) {
-		// update mouse vars
+		// update mouse position vars
 		this.cursor = new Point(event.data.originalEvent.clientX, event.data.originalEvent.clientY - this.offsetY);
 		this.stageCursor = event.data.getLocalPosition(this.stage);
 
@@ -190,10 +189,8 @@ class PrimaryInterface extends Component {
 		this.stage.position.y += (this.stageCursor.y - this.stage.pivot.y) * this.stage.scale.y;
 		this.stage.pivot = this.stageCursor;
 
-		// have a minimum distance before start panning
+		// enforce a minimum distance before allowing panning
 		if(this.mouseDown && !this.mouseMoved && this.cursor.distance(this.mouseDownPosition) < 10) return true;
-
-		// update last mouse vars
 		this.mouseMoved = true;
 
 		// pan stage if dragging
@@ -207,6 +204,7 @@ class PrimaryInterface extends Component {
 		this.lastStageCursor = this.stageCursor;
 	}
 
+	// called by Tone transport on every beat
 	tick() {
 		this.beat ++;
 		if(this.beat >= this.props.transport.meterBeats) this.beat = 0;
@@ -214,6 +212,7 @@ class PrimaryInterface extends Component {
 		setTimeout(() => this.renderer.backgroundColor = 0x000, 100);
 	}
 
+	// creates a node based on current tool selected
 	createNode(event) {
 		if(!event.target || !event.data) return;
 		const spawnPoint = event.data.getLocalPosition(event.target);
@@ -224,14 +223,15 @@ class PrimaryInterface extends Component {
 			noteType: _get(this.props.gui, 'toolSettings.noteType'),
 			noteIndex: _get(this.props.gui, 'toolSettings.noteIndex'),
 		}
-		if(nodeType == ORIGIN_RING_NODE) attrs.synthId = this.props.synths[0].id;
+		if(nodeType == ORIGIN_RING_NODE) attrs.synthId = this.props.synths[0].id; // temporary
 		this.props.dispatch(createNode(nodeType, attrs));
 	}
 
+	// removes node locally and from store given pixi node instance
 	removeNode(nodeInstance) {
 		this.stage.removeChild(nodeInstance);
-		// todo: remove from class arrays
 		this.props.dispatch(removeNode(nodeInstance.nodeType, nodeInstance.id));
+		delete this[nodeTypeLookup[nodeInstance.nodeType]][nodeInstance.id];
 	}
 
 	// for setting active node selection
@@ -282,6 +282,7 @@ class PrimaryInterface extends Component {
 		}
 	}
 
+	// returns an array of nearby point nodes given a node with a radius attribute
 	getNearbyPointNodes(node, pointNodes = this.props.stage.pointNodes) {
 		const oldIds = (node.nearbyPointNodes || []).map(item => item.id);
 		node.nearbyPointNodes = [];
@@ -300,10 +301,12 @@ class PrimaryInterface extends Component {
 		}
 	}
 
+	// pixi animation loop
 	animate() {
-
 		const { gui, stage, transport, musicality, showFPS } = this.props;
 		const { pointNodes, originRingNodes } = stage;
+
+		// create timing vars
 		const now = Date.now();
 		const elapsed = now - transport.startTime;
 		const beatMS = (1000*60)/transport.bpm; // idk why divide 2 okay
@@ -311,15 +314,18 @@ class PrimaryInterface extends Component {
 		// active node indiciator
 		if(this.activeNode) {
 			indicatorOsc = (indicatorOsc + 0.1) % (Math.PI*2);
-			this.activeNodeIndicator.alpha = 1;
+			this.activeNodeIndicator.renderable = true;
 			this.activeNodeIndicator.position = this.activeNode.position;
 			this.activeNodeIndicator.scale.set(1 + Math.cos(indicatorOsc)*0.05);
 		}else{
-			this.activeNodeIndicator.alpha = 0;
+			this.activeNodeIndicator.renderable = false;
 		}
 
+		// deal with ring nodes
 		for(let attrs of originRingNodes) {
 			const node = this.originRingNodes[attrs.id];
+
+			// redraw ring
 			const loopTime = beatMS * node.totalBeats;
 			const currentTime = elapsed % loopTime;
 			const percent = currentTime/loopTime;
@@ -327,21 +333,21 @@ class PrimaryInterface extends Component {
 			node.ring.clear();
 			node.ring.lineStyle(2, 0xFFFFFF, 1);
 			node.ring.drawCircle(0, 0, ringSize);
+			node.guides.renderable = gui.showGuides;
 
+			// fetch nearby point nodes if haven't yet
 			if(!node.nearbyPointNodes) this.getNearbyPointNodes(node);
-			if(ringSize < node.lastRingSize) node.loopCounter ++;
+
+			// increment loop counter if starting from 0 again
+			if(ringSize < node.lastRingSize && ringSize <= 3) node.loopCounter ++;
+
+			// check if any nearby nodes need to play
 			for(let nearbyPointNode of node.nearbyPointNodes) {
 				if(nearbyPointNode.distance <= ringSize && nearbyPointNode.counter < node.loopCounter) {
 					nearbyPointNode.counter = node.loopCounter;
 					const noteIndex = playNote(nearbyPointNode.ref, attrs.synthId);
-					const ring = new Graphics();
 					const ringColor = noteColors[(noteIndex + musicality.scale)%12];
-					ring.lineStyle(3, ringColor, 1);
-					ring.drawCircle(0, 0, beatPX*3);
-					ring.cacheAsBitmap = true;
-					ring.scale.set(0);
-					ring.position = nearbyPointNode.ref.position;
-					ring.counter = 0;
+					const ring = createRingFX(nearbyPointNode.ref.position, ringColor);
 					this.fxContainer.addChild(ring);
 					this.ringsFX.push(ring);
 				}
@@ -352,8 +358,7 @@ class PrimaryInterface extends Component {
 		}
 		
 		// render FX rings
-		for(let i=0; i < this.ringsFX.length; i ++) {
-			const ring = this.ringsFX[i];
+		for(let ring of this.ringsFX) {
 			ring.scale.set(ring.scale.x + transport.bpm/11000); // just eyeballed this one
 			if(++ring.counter >= 60) {
 				if(ring.alpha > 0) ring.alpha -= 0.05;

@@ -76,18 +76,21 @@ h6 {
   margin-left: 50px;
 }
 select {
-  height: 30px;
   width: 150px;
+  height: 30px;
 }
 label {
   display: inline-block;
   margin: 0 5px 5px 5px;
 }
+label:first-of-type {
+  margin-left: 0;
+}
 input[type='range'] {
   display: block;
-  -webkit-appearance: slider-vertical;
   width: 8px;
   height: 70px;
+  -webkit-appearance: slider-vertical;
 }
 label > input,
 label > select,
@@ -100,17 +103,16 @@ label > .Select {
   font-size: 14px;
 }
 input[type='number'] {
+  min-width: 30px;
+  max-width: 100px;
+  outline: 0;
+  padding: 8px 5px 2px 6px;
+  border: 0;
+  background-color: #C0FDFB;
+  color: #64B6AC;
   font-family: Orbitron, sans-serif;
   font-weight: 900;
   font-size: 1.2rem;
-  min-width: 30px;
-  max-width: 100px;
-  border: 1px solid #64B6AC;
-  background-color: #C0FDFB;
-  color: #64B6AC;
-  border: 0;
-  outline: 0;
-  padding: 8px 5px 2px 6px;
 }
 button + button,
 button + .scale-color,
@@ -120,14 +122,14 @@ button + .scale-color,
 }
 button {
   cursor: pointer;
+  padding: 5px 8px;
+  vertical-align: top;
   outline: none;
   border: 1px solid #f6b491;
   background-color: #FEE9E1;
   color: #f6b491;
-  padding: 5px 8px;
   text-align: center;
   font-family: Jura, sans-serif;
-  vertical-align: top;
 }
 button.active {
   border-color: #64B6AC;
@@ -142,9 +144,9 @@ button svg * {
   fill: currentColor !important;
 }
 button svg + span {
+  padding: 0 5px 0 3px;
   vertical-align: top;
   line-height: 24px;
-  padding: 0 5px 0 3px;
 }
 button.button-icon {
   padding: 5px;
@@ -153,7 +155,22 @@ button.button-icon svg {
   margin-bottom: 0;
   display: block;
 }
+hr {
+  border: none;
+  border-top: 1px solid #DADFE6;
+}
+hr.vertical {
+  position: relative;
+  display: inline-block;
+  height: 100%;
+  min-height: 36px;
+  margin: 0 10px;
+  border-top: none;
+  border-left: 1px solid #DADFE6;
+}
 .ui {
+  height: 126px;
+  padding: 5px;
   display: -webkit-flex;
   display: -ms-flexbox;
   display: flex;
@@ -163,8 +180,6 @@ button.button-icon svg {
   -webkit-flex-direction: column;
       -ms-flex-direction: column;
           flex-direction: column;
-  height: 126px;
-  padding: 5px;
 }
 .ui > div:first-child {
   padding-bottom: 5px;
@@ -206,7 +221,6 @@ button.button-icon svg {
   top: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(253, 255, 252, 0.75);
   display: -webkit-flex;
   display: -ms-flexbox;
   display: flex;
@@ -220,6 +234,7 @@ button.button-icon svg {
       -ms-flex-direction: column;
           flex-direction: column;
   overflow: auto;
+  background-color: rgba(253, 255, 252, 0.75);
 }
 .interface-container > .oscillators-interface p,
 .interface-container > .mappings-interface p,
@@ -252,22 +267,22 @@ button.button-icon svg {
   -webkit-align-items: center;
       -ms-flex-align: center;
           align-items: center;
+  vertical-align: top;
+  border: 1px solid currentColor;
   color: white;
   font-weight: bolder;
-  border: 1px solid currentColor;
   text-shadow: 0px 0px 6px rgba(0, 0, 0, 0.35);
-  vertical-align: top;
 }
 .scale-color.active {
-  border-color: #64B6AC;
-  border-width: 2px;
   width: 34px;
   height: 34px;
+  border-color: #64B6AC;
+  border-width: 2px;
 }
 .beat-indicator {
-  display: inline-block;
   width: 8px;
   height: 8px;
+  display: inline-block;
   border: 1px solid #828D9B;
 }
 .beat-indicator.downbeat {
@@ -292,8 +307,8 @@ button.button-icon svg {
   display: block;
   width: 150px;
   height: 50px;
-  background-color: black;
   margin-bottom: 5px;
+  background-color: black;
 }
 .Select {
   position: relative;
@@ -660,10 +675,10 @@ html,
 body {
   margin: 0;
   padding: 0;
-  font-family: Jura, sans-serif;
-  font-weight: 500;
   overflow-y: hidden;
   color: #444;
+  font-family: Jura, sans-serif;
+  font-weight: 500;
 }
 .app {
   position: absolute;
@@ -681,9 +696,9 @@ body {
   position: absolute;
   top: calc(100% + 5px);
   left: 0;
-  color: #FDFFFC;
-  background-color: rgba(1, 22, 39, 0.75);
   padding: 5px;
+  background-color: rgba(1, 22, 39, 0.75);
+  color: #FDFFFC;
   white-space: nowrap;
 }
 [data-numbered] {
@@ -695,8 +710,8 @@ body {
   position: absolute;
   top: 3px;
   left: 3px;
-  font-size: 8px;
   color: #FDFFFC;
+  font-size: 8px;
 }
 
 /*# sourceMappingURL=timbre.css.map*/
