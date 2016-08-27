@@ -5,12 +5,18 @@ import classname from 'classname'
 import noteColors from '../../constants/noteColors'
 import noteStrings from '../../constants/noteStrings'
 import * as NodeTypes from '../../constants/nodeTypes'
+import * as WaveTypes from '../../constants/waveTypes'
+import * as ActionTypes from '../../constants/actionTypes'
 import { RANDOM, UP, DOWN, NOTE } from '../../constants/noteTypes'
 
 import { updateNode } from '../../reducers/stage'
+import { getByKey } from '../../utils/arrayUtils'
 
+import Select from 'react-select'
 import ButtonIcon from './ButtonIcon'
 import NumberInput from './NumberInput'
+import Envelope from './Envelope'
+
 
 class PointNodeProperties extends Component {
 
@@ -57,14 +63,24 @@ class RingNodeProperties extends Component {
 		this.props.dispatch(updateNode(node.nodeType, node));
 	}
 
+	handleWaveformChange(waveform, synth) {
+		this.props.dispatch({type: ActionTypes.UPDATE_SYNTH, synth: {...synth, waveform}});
+	}
+
 	render() {
-		const { dispatch } = this.props;
-		const { activeNode } = this.props.gui;
+		const { dispatch, gui, synths } = this.props;
+		const { activeNode } = gui;
+		const synth = getByKey(synths, activeNode.synthId);
 		return (
-			<div>
+			<div className="properties-container">
 				<NumberInput label="Beats" min={2} max={7} value={activeNode.beats} onChange={value => this.updateProperty('beats', value)} style={{width: 80}} />
 				<NumberInput label="Bars" min={1} max={8} value={activeNode.bars} onChange={value => this.updateProperty('bars', value)} style={{width: 80}} />
 				<NumberInput label="Speed" min={1} max={16} value={activeNode.speed} onChange={value => this.updateProperty('speed', value)} style={{width: 80}} />
+				<label>
+					Waveform: 
+					<Select value={synth.waveform} onChange={({value}) => this.handleWaveformChange(value, synth)} clearable={false} options={Object.keys(WaveTypes).map(label => ({value: WaveTypes[label], label}))} style={{width: 140}} />
+				</label>
+				<Envelope envelope={synth.envelope} />
 			</div>
 		)
 	}
@@ -72,5 +88,5 @@ class RingNodeProperties extends Component {
 
 export default {
 	[NodeTypes.POINT_NODE]: connect(({gui, musicality}) => ({gui, musicality}))(PointNodeProperties),
-	[NodeTypes.ORIGIN_RING_NODE]: connect(({gui, musicality}) => ({gui, musicality}))(RingNodeProperties),
+	[NodeTypes.ORIGIN_RING_NODE]: connect(({gui, musicality, synths}) => ({gui, musicality, synths}))(RingNodeProperties),
 }

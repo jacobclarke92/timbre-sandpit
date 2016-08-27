@@ -19,6 +19,11 @@ export default function(state = initialState, action) {
 	switch(action.type) {
 
 		case ActionTypes.ADD_SYNTH:
+			return [...state, action.synth];
+			break;
+
+		case ActionTypes.UPDATE_SYNTH:
+			return state.map(synth => synth.id == action.synth.id ? action.synth : synth);
 			break;
 
 	}

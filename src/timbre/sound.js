@@ -1,15 +1,40 @@
 import Tone, { Synth, Transport } from 'tone'
 import _get from 'lodash/get'
+import _cloneDeep from 'lodash/cloneDeep'
 
 import * as NoteTypes from './constants/noteTypes'
+import { getByKey } from './utils/arrayUtils'
+import { checkDifferenceAny } from './utils/lifecycleUtils'
 
 let store = null;
+let oldSynths = null;
 let lastNote = 0;
 
-const synths = {};
+const Synths = {};
 
 export function receiveStore(_store) {
 	store = _store;
+	store.subscribe(receivedState);
+	oldSynths = _cloneDeep(store.getState().synths);
+	receivedState();
+}
+
+function receivedState() {
+	const { synths } = store.getState();
+
+	for(let i=0; i<synths.length; i++) {
+		const synth = synths[i];
+		const prevSynth = oldSynths[i];
+		if(!Synths[synth.id]) Synths[synth.id] = [];
+		if(synth.waveform != prevSynth.waveform) {
+			Synths[synth.id].forEach(voice => voice.oscillator.waveform = synth.waveform);
+		}
+		if(checkDifferenceAny(oldSynths.envelope, synths.envelope, ['attack', 'decay', 'sustain', 'release'])) {
+			Synths[synth.id].forEach(voice => voice.envelope = synth.envelope);
+		}
+	}
+
+	oldSynths = _cloneDeep(store.getState().synths);
 }
 
 export function getRandomNote() {
@@ -47,8 +72,8 @@ export function getDescendingNote() {
 }
 
 export function requestSynthVoice(synth) {
-	if(Object.keys(synths).indexOf(synth.id.toString()) < 0) synths[synth.id] = [];
-	const availableVoices = synths[synth.id].filter(voice => voice.available);
+	if(Object.keys(Synths).indexOf(synth.id.toString()) < 0) Synths[synth.id] = [];
+	const availableVoices = Synths[synth.id].filter(voice => voice.available);
 	if(availableVoices.length > 0) return availableVoices[0];
 
 	const newSynth = new Synth({
@@ -56,8 +81,8 @@ export function requestSynthVoice(synth) {
 		oscillator: {type: synth.waveform},
 		volume: -6,
 	}).toMaster();
-	synths[synth.id].push(newSynth);
-	console.log('allotting new synth voice. now there are now '+synths[synth.id].length);
+	Synths[synth.id].push(newSynth);
+	console.log('allotting new synth voice. now there are now '+Synths[synth.id].length);
 	return newSynth;
 }
 
@@ -69,7 +94,7 @@ export function playNote(node, synthId) {
 
 	// get vars from store
 	const state = store.getState();
-	const synthData = state.synths.reduce((prev, item) => item.id === synthId ? item : prev, null);
+	const synthData = getByKey(state.synths, synthId);
 	if(!synthData) return;
 
 	const synth = requestSynthVoice(synthData);

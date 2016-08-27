@@ -3,11 +3,11 @@ import React, { Component } from 'react'
 import { connect } from 'react-redux'
 import $ from 'jquery'
 
-import Point from '../Point'
-import { getPixelDensity, addResizeCallback } from '../utils/screenUtils'
+import Point from '../../Point'
+import { getPixelDensity, addResizeCallback } from '../../utils/screenUtils'
 
 
-class Envelope extends Component {
+export default class Envelope extends Component {
 
 	componentDidMount() {
 		const $container = $(this.refs.container);
@@ -107,4 +107,4 @@ class Envelope extends Component {
 	}
 }
 
-export default connect(({envelope, animating}) => ({envelope, animating}))(Envelope)
+// export default connect(({envelope, animating}) => ({envelope, animating}))(Envelope)

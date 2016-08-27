@@ -69,6 +69,13 @@
     }
 }
 
+.properties-container {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+
+}
+
 .scale-color {
     cursor: pointer;
     .square(24px + @gutter*2 + @border-width*2);
@@ -117,4 +124,10 @@
     height: 50px;
     margin-bottom: @gutter;
     background-color: black;
+}
+
+.envelope-container {
+    max-width: 350px;
+    flex-grow: 3;
+    height: 75px;
 }

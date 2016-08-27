@@ -114,6 +114,10 @@ input[type='number'] {
   font-weight: 900;
   font-size: 1.2rem;
 }
+input[type='number'].invalid {
+  background-color: #ff5d5c;
+  color: #FDFFFC;
+}
 button + button,
 button + .scale-color,
 .scale-color + button,
@@ -254,6 +258,17 @@ hr.vertical {
 .ui-properties.active {
   bottom: 0;
 }
+.properties-container {
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-align-items: flex-start;
+      -ms-flex-align: start;
+          align-items: flex-start;
+  -webkit-justify-content: space-between;
+      -ms-flex-pack: justify;
+          justify-content: space-between;
+}
 .scale-color {
   cursor: pointer;
   width: 36px;
@@ -309,6 +324,13 @@ hr.vertical {
   height: 50px;
   margin-bottom: 5px;
   background-color: black;
+}
+.envelope-container {
+  max-width: 350px;
+  -webkit-flex-grow: 3;
+      -ms-flex-positive: 3;
+          flex-grow: 3;
+  height: 75px;
 }
 .Select {
   position: relative;
