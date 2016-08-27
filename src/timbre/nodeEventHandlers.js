@@ -25,12 +25,19 @@ export function bindNodeEvents(nodeType, node, attrs = {}) {
 
 export function pointNodePointerDown(event) {
 	this.mouseMoved = false;
+	this.mouseDown = true;
+	this.dragTarget = event.target;
+	event.stopPropagation();
 }
 
 export function pointNodePointerUp(event) {
-	if(!this.mouseMoved && event.target) {
+	if(event.target) {
 		event.stopPropagation();
-		this.setActiveNode(event.target);
+		if(!this.mouseMoved) {
+			this.setActiveNode(event.target);
+		}else if(this.dragTarget) {
+			this.dragTarget = null;
+		}
 	}
 
 	this.mouseMoved = false;

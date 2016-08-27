@@ -3,11 +3,13 @@ import { connect } from 'react-redux'
 import PIXI, { Container, Graphics, Sprite, Text } from 'pixi.js'
 import Tone, { Loop, Transport } from 'tone'
 import _throttle from 'lodash/throttle'
+import _debounce from 'lodash/debounce'
 import _get from 'lodash/get'
 import $ from 'jquery'
 
 import Point from '../Point'
 import newId from '../utils/newId'
+import { getByKey } from '../utils/arrayUtils'
 import { dist, clamp, inBounds } from '../utils/mathUtils'
 import { checkDifferenceAny } from '../utils/lifecycleUtils'
 import { getPixelDensity, addResizeCallback, triggerResize } from '../utils/screenUtils'
@@ -17,8 +19,8 @@ import noteColors from '../constants/noteColors'
 import * as NoteTypes from '../constants/noteTypes'
 import * as ActionTypes from '../constants/actionTypes'
 import { bindNodeEvents } from '../nodeEventHandlers'
-import { createNode, removeNode } from '../reducers/stage'
 import { BEAT_PX, METER_TICKS } from '../constants/globals'
+import { createNode, removeNode, updateNode } from '../reducers/stage'
 import { getRandomNote, getAscendingNote, getDescendingNote, playNote } from '../sound'
 import { createRingFX, redrawPointNode, redrawRingGuides } from '../nodeGraphics'
 import { createPointNode, createRingNode, createArcNode, createRadarNode } from '../nodeGenerators'
@@ -42,6 +44,7 @@ class PrimaryInterface extends Component {
 		super(props);
 		this.handlePointerMove = _throttle(this.handlePointerMove, mouseMoveThrottle);
 		this.handleMousewheel = _throttle(this.handleMousewheel, scrollwheelThrottle);
+		this.handleNodeMove = _debounce(this.handleNodeMove, 50);
 	}
 
 	componentDidMount() {
@@ -104,6 +107,7 @@ class PrimaryInterface extends Component {
 			setTimeout(() => this.stageWrapper.addChild(this.fps), 1000); 
 		}
 
+		this.dragTarget = null;
 		this.activeNode = null;
 		this.activeNodeIndicator = new Graphics();
 		this.activeNodeIndicator.lineStyle(2, 0xFFFFFF, 0.5);
@@ -167,11 +171,13 @@ class PrimaryInterface extends Component {
 	handlePointerDown(event) {
 		this.mouseDown = true;
 		this.mouseMoved = false;
+		this.dragTarget = null;
 		this.mouseDownPosition = new Point(event.data.originalEvent.clientX, event.data.originalEvent.clientY - this.offsetY);
 	}
 
 	handlePointerUp(event) {
 		this.mouseDown = false;
+		this.dragTarget = null;
 		if(!this.mouseMoved) {
 			if(this.activeNode) this.clearActiveNode();
 			else this.createNode(event);
@@ -192,10 +198,30 @@ class PrimaryInterface extends Component {
 		if(this.mouseDown && !this.mouseMoved && this.cursor.distance(this.mouseDownPosition) < 10) return true;
 		this.mouseMoved = true;
 
-		// pan stage if dragging
 		if(this.mouseDown) {
-			this.stage.position.x += this.cursor.x - this.lastCursor.x;
-			this.stage.position.y += this.cursor.y - this.lastCursor.y;
+			if(this.dragTarget) {
+				// reposition node if dragging
+				this.dragTarget.position.x += this.stageCursor.x - this.lastStageCursor.x;
+				this.dragTarget.position.y += this.stageCursor.y - this.lastStageCursor.y;
+				this.handleNodeMove();
+
+				// cancel any scheduled notes
+				if(this.dragTarget.nodeType == POINT_NODE && this.dragTarget.scheduledNotes) {
+					this.dragTarget.scheduledNotes.forEach(id => Transport.cancel(id));
+					this.dragTarget.scheduledNotes = [];
+				}else if(this.dragTarget.nodeType == ORIGIN_RING_NODE && this.dragTarget.nearbyPointNodes) {
+					for(let nearbyPointNode of this.dragTarget.nearbyPointNodes) {
+						if(nearbyPointNode.ref.scheduledNotes) {
+							nearbyPointNode.ref.scheduledNotes.forEach(id => Transport.cancel(id));
+							nearbyPointNode.ref.scheduledNotes = [];
+						}
+					}
+				}
+			}else{
+				// pan stage if dragging
+				this.stage.position.x += this.cursor.x - this.lastCursor.x;
+				this.stage.position.y += this.cursor.y - this.lastCursor.y;
+			}
 		}
 
 		// set mouse vars for next event
@@ -228,15 +254,29 @@ class PrimaryInterface extends Component {
 
 	// removes node locally and from store given pixi node instance
 	removeNode(nodeInstance) {
+		if(!nodeInstance) return;
+		if(nodeInstance.scheduledNote) {
+			console.log('cancelling scheduled notes');
+			Transport.cancel(nodeInstance.scheduledNote);
+		}
 		this.stage.removeChild(nodeInstance);
 		this.props.dispatch(removeNode(nodeInstance.nodeType, nodeInstance.id));
 		delete this[nodeTypeLookup[nodeInstance.nodeType]][nodeInstance.id];
 	}
 
+	// is debounced, updates store with new position
+	handleNodeMove(nodeInstance = this.dragTarget) {
+		if(!nodeInstance) return;
+		const node = getByKey(this.props.stage[nodeTypeLookup[nodeInstance.nodeType]], nodeInstance.id);
+		node.position = {x: nodeInstance.position.x, y: nodeInstance.position.y};
+		this.props.dispatch(updateNode(nodeInstance.nodeType, node));
+	}
+
 	// for setting active node selection
 	setActiveNode(nodeInstance) {
+		if(!nodeInstance) return;
 		const key = nodeTypeLookup[nodeInstance.nodeType];
-		const actualNode = this.props.stage[key].reduce((prev, node) => (!prev && node.id == nodeInstance.id) ? node : prev, null);
+		const actualNode = getByKey(this.props.stage[key], nodeInstance.id);
 		this.activeNode = nodeInstance;
 		this.props.dispatch({type: ActionTypes.SET_ACTIVE_NODE, node: actualNode});
 	}
@@ -309,17 +349,33 @@ class PrimaryInterface extends Component {
 		for(let nearbyPointNode of ringNodeInstance.nearbyPointNodes) {
 			const ticks = Math.floor((nearbyPointNode.distance / BEAT_PX) * METER_TICKS);
 			const triggerTime = Transport.toTicks() + ticks;
-			Transport.scheduleOnce(() => this.triggerNote(ringNode, nearbyPointNode.ref), triggerTime+'i');
+			const eventId = Transport.scheduleOnce(() => this.triggerNote(ringNode, nearbyPointNode.ref, eventId), triggerTime+'i');
+			nearbyPointNode.ref.scheduledNotes.push(eventId);
 		}
 	}
 
-	triggerNote(originNode, nodeInstance) {
+	checkForNoteReschedule(node) {
+		for(let ringNode of this.props.stage.originRingNodes) {
+			const ringNodeInstance = this.originRingNodes[ringNode.id];
+			const ringSize = BEAT_PX * (ringNodeInstance.loop.progress * (ringNode.bars * ringNode.beats));
+			const nearbyPointNode = getByKey(ringNodeInstance.nearbyPointNodes, node.id);
+			if(nearbyPointNode && nearbyPointNode.distance > ringSize) {
+				const ticks = Math.floor(((nearbyPointNode.distance - ringSize) / BEAT_PX) * METER_TICKS);
+				const triggerTime = Transport.toTicks() + ticks;
+				const eventId = Transport.scheduleOnce(() => this.triggerNote(ringNode, nearbyPointNode.ref, eventId), triggerTime+'i');
+				nearbyPointNode.ref.scheduledNotes.push(eventId);
+			}
+		}
+	}
+
+	triggerNote(originNode, nodeInstance, eventId) {
 		const { musicality } = this.props;
 		const noteIndex = playNote(nodeInstance, originNode.synthId);
 		const ringColor = noteColors[(noteIndex + musicality.scale)%12];
 		const ring = createRingFX(nodeInstance.position, ringColor);
 		this.fxContainer.addChild(ring);
 		this.ringsFX.push(ring);
+		if(eventId && nodeInstance.scheduledNotes) nodeInstance.scheduledNotes = nodeInstance.scheduledNotes.filter(id => id != eventId);
 	}
 
 	// pixi animation loop
@@ -418,11 +474,12 @@ class PrimaryInterface extends Component {
 
 				// check if new node (if a point node) is yet to be crossed by a ring node, if so schedule specifically for it
 				for(let newNode of newNodes) {
-					const nearbyPointNode = ringNodeInstance.nearbyPointNodes.reduce((prev, current) => current.id == newNode.id ? current : prev, null);
+					const nearbyPointNode = getByKey(ringNodeInstance.nearbyPointNodes, newNode.id);
 					if(nearbyPointNode && nearbyPointNode.distance > ringSize) {
 						const ticks = Math.floor(((nearbyPointNode.distance - ringSize) / BEAT_PX) * METER_TICKS);
 						const triggerTime = Transport.toTicks() + ticks;
-						Transport.scheduleOnce(() => this.triggerNote(ringNode, nearbyPointNode.ref), triggerTime+'i');
+						const eventId = Transport.scheduleOnce(() => this.triggerNote(ringNode, nearbyPointNode.ref, eventId, eventId), triggerTime+'i');
+						nearbyPointNode.ref.scheduledNotes.push(eventId);
 					}
 				}
 			}
@@ -440,6 +497,31 @@ class PrimaryInterface extends Component {
 				const ringNode = this[key][nextActiveNode.id];
 				redrawRingGuides(nextActiveNode, ringNode);
 				ringNode.loop.interval = '0:'+(nextActiveNode.bars * nextActiveNode.beats)+':0';
+			}
+		}
+
+		// the only thing that should be updating in the store while dragging a node is the node's position
+		// so assuming that, we can recalculate note schedules for the node being dragged
+		// this saves having to deep-check positions of all nodes
+		if(this.dragTarget) {
+			const node = getByKey(nextProps.stage[nodeTypeLookup[this.dragTarget.nodeType]], this.dragTarget.id);
+			if(node) {
+				// if moving a point or ring node, update ring node nearby points
+				if(node.nodeType == POINT_NODE) {
+					console.log('point node moved -- recalculating note schedules');
+					for(let ringNode of nextProps.stage.originRingNodes) {
+						const ringNodeInstance = this.originRingNodes[ringNode.id];
+						this.getNearbyPointNodes(ringNodeInstance, nextProps.stage.pointNodes);
+						this.checkForNoteReschedule(node);
+					}
+				}else if(node.nodeType == ORIGIN_RING_NODE) {
+					console.log('ring node moved -- recalculating surround note schedules');
+					const ringNodeInstance = this.originRingNodes[node.id];
+					this.getNearbyPointNodes(ringNodeInstance, nextProps.stage.pointNodes);
+					for(let pointNode of nextProps.stage.pointNodes) {
+						this.checkForNoteReschedule(pointNode);
+					}
+				}
 			}
 		}
 	}

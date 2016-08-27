@@ -91,6 +91,7 @@ export function createPointNode(_attrs) {
 	node.radius = attrs.radius;
 	node.scale.set(attrs.scale);
 	node.position.set(attrs.position.x, attrs.position.y);
+	node.scheduledNotes = [];
 	 
 	return node;
 }
