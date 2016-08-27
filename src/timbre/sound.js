@@ -46,14 +46,19 @@ export function getDescendingNote() {
 	return note;
 }
 
-export function getSynth(synth) {
-	if(Object.keys(synths).indexOf(synth.id) < 0) {
-		synths[synth.id] = new Synth({
-			envelope: synth.envelope,
-			oscillator: {type: synth.waveform},
-		}).toMaster();
-	}
-	return synths[synth.id];
+export function requestSynthVoice(synth) {
+	if(Object.keys(synths).indexOf(synth.id.toString()) < 0) synths[synth.id] = [];
+	const availableVoices = synths[synth.id].filter(voice => voice.available);
+	if(availableVoices.length > 0) return availableVoices[0];
+
+	const newSynth = new Synth({
+		envelope: synth.envelope,
+		oscillator: {type: synth.waveform},
+		volume: -6,
+	}).toMaster();
+	synths[synth.id].push(newSynth);
+	console.log('allotting new synth voice. now there are now '+synths[synth.id].length);
+	return newSynth;
 }
 
 export function playNote(node, synthId) {
@@ -67,7 +72,7 @@ export function playNote(node, synthId) {
 	const synthData = state.synths.reduce((prev, item) => item.id === synthId ? item : prev, null);
 	if(!synthData) return;
 
-	const synth = getSynth(synthData);
+	const synth = requestSynthVoice(synthData);
 
 	const { mode, notes, scale, octave } = _get(state, 'musicality', {});
 	const adsr = synthData.envelope;
@@ -81,7 +86,9 @@ export function playNote(node, synthId) {
 	}
 
 	const freq = mode.degreeToFreq(note, (12*octave + scale).midicps(), 1);
+	synth.available = false;
 	synth.triggerAttackRelease(freq, 0);
+	setTimeout(() => synth.available = true, (synthData.envelope.attack + synthData.envelope.release)*1000);
 	
 	return note;
 }
