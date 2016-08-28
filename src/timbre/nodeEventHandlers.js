@@ -14,14 +14,19 @@ export function bindNodeEvents(nodeType, node, attrs = {}) {
 			node.loop = new Loop(() => this.scheduleRingNodeNotes(node, attrs), '0:'+(attrs.bars * attrs.beats)+':0');
 			node.loop.playbackRate = attrs.speed;
 			node.loop.start(0);
-			// continues 
-		case NodeTypes.POINT_NODE:
-			node.on('mousedown', pointNodePointerDown.bind(this));
-			node.on('touchstart', pointNodePointerDown.bind(this));
-			node.on('mouseup', pointNodePointerUp.bind(this));
-			node.on('touchend', pointNodePointerUp.bind(this));
+			break;
+
+		case NodeTypes.ORIGIN_RADAR_NODE:
+			node.loop = new Loop(() => this.scheduleRadarNodeNotes(node, attrs), '0:'+(attrs.bars * attrs.beats)+':0');
+			node.loop.playbackRate = attrs.speed;
+			node.loop.start(0);
 			break;
 	}
+	
+	node.on('mousedown', pointNodePointerDown.bind(this));
+	node.on('touchstart', pointNodePointerDown.bind(this));
+	node.on('mouseup', pointNodePointerUp.bind(this));
+	node.on('touchend', pointNodePointerUp.bind(this));
 }
 
 export function pointNodePointerDown(event) {

@@ -68,3 +68,23 @@ export function redrawRingGuides(attrs, node) {
 	}
 	node.guides.cacheAsBitmap = true;
 }
+
+export function redrawRadarGuides(attrs, node) {
+	if(!attrs || !node) return;
+
+	const totalBeats = attrs.bars * attrs.beats;
+	const radSeg = Math.PI*2 / totalBeats;
+	node.guides.cacheAsBitmap = false;
+	node.guides.clear();
+	for(let beat = 0; beat < totalBeats; beat++) {
+		const bar = beat % attrs.beats === 0;
+		if(bar) node.guides.lineStyle(2, 0xFFFFFF, 0.35);
+		else node.guides.lineStyle(2, 0xFFFFFF, 0.15);
+		node.guides.moveTo(0,0);
+		node.guides.lineTo(
+			Math.cos(beat*radSeg)*attrs.radius,
+			Math.sin(beat*radSeg)*attrs.radius
+		);
+	}
+	node.guides.cacheAsBitmap = true;
+}

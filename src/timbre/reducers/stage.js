@@ -1,6 +1,7 @@
+import { BEAT_PX } from '../constants/globals'
+import * as NoteTypes from '../constants/noteTypes'
 import * as ActionTypes from '../constants/actionTypes'
 import { nodeTypeLookup, ARC_NODE, POINT_NODE, ORIGIN_RING_NODE, ORIGIN_RADAR_NODE } from '../constants/nodeTypes'
-import * as NoteTypes from '../constants/noteTypes'
 
 const initialState = {
 	originRingNodes: [],
@@ -45,7 +46,7 @@ const defaultNodes = {
 	[ARC_NODE]: {...defaultNodeAttrs, circ: Math.PI/2, angle: 0, noteType: NoteTypes.RANDOM},
 	[POINT_NODE]: {...defaultNodeAttrs, radius: 4, noteType: NoteTypes.RANDOM},
 	[ORIGIN_RING_NODE]: {...defaultNodeAttrs, bars: 4, beats: 4, speed: 1},
-	[ORIGIN_RADAR_NODE]: {...defaultNodeAttrs, bars: 4},
+	[ORIGIN_RADAR_NODE]: {...defaultNodeAttrs, bars: 4, beats: 4, speed: 1, radius: BEAT_PX*16},
 };
 
 export function createNode(nodeType, nodeAttrs = {}) {

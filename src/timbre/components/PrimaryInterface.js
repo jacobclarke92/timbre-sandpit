@@ -302,6 +302,7 @@ class PrimaryInterface extends Component {
 		switch(nodeType) {
 			case POINT_NODE: node = createPointNode(nodeAttrs); break;
 			case ORIGIN_RING_NODE: node = createRingNode(nodeAttrs); break;
+			case ORIGIN_RADAR_NODE: node = createRadarNode(nodeAttrs); break;
 			default: console.log('Failed to create node instance', nodeType, nodeAttrs); return;
 		}
 		this.stage.addChild(node);
@@ -354,6 +355,12 @@ class PrimaryInterface extends Component {
 		}
 	}
 
+	// called by every radar node at the beginning of its loop
+	scheduleRadarNodeNotes(radarNodeInstance, radarNode) {
+
+	}
+
+	// called when a node has been moved
 	checkForNoteReschedule(node) {
 		for(let ringNode of this.props.stage.originRingNodes) {
 			const ringNodeInstance = this.originRingNodes[ringNode.id];
@@ -368,6 +375,7 @@ class PrimaryInterface extends Component {
 		}
 	}
 
+	// plays a note!
 	triggerNote(originNode, nodeInstance, eventId) {
 		const { musicality } = this.props;
 		const noteIndex = playNote(nodeInstance, originNode.synthId);
@@ -382,7 +390,7 @@ class PrimaryInterface extends Component {
 	// pixi animation loop
 	animate() {
 		const { gui, stage, transport, musicality, showFPS } = this.props;
-		const { pointNodes, originRingNodes } = stage;
+		const { pointNodes, originRingNodes, originRadarNodes } = stage;
 
 		// active node indiciator
 		if(this.activeNode) {
@@ -401,6 +409,17 @@ class PrimaryInterface extends Component {
 			node.ring.clear();
 			node.ring.lineStyle(2, 0xFFFFFF, 1);
 			node.ring.drawCircle(0, 0, ringSize);
+			node.guides.renderable = gui.showGuides;
+		}
+
+		// redraw radar nodes
+		for(let attrs of originRadarNodes) {
+			const node = this.originRadarNodes[attrs.id];
+			const theta = node.loop.progress * (Math.PI*2);
+			node.graphic.clear();
+			node.graphic.lineStyle(2, 0xFFFFFF, 1);
+			node.graphic.moveTo(0,0);
+			node.graphic.lineTo(Math.cos(theta)*attrs.radius, Math.sin(theta)*attrs.radius);
 			node.guides.renderable = gui.showGuides;
 		}
 		

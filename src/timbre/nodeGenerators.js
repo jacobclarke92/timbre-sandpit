@@ -3,7 +3,7 @@ import PIXI, { Container, Graphics, Sprite, Rectangle } from 'pixi.js'
 import newId from './utils/newId'
 import Point from './Point'
 
-import { redrawPointNode, redrawRingGuides } from './nodeGraphics'
+import { redrawPointNode, redrawRingGuides, redrawRadarGuides } from './nodeGraphics'
 
 let store = null;
 export function receiveStore(_store) {
@@ -45,9 +45,9 @@ export function createRingNode(_attrs) {
 	node.scale.set(attrs.scale);
 	node.position.set(attrs.position.x, attrs.position.y);
 
+	node.addChild(guides);
 	node.addChild(graphic);
 	node.addChild(ring);
-	node.addChild(guides);
 
 	return node;
 }
@@ -57,6 +57,11 @@ export function createRadarNode(_attrs) {
 
 	const node = new Container();
 	const graphic = new Graphics();
+	const guides = new Graphics();
+	node.graphic = graphic;
+	node.guides = guides;
+
+	redrawRadarGuides(attrs, node);
 
 	node.id = attrs.id || newId();
 	node.nodeType = attrs.nodeType;
@@ -66,8 +71,9 @@ export function createRadarNode(_attrs) {
 	node.radius = attrs.radius;
 	node.scale.set(attrs.scale);
 	node.position.set(attrs.position.x, attrs.position.y);
-	node.graphic = graphic;
-	// node.addChild(graphic);
+	
+	node.addChild(guides);
+	node.addChild(graphic);
 	 
 	return node;
 }
