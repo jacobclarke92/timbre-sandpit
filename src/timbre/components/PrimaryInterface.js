@@ -100,6 +100,7 @@ class PrimaryInterface extends Component {
 		// fps counter
 		if(this.props.showFPS) {
 			this.fps = new Text('', {font: '16px Orbitron', fontWeight: '500', fill: 'white'});
+			this.fps.scale.set(1/getPixelDensity());
 			this.fps.position = {x: 5, y: 5};
 			this.fpsCache = new Array(60).map(t => 60);
 			this.lastFps = Date.now();
