@@ -2,9 +2,10 @@ import React, { Component } from 'react'
 import { connect } from 'react-redux'
 import $ from 'jquery'
 
-import { STAGE, OSCILLATORS, MAPPINGS, FX } from '../constants/uiViews'
 import { addKeyListener } from '../utils/keyUtils'
-import { changeView } from '../reducers/gui'
+import { changeView, changeTool } from '../reducers/gui'
+import { STAGE, OSCILLATORS, MAPPINGS, FX } from '../constants/uiViews'
+import { ORIGIN_RING_NODE, ORIGIN_RADAR_NODE, POINT_NODE, ARC_NODE } from '../constants/nodeTypes'
 
 import TopUI from './TopUI'
 import BottomUI from './BottomUI'
@@ -17,14 +18,14 @@ import FxInterface from './FxInterface'
 class App extends Component {
 
 	componentDidMount() {
-		addKeyListener('1', () => this.changeView(STAGE));
-		addKeyListener('2', () => this.changeView(OSCILLATORS));
-		addKeyListener('3', () => this.changeView(MAPPINGS));
-		addKeyListener('4', () => this.changeView(FX));
-	}
-
-	changeView(view) {
-		this.props.dispatch(changeView(view));
+		addKeyListener('q', () => this.props.dispatch(changeView(STAGE)));
+		addKeyListener('w', () => this.props.dispatch(changeView(OSCILLATORS)));
+		addKeyListener('e', () => this.props.dispatch(changeView(MAPPINGS)));
+		addKeyListener('r', () => this.props.dispatch(changeView(FX)));
+		addKeyListener('1', () => this.props.dispatch(changeTool(ORIGIN_RING_NODE)));
+		addKeyListener('2', () => this.props.dispatch(changeTool(ORIGIN_RADAR_NODE)));
+		addKeyListener('3', () => this.props.dispatch(changeTool(POINT_NODE)));
+		addKeyListener('4', () => this.props.dispatch(changeTool(ARC_NODE)));
 	}
 
 	render() {
