@@ -107,7 +107,7 @@ export function playNote(node, synthId) {
 	switch(noteType) {
 		case NoteTypes.UP: note = getAscendingNote(); break;
 		case NoteTypes.DOWN: note = getDescendingNote(); break;
-		case NoteTypes.NOTE: console.log(node, node.noteIndex, notes[node.noteIndex]); note = notes[node.noteIndex]; break;
+		case NoteTypes.NOTE: note = notes[node.noteIndex % notes.length]; break;
 		default: note = getRandomNote();
 	}
 
