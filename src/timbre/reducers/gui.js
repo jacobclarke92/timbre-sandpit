@@ -24,6 +24,7 @@ const initialState = {
 	_toolSettings: {...initialToolSettings},
 	activeNode: null,
 	showGuides: true,
+	snapping: false,
 };
 
 export default function(state = initialState, action) {
@@ -66,6 +67,13 @@ export default function(state = initialState, action) {
 
 		case ActionTypes.HIDE_GUIDES:
 			return {...state, showGuides: false};
+
+
+		case ActionTypes.ENABLE_SNAPPING:
+			return {...state, snapping: true};
+
+		case ActionTypes.DISABLE_SNAPPING:
+			return {...state, snapping: false};
 	}
 	return state;
 }

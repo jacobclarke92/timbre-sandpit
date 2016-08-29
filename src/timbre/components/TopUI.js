@@ -100,6 +100,7 @@ class TopUI extends Component {
 						)}
 						<hr className="vertical" />
 						<ButtonIcon icon="radar" label="Hide guides" selected={!gui.showGuides} onClick={() => dispatch({type: gui.showGuides ? ActionTypes.HIDE_GUIDES : ActionTypes.SHOW_GUIDES})} />
+						<ButtonIcon icon="snapping" label="Enable snapping" selected={gui.snapping} onClick={() => dispatch({type: gui.snapping ? ActionTypes.DISABLE_SNAPPING : ActionTypes.ENABLE_SNAPPING})} />
 					</div>
 				</div>
 				<div className="ui-selection">

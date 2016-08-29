@@ -10,8 +10,8 @@ import $ from 'jquery'
 import Point from '../Point'
 import newId from '../utils/newId'
 import { getValueById } from '../utils/arrayUtils'
-import { dist, clamp, inBounds } from '../utils/mathUtils'
 import { checkDifferenceAny } from '../utils/lifecycleUtils'
+import { dist, clamp, inBounds, getDistance, getAngle } from '../utils/mathUtils'
 import { getPixelDensity, addResizeCallback, triggerResize } from '../utils/screenUtils'
 import { isUpKeyPressed, isDownKeyPressed, isLeftKeyPressed, isRightKeyPressed, addKeyListener } from '../utils/keyUtils'
 
@@ -108,6 +108,16 @@ class PrimaryInterface extends Component {
 			setTimeout(() => this.stageWrapper.addChild(this.fps), 1000); 
 		}
 
+		// placement indicator
+		this.placementIndicator = new Graphics();
+		this.placementIndicator.lineStyle(2, 0xFFFFFF, 0.5);
+		this.placementIndicator.moveTo(0, -15);
+		this.placementIndicator.lineTo(0, 15);
+		this.placementIndicator.moveTo(-15, 0);
+		this.placementIndicator.lineTo(15, 0);
+		this.placementIndicator.cacheAsBitmap = true;
+		this.stage.addChild(this.placementIndicator);
+
 		this.dragTarget = null;
 		this.activeNode = null;
 		this.activeNodeIndicator = new Graphics();
@@ -128,6 +138,7 @@ class PrimaryInterface extends Component {
 		this.cursor = new Point(0,0);
 		this.lastCursor = new Point(0,0);
 		this.mouseDownPosition = new Point(0,0);
+		this.placementPosition = new Point(0,0);
 
 		// instanciate local references of pixi node instances
 		this.initedNodeIds = [];
@@ -190,6 +201,36 @@ class PrimaryInterface extends Component {
 		this.cursor = new Point(event.data.originalEvent.clientX, event.data.originalEvent.clientY - this.offsetY);
 		this.stageCursor = event.data.getLocalPosition(this.stage);
 
+		// placement snapping
+		if(this.props.gui.snapping) {
+			const closestNode = this.getClosestOriginNode(this.stageCursor);
+			if(closestNode) {
+				const angle = getAngle(closestNode.node.position, this.stageCursor);
+				if(closestNode.node.nodeType == ORIGIN_RING_NODE) {
+					const distance = Math.round(closestNode.distance / BEAT_PX) * BEAT_PX - 0.1;
+					this.placementPosition = {
+						x: closestNode.node.position.x + Math.cos(angle)*distance,
+						y: closestNode.node.position.y + Math.sin(angle)*distance,
+					};
+				}else if(closestNode.node.nodeType == ORIGIN_RADAR_NODE) {
+					const absAngle = angle+Math.PI;
+					const anglePart = (Math.PI*2)/(closestNode.node.bars*closestNode.node.beats);
+					const angleSnap = Math.round(absAngle / anglePart) * anglePart - Math.PI;
+					this.placementPosition = {
+						x: closestNode.node.position.x + Math.cos(angleSnap)*closestNode.distance,
+						y: closestNode.node.position.y + Math.sin(angleSnap)*closestNode.distance,
+					}
+				}
+			}else{
+				this.placementPosition = {
+					x: Math.round(this.stageCursor.x / BEAT_PX) * BEAT_PX, 
+					y: Math.round(this.stageCursor.y / BEAT_PX) * BEAT_PX,
+				};
+			}
+		}else{
+			this.placementPosition = this.stageCursor;
+		}
+
 		// reposition stage pivot to mouse position for zooming
 		this.stage.position.x += (this.stageCursor.x - this.stage.pivot.x) * this.stage.scale.x;
 		this.stage.position.y += (this.stageCursor.y - this.stage.pivot.y) * this.stage.scale.y;
@@ -236,10 +277,25 @@ class PrimaryInterface extends Component {
 		setTimeout(() => this.renderer.backgroundColor = 0x000, 100);
 	}
 
+	getClosestOriginNode(point) {
+		const { originRingNodes, originRadarNodes } = this.props.stage;
+		const nodes = [];
+		for(let node of originRingNodes) {
+			const distance = getDistance(point, node.position);
+			if(distance <= node.bars*node.beats*BEAT_PX) nodes.push({node, distance});
+		}
+		for(let node of originRadarNodes) {
+			const distance = getDistance(point, node.position);
+			if(distance <= node.radius) nodes.push({node, distance});
+		}
+		nodes.sort((a,b) => a.distance < b.distance ? -1 : (a.distance > b.distance ? 1 : 0))
+		return nodes.length > 0 ? nodes[0] : null;
+	}
+
 	// creates a node based on current tool selected
 	createNode(event) {
 		if(!event.target || !event.data) return;
-		const spawnPoint = event.data.getLocalPosition(event.target);
+		const spawnPoint = this.props.gui.snapping ? this.placementPosition : event.data.getLocalPosition(event.target);
 		const nodeType = this.props.gui.tool;
 		const attrs = {
 			id: newId(), 
@@ -331,8 +387,8 @@ class PrimaryInterface extends Component {
 		node.nearbyPointNodes = [];
 		for(let pointNodeAttrs of pointNodes) {
 			const pointNode = this.pointNodes[pointNodeAttrs.id];
-			const distance = new Point(node.position).distance(pointNode.position);
-			const angle = new Point(node.position).angle(pointNode.position) + Math.PI;
+			const distance = getDistance(node.position, pointNode.position);
+			const angle = getAngle(node.position, pointNode.position) + Math.PI;
 			if(distance <= node.radius) {
 				node.nearbyPointNodes.push({
 					id: pointNodeAttrs.id, 
@@ -436,6 +492,7 @@ class PrimaryInterface extends Component {
 	triggerNote(originNode, nodeInstance, eventId) {
 		const { musicality, stage } = this.props;
 		const node = getValueById(stage[nodeTypeLookup[nodeInstance.nodeType]], nodeInstance.id);
+		if(!node) return;
 		const noteIndex = playNote(node, originNode.synthId);
 		const ringColor = noteColors[(noteIndex + musicality.scale)%12];
 		const ring = createRingFX(nodeInstance.position, ringColor);
@@ -505,6 +562,10 @@ class PrimaryInterface extends Component {
 		// scale easing
 		const stageScale = this.stage.scale.x;
 		this.stage.scale.set(stageScale + (this.aimScale - stageScale)/scaleEase);
+
+		// placement indicator
+		this.placementIndicator.position = this.placementPosition;
+		this.placementIndicator.scale.set(1/this.stage.scale.x);
 
 		if(showFPS) {
 			const now = Date.now();
