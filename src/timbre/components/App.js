@@ -22,10 +22,10 @@ class App extends Component {
 		addKeyListener('w', () => this.props.dispatch(changeView(OSCILLATORS)));
 		addKeyListener('e', () => this.props.dispatch(changeView(MAPPINGS)));
 		addKeyListener('r', () => this.props.dispatch(changeView(FX)));
-		addKeyListener('1', () => this.props.dispatch(changeTool(ORIGIN_RING_NODE)));
-		addKeyListener('2', () => this.props.dispatch(changeTool(ORIGIN_RADAR_NODE)));
-		addKeyListener('3', () => this.props.dispatch(changeTool(POINT_NODE)));
-		addKeyListener('4', () => this.props.dispatch(changeTool(ARC_NODE)));
+		addKeyListener('a', () => this.props.dispatch(changeTool(ORIGIN_RING_NODE)));
+		addKeyListener('s', () => this.props.dispatch(changeTool(ORIGIN_RADAR_NODE)));
+		addKeyListener('d', () => this.props.dispatch(changeTool(POINT_NODE)));
+		addKeyListener('f', () => this.props.dispatch(changeTool(ARC_NODE)));
 	}
 
 	render() {

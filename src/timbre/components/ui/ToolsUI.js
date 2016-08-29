@@ -7,10 +7,54 @@ import noteStrings from '../../constants/noteStrings'
 import * as NodeTypes from '../../constants/nodeTypes'
 import { RANDOM, UP, DOWN, NOTE } from '../../constants/noteTypes'
 import { changeToolSetting, changeToolSettings } from '../../reducers/gui'
+import { addKeyListener, removeKeyListener } from '../../utils/keyUtils'
 
 import ButtonIcon from './ButtonIcon'
 
 class PointNodeTools extends Component {
+
+	componentDidMount() {
+		this.keyFuncs = {};
+		this.keyFuncs['`'] = () => this.props.dispatch(changeToolSetting('noteType', RANDOM));
+		this.keyFuncs['-'] = () => this.props.dispatch(changeToolSetting('noteType', DOWN));
+		this.keyFuncs['='] = () => this.props.dispatch(changeToolSetting('noteType', UP));
+		addKeyListener('`', this.keyFuncs['`']);
+		addKeyListener('-', this.keyFuncs['-']);
+		addKeyListener('=', this.keyFuncs['=']);
+		this.bindNoteKeys();
+	}
+
+	componentWillUnmount() {
+		removeKeyListener('`', this.keyFuncs['`']);
+		removeKeyListener('-', this.keyFuncs['-']);
+		removeKeyListener('=', this.keyFuncs['=']);
+		this.unbindNoteKeys(this.props.musicality.notes.length);
+	}
+
+	componentWillReceiveProps(nextProps) {
+		const numOldNotes = this.props.musicality.notes.length;
+		const numNewNotes = nextProps.musicality.notes.length;
+		console.log(numOldNotes, numNewNotes);
+		if(numOldNotes != numNewNotes) {
+			this.unbindNoteKeys(numOldNotes);
+			this.bindNoteKeys(numNewNotes);
+		}
+	}
+
+	bindNoteKeys() {
+		const { notes } = this.props.musicality;
+		for(let n=0; n<notes.length; n++) {
+			this.keyFuncs[n] = () => this.props.dispatch(changeToolSettings({noteType: NOTE, noteIndex: n}));
+			addKeyListener((n+1).toString(), this.keyFuncs[n]);
+		}
+	}
+
+	unbindNoteKeys(numNotes) {
+		for(let n=0; n<numNotes; n++) {
+			removeKeyListener((n+1).toString(), this.keyFuncs[n]);
+		}
+	}
+
 	render() {
 		const { dispatch } = this.props;
 		const { noteType, noteIndex } = this.props.gui.toolSettings || {};
