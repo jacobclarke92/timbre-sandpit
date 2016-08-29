@@ -256,10 +256,11 @@ class PrimaryInterface extends Component {
 	// removes node locally and from store given pixi node instance
 	removeNode(nodeInstance) {
 		if(!nodeInstance) return;
-		if(nodeInstance.scheduledNote) {
-			console.log('cancelling scheduled notes');
-			Transport.cancel(nodeInstance.scheduledNote);
+		if(nodeInstance.loop) {
+			nodeInstance.loop.cancel();
+			nodeInstance.loop.dispose();
 		}
+		this.clearScheduledNotes(nodeInstance);
 		this.stage.removeChild(nodeInstance);
 		this.props.dispatch(removeNode(nodeInstance.nodeType, nodeInstance.id));
 		delete this[nodeTypeLookup[nodeInstance.nodeType]][nodeInstance.id];
@@ -352,7 +353,8 @@ class PrimaryInterface extends Component {
 			const ticks = ((nearbyPointNode.distance / BEAT_PX) * METER_TICKS)/ringNodeInstance.loop.playbackRate;
 			const triggerTime = Transport.toTicks() + Math.floor(ticks);
 			const eventId = Transport.scheduleOnce(() => this.triggerNote(ringNode, nearbyPointNode.ref, eventId), triggerTime+'i');
-			nearbyPointNode.ref.scheduledNotes.push(eventId);
+			if(!nearbyPointNode.ref.scheduledNotes[ringNode.id]) nearbyPointNode.ref.scheduledNotes[ringNode.id] = [];
+			nearbyPointNode.ref.scheduledNotes[ringNode.id].push(eventId);
 		}
 	}
 
@@ -371,8 +373,27 @@ class PrimaryInterface extends Component {
 				const ticks = Math.floor(((nearbyPointNode.distance - ringSize) / BEAT_PX) * METER_TICKS);
 				const triggerTime = Transport.toTicks() + ticks;
 				const eventId = Transport.scheduleOnce(() => this.triggerNote(ringNode, nearbyPointNode.ref, eventId), triggerTime+'i');
-				nearbyPointNode.ref.scheduledNotes.push(eventId);
+				if(!nearbyPointNode.ref.scheduledNotes[ringNode.id]) nearbyPointNode.ref.scheduledNotes[ringNode.id] = [];
+				nearbyPointNode.ref.scheduledNotes[ringNode.id].push(eventId);
 			}
+		}
+	}
+
+	// called on node delete
+	clearScheduledNotes(nodeInstance) {
+		switch(nodeInstance.nodeType) {
+			case POINT_NODE:
+				for(let key of Object.keys(nodeInstance.scheduledNotes)) {
+					nodeInstance.scheduledNotes[key].forEach(noteId => Transport.cancel(noteId));
+				}
+				break;
+
+			case ORIGIN_RING_NODE:
+			case ORIGIN_RADAR_NODE:
+				if(nodeInstance.nearbyPointNodes) nodeInstance.nearbyPointNodes.forEach(npn => {
+					if(npn.ref.scheduledNotes[nodeInstance.id]) npn.ref.scheduledNotes[nodeInstance.id].forEach(noteId => Transport.cancel(noteId));
+				});
+				break;
 		}
 	}
 
@@ -385,7 +406,11 @@ class PrimaryInterface extends Component {
 		ring.speed = originNode.speed;
 		this.fxContainer.addChild(ring);
 		this.ringsFX.push(ring);
-		if(eventId && nodeInstance.scheduledNotes) nodeInstance.scheduledNotes = nodeInstance.scheduledNotes.filter(id => id != eventId);
+		
+		// remove scheduled event id from note
+		if(eventId && nodeInstance.scheduledNotes[originNode.id]) {
+			nodeInstance.scheduledNotes[originNode.id] = nodeInstance.scheduledNotes[originNode.id].filter(id => id != eventId);
+		}
 	}
 
 	// pixi animation loop
@@ -500,7 +525,8 @@ class PrimaryInterface extends Component {
 						const ticks = Math.floor(((nearbyPointNode.distance - ringSize) / BEAT_PX) * METER_TICKS);
 						const triggerTime = Transport.toTicks() + ticks;
 						const eventId = Transport.scheduleOnce(() => this.triggerNote(ringNode, nearbyPointNode.ref, eventId, eventId), triggerTime+'i');
-						nearbyPointNode.ref.scheduledNotes.push(eventId);
+						if(!nearbyPointNode.ref.scheduledNotes[ringNode.id]) nearbyPointNode.ref.scheduledNotes[ringNode.id] = [];
+						nearbyPointNode.ref.scheduledNotes[ringNode.id].push(eventId);
 					}
 				}
 			}
