@@ -26,10 +26,10 @@ function handleKeyDown(event) {
 		case 'ctrl': ctrlKeyPressed = true; break;
 		case 'command': ctrlKeyPressed = true; break;
 	}
-	if(key == 'up' || key == 'w') upKeyPressed = true;
-	if(key == 'down' || key == 's') downKeyPressed = true;
-	if(key == 'left' || key == 'a') leftKeyPressed = true;
-	if(key == 'right' || key == 'd') rightKeyPressed = true;
+	if(key == 'up'/* || key == 'w'*/) upKeyPressed = true;
+	if(key == 'down'/* || key == 's'*/) downKeyPressed = true;
+	if(key == 'left'/* || key == 'a'*/) leftKeyPressed = true;
+	if(key == 'right'/* || key == 'd'*/) rightKeyPressed = true;
 
 	for(let checkKey of Object.keys(keyCallbacks)) {
 		if(checkKey == key) {
