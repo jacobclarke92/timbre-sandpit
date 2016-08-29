@@ -22,8 +22,8 @@ import { bindNodeEvents } from '../nodeEventHandlers'
 import { BEAT_PX, METER_TICKS } from '../constants/globals'
 import { createNode, removeNode, updateNode } from '../reducers/stage'
 import { getRandomNote, getAscendingNote, getDescendingNote, playNote } from '../sound'
-import { createRingFX, redrawPointNode, redrawRingGuides } from '../nodeGraphics'
 import { createPointNode, createRingNode, createArcNode, createRadarNode } from '../nodeGenerators'
+import { createRingFX, redrawPointNode, redrawRingGuides, redrawRadarGuides } from '../nodeGraphics'
 import { nodeTypeLookup, nodeTypeKeys, POINT_NODE, ARC_NODE, ORIGIN_RING_NODE, ORIGIN_RADAR_NODE } from '../constants/nodeTypes'
 
 const scaleEase = 10;
@@ -35,7 +35,7 @@ class PrimaryInterface extends Component {
 
 	static defaultProps = {
 		maxZoom: 2,
-		minZoom: 0.5,
+		minZoom: 0.2,
 		showDebugDots: false,
 		showFPS: true,
 	};
@@ -210,7 +210,7 @@ class PrimaryInterface extends Component {
 				if(this.dragTarget.nodeType == POINT_NODE && this.dragTarget.scheduledNotes) {
 					this.clearScheduledNotes(this.dragTarget);
 					this.dragTarget.scheduledNotes = {};
-				}else if(this.dragTarget.nodeType == ORIGIN_RING_NODE && this.dragTarget.nearbyPointNodes) {
+				}else if((this.dragTarget.nodeType == ORIGIN_RING_NODE || this.dragTarget.nodeType == ORIGIN_RADAR_NODE) && this.dragTarget.nearbyPointNodes) {
 					for(let nearbyPointNode of this.dragTarget.nearbyPointNodes) {
 						this.clearScheduledNotes(nearbyPointNode.ref);
 						nearbyPointNode.ref.scheduledNotes = {};
@@ -313,12 +313,13 @@ class PrimaryInterface extends Component {
 
 	// go over all node types in stage store and generated new instances where required
 	createMissingNodeInstances(stage = this.props.stage) {
-		const newNodes = [];
+		const newNodes = {};
 		for(let nodeKey of Object.keys(nodeTypeLookup)) {
+			newNodes[nodeKey] = [];
 			for(let node of stage[nodeTypeLookup[nodeKey]]) {
 				if(this.initedNodeIds.indexOf(node.id) < 0) {
 					this.createNodeInstance(nodeKey, node);
-					newNodes.push(node);
+					newNodes[nodeKey].push(node);
 				}
 			}
 		}
@@ -327,18 +328,14 @@ class PrimaryInterface extends Component {
 
 	// returns an array of nearby point nodes given a node with a radius attribute
 	getNearbyPointNodes(node, pointNodes = this.props.stage.pointNodes) {
-		const oldIds = (node.nearbyPointNodes || []).map(item => item.id);
 		node.nearbyPointNodes = [];
-
 		for(let pointNodeAttrs of pointNodes) {
 			const pointNode = this.pointNodes[pointNodeAttrs.id];
 			const distance = new Point(node.position).distance(pointNode.position);
 			const angle = new Point(node.position).angle(pointNode.position) + Math.PI;
-			console.log(angle);
 			if(distance <= node.radius) {
 				node.nearbyPointNodes.push({
 					id: pointNodeAttrs.id, 
-					counter: oldIds.indexOf(pointNodeAttrs.id) >= 0 ? node.loopCounter : node.loopCounter-1,
 					ref: pointNode,
 					distance,
 					angle,
@@ -389,23 +386,49 @@ class PrimaryInterface extends Component {
 				this.scheduleNote(ringNode, nearbyPointNode.ref, triggerTime);
 			}
 		}
+		for(let radarNode of this.props.stage.originRadarNodes) {
+			const radarNodeInstance = this.originRadarNodes[radarNode.id];
+			const radarAngle = radarNodeInstance.loop.progress * (Math.PI*2);
+			const totalBeats = radarNode.bars * radarNode.beats;
+			const nearbyPointNode = getByKey(radarNodeInstance.nearbyPointNodes, node.id);
+			if(nearbyPointNode && nearbyPointNode.angle > radarAngle) {
+				const ticks = Math.floor(((nearbyPointNode.angle / (Math.PI*2)) * totalBeats * METER_TICKS) / radarNodeInstance.loop.playbackRate);
+				const triggerTime = Transport.toTicks() + ticks;
+				this.scheduleNote(radarNode, nearbyPointNode.ref, triggerTime);
+			}
+		}
 	}
 
-	// called on node delete
+	// called on node delete of any kind
 	clearScheduledNotes(nodeInstance) {
 		switch(nodeInstance.nodeType) {
 			case POINT_NODE:
 				for(let key of Object.keys(nodeInstance.scheduledNotes)) {
 					nodeInstance.scheduledNotes[key].forEach(noteId => Transport.cancel(noteId));
+					nodeInstance.scheduledNotes[key] = [];
 				}
 				break;
 
 			case ORIGIN_RING_NODE:
 			case ORIGIN_RADAR_NODE:
 				if(nodeInstance.nearbyPointNodes) nodeInstance.nearbyPointNodes.forEach(npn => {
-					if(npn.ref.scheduledNotes[nodeInstance.id]) npn.ref.scheduledNotes[nodeInstance.id].forEach(noteId => Transport.cancel(noteId));
+					if(npn.ref.scheduledNotes[nodeInstance.id]) {
+						npn.ref.scheduledNotes[nodeInstance.id].forEach(noteId => Transport.cancel(noteId));
+						npn.ref.scheduledNotes[nodeInstance.id] = [];
+					}
 				});
 				break;
+		}
+	}
+
+	// clear all scheduled notes originating from a specific source
+	clearScheduledNotesFromSource(sourceInstance, pointNodes = this.props.stage.pointNodes) {
+		for(let pointNode of pointNodes) {
+			const pointInstance = this.pointNodes[pointNode.id];
+			if(pointInstance.scheduledNotes && pointInstance.scheduledNotes[sourceInstance.id]) {
+				pointInstance.scheduledNotes[sourceInstance.id].forEach(noteId => Transport.cancel(noteId));
+				pointInstance.scheduledNotes[sourceInstance.id] = [];
+			}
 		}
 	}
 
@@ -453,7 +476,7 @@ class PrimaryInterface extends Component {
 		// redraw radar nodes
 		for(let attrs of originRadarNodes) {
 			const node = this.originRadarNodes[attrs.id];
-			const theta = node.loop.progress * (Math.PI*2) + Math.PI2;
+			const theta = node.loop.progress * (Math.PI*2) + Math.PI;
 			node.graphic.clear();
 			node.graphic.lineStyle(2, 0xFFFFFF, 1);
 			node.graphic.moveTo(0,0);
@@ -523,6 +546,7 @@ class PrimaryInterface extends Component {
 			
 			// create missing pixi node instances -- returns the nodes that are new (not the instances)
 			const newNodes = this.createMissingNodeInstances(nextProps.stage);
+			console.log(newNodes);
 
 			// iterate over ring nodes
 			for(let ringNode of nextProps.stage.originRingNodes) {
@@ -531,12 +555,30 @@ class PrimaryInterface extends Component {
 				this.getNearbyPointNodes(ringNodeInstance, nextProps.stage.pointNodes);
 
 				// check if new node (if a point node) is yet to be crossed by a ring node, if so schedule specifically for it
-				for(let newNode of newNodes) {
+				for(let newNode of newNodes[POINT_NODE]) {
 					const nearbyPointNode = getByKey(ringNodeInstance.nearbyPointNodes, newNode.id);
 					if(nearbyPointNode && nearbyPointNode.distance > ringSize) {
 						const ticks = Math.floor(((nearbyPointNode.distance - ringSize) / BEAT_PX) * METER_TICKS);
 						const triggerTime = Transport.toTicks() + ticks;
 						this.scheduleNote(ringNode, nearbyPointNode.ref, triggerTime);
+					}
+				}
+			}
+
+			for(let radarNode of nextProps.stage.originRadarNodes) {
+				const radarNodeInstance = this.originRadarNodes[radarNode.id];
+				const radarAngle = radarNodeInstance.loop.progress * (Math.PI*2);
+				const totalBeats = radarNode.bars * radarNode.beats;
+				this.getNearbyPointNodes(radarNodeInstance, nextProps.stage.pointNodes);
+				console.log(radarNodeInstance.nearbyPointNodes);
+
+				// check if new node (if a point node) is yet to be crossed by a radar node, if so schedule specifically for it
+				for(let newNode of newNodes[POINT_NODE]) {
+					const nearbyPointNode = getByKey(radarNodeInstance.nearbyPointNodes, newNode.id);
+					if(nearbyPointNode && nearbyPointNode.angle > radarAngle) {
+						const ticks = Math.floor((((nearbyPointNode.angle - radarAngle) / (Math.PI*2)) * totalBeats * METER_TICKS) / radarNodeInstance.loop.playbackRate);
+						const triggerTime = Transport.toTicks() + ticks;
+						this.scheduleNote(radarNode, nearbyPointNode.ref, triggerTime);
 					}
 				}
 			}
@@ -548,19 +590,28 @@ class PrimaryInterface extends Component {
 		const nextActiveNode = nextProps.gui.activeNode;
 		if(activeNode && nextActiveNode && activeNode.id == nextActiveNode.id) {
 			const key = nodeTypeLookup[nextActiveNode.nodeType];
-			if(activeNode.nodeType == POINT_NODE) {
-				if(checkDifferenceAny(activeNode, nextActiveNode, ['noteType', 'noteIndex'])) {
-					redrawPointNode(nextActiveNode, this[key][nextActiveNode.id]);
-				}	
-			} else if(activeNode.nodeType == ORIGIN_RING_NODE) {
-				const ringNode = this[key][nextActiveNode.id];
-				if(checkDifferenceAny(activeNode, nextActiveNode, ['bars', 'beats'])) {
-					redrawRingGuides(nextActiveNode, ringNode);
-					ringNode.loop.interval = '0:'+(nextActiveNode.bars * nextActiveNode.beats)+':0';
-				}
-				if(checkDifferenceAny(activeNode, nextActiveNode, 'speed')) {
-					ringNode.loop.playbackRate = nextActiveNode.speed;
-				}
+			switch(activeNode.nodeType) {
+				case POINT_NODE:
+					if(checkDifferenceAny(activeNode, nextActiveNode, ['noteType', 'noteIndex'])) {
+						redrawPointNode(nextActiveNode, this[key][nextActiveNode.id]);
+					}	
+					break;
+				case ORIGIN_RING_NODE:
+					const ringNode = this[key][nextActiveNode.id];
+					if(checkDifferenceAny(activeNode, nextActiveNode, ['bars', 'beats'])) {
+						redrawRingGuides(nextActiveNode, ringNode);
+						ringNode.loop.interval = '0:'+(nextActiveNode.bars * nextActiveNode.beats)+':0';
+					}
+					if(activeNode.speed != nextActiveNode.speed) ringNode.loop.playbackRate = nextActiveNode.speed;
+					break;
+				case ORIGIN_RADAR_NODE:
+					const radarNode = this[key][nextActiveNode.id];
+					if(checkDifferenceAny(activeNode, nextActiveNode, ['bars', 'beats'])) {
+						redrawRadarGuides(nextActiveNode, radarNode);
+						radarNode.loop.interval = '0:'+(nextActiveNode.bars * nextActiveNode.beats)+':0';
+					}
+					if(activeNode.speed != nextActiveNode.speed) radarNode.loop.playbackRate = nextActiveNode.speed;
+					break;
 			}
 		}
 
@@ -570,21 +621,34 @@ class PrimaryInterface extends Component {
 		if(this.dragTarget) {
 			const node = getByKey(nextProps.stage[nodeTypeLookup[this.dragTarget.nodeType]], this.dragTarget.id);
 			if(node) {
-				// if moving a point or ring node, update ring node nearby points
-				if(node.nodeType == POINT_NODE) {
-					console.log('point node moved -- recalculating note schedules');
-					for(let ringNode of nextProps.stage.originRingNodes) {
-						const ringNodeInstance = this.originRingNodes[ringNode.id];
+				switch(node.nodeType) {
+					case POINT_NODE:
+						console.log('point node moved -- recalculating note schedules');
+						this.clearScheduledNotes(this.dragTarget);
+						for(let ringNode of nextProps.stage.originRingNodes) {
+							const ringNodeInstance = this.originRingNodes[ringNode.id];
+							this.getNearbyPointNodes(ringNodeInstance, nextProps.stage.pointNodes);
+							this.checkForNoteReschedule(node);
+						}
+						break;
+					case ORIGIN_RING_NODE:
+						console.log('ring node moved -- recalculating surround note schedules');
+						const ringNodeInstance = this.originRingNodes[node.id];
 						this.getNearbyPointNodes(ringNodeInstance, nextProps.stage.pointNodes);
-						this.checkForNoteReschedule(node);
-					}
-				}else if(node.nodeType == ORIGIN_RING_NODE) {
-					console.log('ring node moved -- recalculating surround note schedules');
-					const ringNodeInstance = this.originRingNodes[node.id];
-					this.getNearbyPointNodes(ringNodeInstance, nextProps.stage.pointNodes);
-					for(let pointNode of nextProps.stage.pointNodes) {
-						this.checkForNoteReschedule(pointNode);
-					}
+						this.clearScheduledNotesFromSource(this.dragTarget, nextProps.stage.pointNodes);
+						for(let pointNode of nextProps.stage.pointNodes) {
+							this.checkForNoteReschedule(pointNode);
+						}
+						break;
+					case ORIGIN_RADAR_NODE:
+						console.log('radar node moved -- recalculating surround note schedules');
+						const radarNodeInstance = this.originRadarNodes[node.id];
+						this.getNearbyPointNodes(radarNodeInstance, nextProps.stage.pointNodes);
+						this.clearScheduledNotesFromSource(this.dragTarget, nextProps.stage.pointNodes);
+						for(let pointNode of nextProps.stage.pointNodes) {
+							this.checkForNoteReschedule(pointNode);
+						}
+						break;
 				}
 			}
 		}
