@@ -2,6 +2,7 @@ import React, { Component } from 'react'
 import { connect } from 'react-redux'
 import classname from 'classname'
 
+import { BEAT_PX } from '../../constants/globals'
 import noteColors from '../../constants/noteColors'
 import noteStrings from '../../constants/noteStrings'
 import * as NodeTypes from '../../constants/nodeTypes'
@@ -109,6 +110,7 @@ class RadarNodeProperties extends Component {
 				<NumberInput label="Beats" min={2} max={7} value={activeNode.beats} onChange={value => this.updateProperty('beats', value)} style={{width: 80}} />
 				<NumberInput label="Bars" min={1} max={8} value={activeNode.bars} onChange={value => this.updateProperty('bars', value)} style={{width: 80}} />
 				<NumberInput label="Speed" min={1} max={16} value={activeNode.speed} onChange={value => this.updateProperty('speed', value)} style={{width: 80}} />
+				<NumberInput label="Radius" min={20} max={20*BEAT_PX} step={BEAT_PX} value={activeNode.radius} onChange={value => this.updateProperty('radius', value)} style={{width: 90}} />
 				<label>
 					Waveform: 
 					<Select value={synth.waveform} onChange={({value}) => this.handleWaveformChange(value, synth)} clearable={false} options={Object.keys(WaveTypes).map(label => ({value: WaveTypes[label], label}))} style={{width: 140}} />

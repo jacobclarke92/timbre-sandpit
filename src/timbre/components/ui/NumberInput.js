@@ -1,6 +1,7 @@
 import React, { Component } from 'react'
 import classname from 'classname'
 import _throttle from 'lodash/throttle'
+import _debounce from 'lodash/debounce'
 
 import * as screenUtils from '../../utils/screenUtils'
 
@@ -17,6 +18,7 @@ export default class NumberInput extends Component {
 		this.state = { invalid: false, dirtyValue: props.value };
 		this.mouseDown = false;
 		this.handleMouseMove = _throttle(this.handleMouseMove.bind(this), 1000/60);
+		this.onChange = _throttle(this.onChange, 1000/5);
 		document.addEventListener('mouseup', ::this.handleMouseUp);
 	}
 
@@ -56,7 +58,11 @@ export default class NumberInput extends Component {
 		if(value && typeof value == 'string') value = parseFloat(value);
 		const invalid = !this.isValid(value);
 		this.setState({invalid, dirtyValue: value});
-		if(!invalid) this.props.onChange(value);
+		if(!invalid) this.onChange(value);
+	}
+
+	onChange(value) {
+		this.props.onChange(value);
 	}
 
 	componentWillReceiveProps(nextProps) {
