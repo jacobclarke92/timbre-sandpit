@@ -47,10 +47,10 @@ function handleKeyUp(event) {
 		case 'ctrl': ctrlKeyPressed = false; break;
 		case 'command': ctrlKeyPressed = false; break;
 	}
-	if(key == 'up' || key == 'w') upKeyPressed = false;
-	if(key == 'down' || key == 's') downKeyPressed = false;
-	if(key == 'left' || key == 'a') leftKeyPressed = false;
-	if(key == 'right' || key == 'd') rightKeyPressed = false;
+	if(key == 'up'/* || key == 'w'*/) upKeyPressed = false;
+	if(key == 'down'/* || key == 's'*/) downKeyPressed = false;
+	if(key == 'left'/* || key == 'a'*/) leftKeyPressed = false;
+	if(key == 'right'/* || key == 'd'*/) rightKeyPressed = false;
 }
 
 export function init(element = document) {
