@@ -197,12 +197,14 @@ class PrimaryInterface extends Component {
 	}
 
 	handlePointerMove(event) {
+		const { snapping } = this.props.gui;
+
 		// update mouse position vars
 		this.cursor = new Point(event.data.originalEvent.clientX, event.data.originalEvent.clientY - this.offsetY);
 		this.stageCursor = event.data.getLocalPosition(this.stage);
 
 		// placement snapping
-		if(this.props.gui.snapping) {
+		if(snapping) {
 			const closestNode = this.getClosestOriginNode(this.stageCursor);
 			if(closestNode) {
 				const angle = getAngle(closestNode.node.position, this.stageCursor);
@@ -243,8 +245,8 @@ class PrimaryInterface extends Component {
 		if(this.mouseDown) {
 			if(this.dragTarget) {
 				// reposition node if dragging
-				this.dragTarget.position.x += this.stageCursor.x - this.lastStageCursor.x;
-				this.dragTarget.position.y += this.stageCursor.y - this.lastStageCursor.y;
+				this.dragTarget.position.x = snapping ? this.placementPosition.x : this.stageCursor.x;
+				this.dragTarget.position.y = snapping ? this.placementPosition.y : this.stageCursor.y;
 				this.handleNodeMove();
 
 				// cancel any scheduled notes
