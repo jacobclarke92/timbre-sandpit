@@ -2,6 +2,8 @@ import React from 'react'
 import ReactDOM from 'react-dom'
 import { createStore } from 'redux'
 import { Provider } from 'react-redux'
+import localStore from 'store'
+import $ from 'jquery'
 
 import '../../styles/index.less'
 import App from './components/App'
@@ -27,9 +29,21 @@ setTimeout(() => {
 keyUtils.init();
 window.logStore = () => console.log(store.getState());
 
+$(window).on('beforeunload', () => {
+	
+	if(keyUtils.isLeftKeyPressed() && keyUtils.isRightKeyPressed()) {
+		localStore.clear();
+	}else{
+		const state = store.getState();
+		for(let key of Object.keys(state)) {
+			localStore.set(key, state[key]);
+		}
+	}
+});
+
 ReactDOM.render(
 	<Provider store={store}>
 		<App />
 	</Provider>, 
-	document.getElementById('app')
+	$('#app')[0]
 );

@@ -1,3 +1,4 @@
+import localStore from 'store'
 import { Transport } from 'tone'
 import * as ActionTypes from '../constants/actionTypes'
 
@@ -9,7 +10,7 @@ const initialState = {
 	startTime: Date.now(),
 };
 
-export default function(state = initialState, action) {
+export default function(state = localStore.get('transport') || initialState, action) {
 	switch(action.type) {
 
 		case ActionTypes.UPDATE_BPM:

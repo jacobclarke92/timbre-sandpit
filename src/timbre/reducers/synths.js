@@ -1,3 +1,4 @@
+import localStore from 'store'
 import { Transport } from 'tone'
 
 import newId from '../utils/newId'
@@ -15,7 +16,7 @@ const initialState = [{
 	},
 }];
 
-export default function(state = initialState, action) {
+export default function(state = localStore.get('synths') || initialState, action) {
 	switch(action.type) {
 
 		case ActionTypes.ADD_SYNTH:

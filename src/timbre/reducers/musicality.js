@@ -1,3 +1,4 @@
+import localStore from 'store'
 import * as ActionTypes from '../constants/actionTypes'
 import noteColors from '../constants/noteColors'
 import noteStrings from '../constants/noteStrings'
@@ -8,11 +9,10 @@ const initialState = {
 	scaleString: 'C',
 	octave: 4,
 	modeString: 'lydian',
-	mode: modes['lydian'],
 	notes: modes['lydian'].degrees(),
 };
 
-export default function (state = initialState, action) {
+export default function (state = localStore.get('musicality') || initialState, action) {
 	switch(action.type) {
 		case ActionTypes.UPDATE_OCTAVE:
 			return {

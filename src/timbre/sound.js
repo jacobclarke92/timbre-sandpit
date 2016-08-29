@@ -2,6 +2,7 @@ import Tone, { Synth, Transport } from 'tone'
 import _get from 'lodash/get'
 import _cloneDeep from 'lodash/cloneDeep'
 
+import modes from './constants/modes'
 import * as NoteTypes from './constants/noteTypes'
 import { getByKey } from './utils/arrayUtils'
 import { checkDifferenceAny } from './utils/lifecycleUtils'
@@ -99,7 +100,7 @@ export function playNote(node, synthId) {
 
 	const synth = requestSynthVoice(synthData);
 
-	const { mode, notes, scale, octave } = _get(state, 'musicality', {});
+	const { modeString, notes, scale, octave } = _get(state, 'musicality', {});
 	const adsr = synthData.envelope;
 
 	// decide what note ot play next
@@ -111,6 +112,7 @@ export function playNote(node, synthId) {
 		default: note = getRandomNote();
 	}
 
+	const mode = modes[modeString];
 	const freq = mode.degreeToFreq(note, (12*octave + scale).midicps(), 1);
 	synth.available = false;
 	synth.triggerAttackRelease(freq, 0);

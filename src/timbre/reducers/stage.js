@@ -1,3 +1,4 @@
+import localStore from 'store'
 import { BEAT_PX } from '../constants/globals'
 import * as NoteTypes from '../constants/noteTypes'
 import * as ActionTypes from '../constants/actionTypes'
@@ -10,7 +11,7 @@ const initialState = {
 	arcNodes: [],
 };
 
-export default function (state = initialState, action) {
+export default function (state = localStore.get('stage') || initialState, action) {
 	let key = null;
 	switch(action.type) {
 		case ActionTypes.ADD_NODE:

@@ -1,3 +1,4 @@
+import localStore from 'store'
 import * as UiViews from '../constants/uiViews'
 import * as NodeTypes from '../constants/nodeTypes'
 import * as NoteTypes from '../constants/noteTypes'
@@ -27,7 +28,7 @@ const initialState = {
 	snapping: false,
 };
 
-export default function(state = initialState, action) {
+export default function(state = localStore.get('gui') || initialState, action) {
 	let toolSettings = {};
 	switch(action.type) {
 		case ActionTypes.TOOL_CHANGE:

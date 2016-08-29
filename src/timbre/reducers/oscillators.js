@@ -1,3 +1,4 @@
+import localStore from 'store'
 import * as ActionTypes from '../constants/actionTypes'
 import * as WaveTypes from '../constants/waveTypes'
 import newId from '../utils/newId'
@@ -9,7 +10,7 @@ const initialState = [
 	{id: newId(), frequency: 1, amplitude: 1, freqNote: null, waveform: WaveTypes.SQUARE},
 ];
 
-export default function (state = initialState, action) {
+export default function (state = localStore.get('oscillators') || initialState, action) {
 	switch(action.type) {
 		case ActionTypes.ADD_OSCILLATOR:
 			return [...state, action.oscillator];
