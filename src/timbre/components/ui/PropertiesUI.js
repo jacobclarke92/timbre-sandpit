@@ -86,7 +86,41 @@ class RingNodeProperties extends Component {
 	}
 }
 
+
+class RadarNodeProperties extends Component {
+
+	updateProperty(key, value) {
+		const { activeNode } = this.props.gui;
+		if(!activeNode) return;
+		const node = {...activeNode, [key]: value};
+		this.props.dispatch(updateNode(node.nodeType, node));
+	}
+
+	handleWaveformChange(waveform, synth) {
+		this.props.dispatch({type: ActionTypes.UPDATE_SYNTH, synth: {...synth, waveform}});
+	}
+
+	render() {
+		const { dispatch, gui, synths } = this.props;
+		const { activeNode } = gui;
+		const synth = getByKey(synths, activeNode.synthId);
+		return (
+			<div className="properties-container">
+				<NumberInput label="Beats" min={2} max={7} value={activeNode.beats} onChange={value => this.updateProperty('beats', value)} style={{width: 80}} />
+				<NumberInput label="Bars" min={1} max={8} value={activeNode.bars} onChange={value => this.updateProperty('bars', value)} style={{width: 80}} />
+				<NumberInput label="Speed" min={1} max={16} value={activeNode.speed} onChange={value => this.updateProperty('speed', value)} style={{width: 80}} />
+				<label>
+					Waveform: 
+					<Select value={synth.waveform} onChange={({value}) => this.handleWaveformChange(value, synth)} clearable={false} options={Object.keys(WaveTypes).map(label => ({value: WaveTypes[label], label}))} style={{width: 140}} />
+				</label>
+				<Envelope envelope={synth.envelope} />
+			</div>
+		)
+	}
+}
+
 export default {
 	[NodeTypes.POINT_NODE]: connect(({gui, musicality}) => ({gui, musicality}))(PointNodeProperties),
 	[NodeTypes.ORIGIN_RING_NODE]: connect(({gui, musicality, synths}) => ({gui, musicality, synths}))(RingNodeProperties),
+	[NodeTypes.ORIGIN_RADAR_NODE]: connect(({gui, musicality, synths}) => ({gui, musicality, synths}))(RadarNodeProperties),
 }
