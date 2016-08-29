@@ -570,7 +570,6 @@ class PrimaryInterface extends Component {
 				const radarAngle = radarNodeInstance.loop.progress * (Math.PI*2);
 				const totalBeats = radarNode.bars * radarNode.beats;
 				this.getNearbyPointNodes(radarNodeInstance, nextProps.stage.pointNodes);
-				console.log(radarNodeInstance.nearbyPointNodes);
 
 				// check if new node (if a point node) is yet to be crossed by a radar node, if so schedule specifically for it
 				for(let newNode of newNodes[POINT_NODE]) {
@@ -624,7 +623,7 @@ class PrimaryInterface extends Component {
 				switch(node.nodeType) {
 					case POINT_NODE:
 						console.log('point node moved -- recalculating note schedules');
-						this.clearScheduledNotes(this.dragTarget);
+						this.clearScheduledNotes(this.dragTarget, nextProps.stage.pointNodes);
 						for(let ringNode of nextProps.stage.originRingNodes) {
 							const ringNodeInstance = this.originRingNodes[ringNode.id];
 							this.getNearbyPointNodes(ringNodeInstance, nextProps.stage.pointNodes);
