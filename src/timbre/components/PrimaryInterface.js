@@ -346,15 +346,22 @@ class PrimaryInterface extends Component {
 		}
 	}
 
+	// called whenever a note needs to be scheduled
+	// registers it to the target's scheduledNotes array under the source's id
+	scheduleNote(originNode, nodeInstance, ticks = Transport.toTicks()) {
+		if(!originNode || !nodeInstance) return;
+		const eventId = Transport.scheduleOnce(() => this.triggerNote(originNode, nodeInstance, eventId), ticks+'i');
+		if(!nodeInstance.scheduledNotes[originNode.id]) nodeInstance.scheduledNotes[originNode.id] = [];
+		nodeInstance.scheduledNotes[originNode.id].push(eventId);
+	}
+
 	// called by every ring node at the beginning of its loop
 	scheduleRingNodeNotes(ringNodeInstance, ringNode) {
 		if(!ringNodeInstance.nearbyPointNodes) this.getNearbyPointNodes(ringNodeInstance);
 		for(let nearbyPointNode of ringNodeInstance.nearbyPointNodes) {
 			const ticks = ((nearbyPointNode.distance / BEAT_PX) * METER_TICKS)/ringNodeInstance.loop.playbackRate;
 			const triggerTime = Transport.toTicks() + Math.floor(ticks);
-			const eventId = Transport.scheduleOnce(() => this.triggerNote(ringNode, nearbyPointNode.ref, eventId), triggerTime+'i');
-			if(!nearbyPointNode.ref.scheduledNotes[ringNode.id]) nearbyPointNode.ref.scheduledNotes[ringNode.id] = [];
-			nearbyPointNode.ref.scheduledNotes[ringNode.id].push(eventId);
+			this.scheduleNote(ringNode, nearbyPoints.ref, triggerTime);
 		}
 	}
 
@@ -372,9 +379,7 @@ class PrimaryInterface extends Component {
 			if(nearbyPointNode && nearbyPointNode.distance > ringSize) {
 				const ticks = Math.floor(((nearbyPointNode.distance - ringSize) / BEAT_PX) * METER_TICKS);
 				const triggerTime = Transport.toTicks() + ticks;
-				const eventId = Transport.scheduleOnce(() => this.triggerNote(ringNode, nearbyPointNode.ref, eventId), triggerTime+'i');
-				if(!nearbyPointNode.ref.scheduledNotes[ringNode.id]) nearbyPointNode.ref.scheduledNotes[ringNode.id] = [];
-				nearbyPointNode.ref.scheduledNotes[ringNode.id].push(eventId);
+				this.scheduleNote(ringNode, nearbyPoints.ref, triggerTime);
 			}
 		}
 	}
@@ -524,9 +529,7 @@ class PrimaryInterface extends Component {
 					if(nearbyPointNode && nearbyPointNode.distance > ringSize) {
 						const ticks = Math.floor(((nearbyPointNode.distance - ringSize) / BEAT_PX) * METER_TICKS);
 						const triggerTime = Transport.toTicks() + ticks;
-						const eventId = Transport.scheduleOnce(() => this.triggerNote(ringNode, nearbyPointNode.ref, eventId, eventId), triggerTime+'i');
-						if(!nearbyPointNode.ref.scheduledNotes[ringNode.id]) nearbyPointNode.ref.scheduledNotes[ringNode.id] = [];
-						nearbyPointNode.ref.scheduledNotes[ringNode.id].push(eventId);
+						this.scheduleNote(ringNode, nearbyPointNode.ref, triggerTime);
 					}
 				}
 			}
