@@ -669,7 +669,7 @@ class PrimaryInterface extends Component {
 					break;
 				case ORIGIN_RADAR_NODE:
 					const radarNode = this[key][nextActiveNode.id];
-					if(checkDifferenceAny(activeNode, nextActiveNode, ['bars', 'beats'])) {
+					if(checkDifferenceAny(activeNode, nextActiveNode, ['bars', 'beats', 'radius'])) {
 						redrawRadarGuides(nextActiveNode, radarNode);
 						radarNode.loop.interval = '0:'+(nextActiveNode.bars * nextActiveNode.beats)+':0';
 					}
