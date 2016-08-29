@@ -1,4 +1,4 @@
-import Tone, { Synth, Transport } from 'tone'
+import Tone, { Gain, BitCrusher, Vibrato, Synth, Transport } from 'tone'
 import _get from 'lodash/get'
 import _cloneDeep from 'lodash/cloneDeep'
 
@@ -12,6 +12,10 @@ let oldSynths = null;
 let lastNote = 0;
 
 const Synths = {};
+
+const Submaster = new Gain({gain: 0.5}).toMaster();
+const Bus2 = new BitCrusher({bits: 4}).connect(Submaster);
+const Bus1 = new Vibrato({depth: 0.3}).connect(Bus2);
 
 export function receiveStore(_store) {
 	store = _store;
