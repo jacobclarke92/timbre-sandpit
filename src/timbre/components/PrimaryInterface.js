@@ -9,7 +9,7 @@ import $ from 'jquery'
 
 import Point from '../Point'
 import newId from '../utils/newId'
-import { getByKey } from '../utils/arrayUtils'
+import { getValueById } from '../utils/arrayUtils'
 import { dist, clamp, inBounds } from '../utils/mathUtils'
 import { checkDifferenceAny } from '../utils/lifecycleUtils'
 import { getPixelDensity, addResizeCallback, triggerResize } from '../utils/screenUtils'
@@ -267,7 +267,7 @@ class PrimaryInterface extends Component {
 	// is debounced, updates store with new position
 	handleNodeMove(nodeInstance = this.dragTarget) {
 		if(!nodeInstance) return;
-		const node = getByKey(this.props.stage[nodeTypeLookup[nodeInstance.nodeType]], nodeInstance.id);
+		const node = getValueById(this.props.stage[nodeTypeLookup[nodeInstance.nodeType]], nodeInstance.id);
 		node.position = {x: nodeInstance.position.x, y: nodeInstance.position.y};
 		this.props.dispatch(updateNode(nodeInstance.nodeType, node));
 	}
@@ -276,7 +276,7 @@ class PrimaryInterface extends Component {
 	setActiveNode(nodeInstance) {
 		if(!nodeInstance) return;
 		const key = nodeTypeLookup[nodeInstance.nodeType];
-		const actualNode = getByKey(this.props.stage[key], nodeInstance.id);
+		const actualNode = getValueById(this.props.stage[key], nodeInstance.id);
 		this.activeNode = nodeInstance;
 		this.props.dispatch({type: ActionTypes.SET_ACTIVE_NODE, node: actualNode});
 	}
@@ -379,7 +379,7 @@ class PrimaryInterface extends Component {
 		for(let ringNode of this.props.stage.originRingNodes) {
 			const ringNodeInstance = this.originRingNodes[ringNode.id];
 			const ringSize = BEAT_PX * (ringNodeInstance.loop.progress * (ringNode.bars * ringNode.beats));
-			const nearbyPointNode = getByKey(ringNodeInstance.nearbyPointNodes, node.id);
+			const nearbyPointNode = getValueById(ringNodeInstance.nearbyPointNodes, node.id);
 			if(nearbyPointNode && nearbyPointNode.distance > ringSize) {
 				const ticks = Math.floor(((nearbyPointNode.distance - ringSize) / BEAT_PX) * METER_TICKS);
 				const triggerTime = Transport.toTicks() + ticks;
@@ -390,7 +390,7 @@ class PrimaryInterface extends Component {
 			const radarNodeInstance = this.originRadarNodes[radarNode.id];
 			const radarAngle = radarNodeInstance.loop.progress * (Math.PI*2);
 			const totalBeats = radarNode.bars * radarNode.beats;
-			const nearbyPointNode = getByKey(radarNodeInstance.nearbyPointNodes, node.id);
+			const nearbyPointNode = getValueById(radarNodeInstance.nearbyPointNodes, node.id);
 			if(nearbyPointNode && nearbyPointNode.angle > radarAngle) {
 				const ticks = Math.floor(((nearbyPointNode.angle / (Math.PI*2)) * totalBeats * METER_TICKS) / radarNodeInstance.loop.playbackRate);
 				const triggerTime = Transport.toTicks() + ticks;
@@ -434,8 +434,9 @@ class PrimaryInterface extends Component {
 
 	// plays a note!
 	triggerNote(originNode, nodeInstance, eventId) {
-		const { musicality } = this.props;
-		const noteIndex = playNote(nodeInstance, originNode.synthId);
+		const { musicality, stage } = this.props;
+		const node = getValueById(stage[nodeTypeLookup[nodeInstance.nodeType]], nodeInstance.id);
+		const noteIndex = playNote(node, originNode.synthId);
 		const ringColor = noteColors[(noteIndex + musicality.scale)%12];
 		const ring = createRingFX(nodeInstance.position, ringColor);
 		ring.speed = originNode.speed;
@@ -556,7 +557,7 @@ class PrimaryInterface extends Component {
 
 				// check if new node (if a point node) is yet to be crossed by a ring node, if so schedule specifically for it
 				for(let newNode of newNodes[POINT_NODE]) {
-					const nearbyPointNode = getByKey(ringNodeInstance.nearbyPointNodes, newNode.id);
+					const nearbyPointNode = getValueById(ringNodeInstance.nearbyPointNodes, newNode.id);
 					if(nearbyPointNode && nearbyPointNode.distance > ringSize) {
 						const ticks = Math.floor(((nearbyPointNode.distance - ringSize) / BEAT_PX) * METER_TICKS);
 						const triggerTime = Transport.toTicks() + ticks;
@@ -573,7 +574,7 @@ class PrimaryInterface extends Component {
 
 				// check if new node (if a point node) is yet to be crossed by a radar node, if so schedule specifically for it
 				for(let newNode of newNodes[POINT_NODE]) {
-					const nearbyPointNode = getByKey(radarNodeInstance.nearbyPointNodes, newNode.id);
+					const nearbyPointNode = getValueById(radarNodeInstance.nearbyPointNodes, newNode.id);
 					if(nearbyPointNode && nearbyPointNode.angle > radarAngle) {
 						const ticks = Math.floor((((nearbyPointNode.angle - radarAngle) / (Math.PI*2)) * totalBeats * METER_TICKS) / radarNodeInstance.loop.playbackRate);
 						const triggerTime = Transport.toTicks() + ticks;
@@ -618,7 +619,7 @@ class PrimaryInterface extends Component {
 		// so assuming that, we can recalculate note schedules for the node being dragged
 		// this saves having to deep-check positions of all nodes
 		if(this.dragTarget) {
-			const node = getByKey(nextProps.stage[nodeTypeLookup[this.dragTarget.nodeType]], this.dragTarget.id);
+			const node = getValueById(nextProps.stage[nodeTypeLookup[this.dragTarget.nodeType]], this.dragTarget.id);
 			if(node) {
 				switch(node.nodeType) {
 					case POINT_NODE:

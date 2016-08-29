@@ -34,7 +34,6 @@ class PointNodeTools extends Component {
 	componentWillReceiveProps(nextProps) {
 		const numOldNotes = this.props.musicality.notes.length;
 		const numNewNotes = nextProps.musicality.notes.length;
-		console.log(numOldNotes, numNewNotes);
 		if(numOldNotes != numNewNotes) {
 			this.unbindNoteKeys(numOldNotes);
 			this.bindNoteKeys(numNewNotes);
