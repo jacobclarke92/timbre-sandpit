@@ -51,7 +51,7 @@ const defaultNodes = {
 
 export function createNode(nodeType, nodeAttrs = {}) {
 	const node = {...defaultNodes[nodeType], ...nodeAttrs, nodeType};
-	console.log('Adding', nodeType, nodeAttrs);
+	console.log('Adding', nodeType, node);
 	return {type: ActionTypes.ADD_NODE, nodeType, node};
 }
 

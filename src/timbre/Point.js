@@ -75,6 +75,10 @@ export default class Point {
 		return Math.sqrt(Math.pow(point.x - this.x, 2) + Math.pow(point.y - this.y, 2));
 	}
 
+	angle(point) {
+		return Math.atan2(point.y - this.y, point.x - this.x);
+	}
+
 	normalize(scale = 1) {
 		const norm = Math.sqrt(this.x*this.x + this.y*this.y);
 		if(norm !== 0) {

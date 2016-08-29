@@ -208,14 +208,12 @@ class PrimaryInterface extends Component {
 
 				// cancel any scheduled notes
 				if(this.dragTarget.nodeType == POINT_NODE && this.dragTarget.scheduledNotes) {
-					this.dragTarget.scheduledNotes.forEach(id => Transport.cancel(id));
-					this.dragTarget.scheduledNotes = [];
+					this.clearScheduledNotes(this.dragTarget);
+					this.dragTarget.scheduledNotes = {};
 				}else if(this.dragTarget.nodeType == ORIGIN_RING_NODE && this.dragTarget.nearbyPointNodes) {
 					for(let nearbyPointNode of this.dragTarget.nearbyPointNodes) {
-						if(nearbyPointNode.ref.scheduledNotes) {
-							nearbyPointNode.ref.scheduledNotes.forEach(id => Transport.cancel(id));
-							nearbyPointNode.ref.scheduledNotes = [];
-						}
+						this.clearScheduledNotes(nearbyPointNode.ref);
+						nearbyPointNode.ref.scheduledNotes = {};
 					}
 				}
 			}else{
@@ -249,7 +247,7 @@ class PrimaryInterface extends Component {
 			noteType: _get(this.props.gui, 'toolSettings.noteType'),
 			noteIndex: _get(this.props.gui, 'toolSettings.noteIndex'),
 		}
-		if(nodeType == ORIGIN_RING_NODE) attrs.synthId = this.props.synths[0].id; // temporary
+		if(nodeType == ORIGIN_RING_NODE || nodeType == ORIGIN_RADAR_NODE) attrs.synthId = this.props.synths[0].id; // temporary
 		this.props.dispatch(createNode(nodeType, attrs));
 	}
 
@@ -335,12 +333,15 @@ class PrimaryInterface extends Component {
 		for(let pointNodeAttrs of pointNodes) {
 			const pointNode = this.pointNodes[pointNodeAttrs.id];
 			const distance = new Point(node.position).distance(pointNode.position);
+			const angle = new Point(node.position).angle(pointNode.position) + Math.PI;
+			console.log(angle);
 			if(distance <= node.radius) {
 				node.nearbyPointNodes.push({
 					id: pointNodeAttrs.id, 
 					counter: oldIds.indexOf(pointNodeAttrs.id) >= 0 ? node.loopCounter : node.loopCounter-1,
-					distance,
 					ref: pointNode,
+					distance,
+					angle,
 				});
 			}
 		}
@@ -361,13 +362,19 @@ class PrimaryInterface extends Component {
 		for(let nearbyPointNode of ringNodeInstance.nearbyPointNodes) {
 			const ticks = ((nearbyPointNode.distance / BEAT_PX) * METER_TICKS)/ringNodeInstance.loop.playbackRate;
 			const triggerTime = Transport.toTicks() + Math.floor(ticks);
-			this.scheduleNote(ringNode, nearbyPoints.ref, triggerTime);
+			this.scheduleNote(ringNode, nearbyPointNode.ref, triggerTime);
 		}
 	}
 
 	// called by every radar node at the beginning of its loop
 	scheduleRadarNodeNotes(radarNodeInstance, radarNode) {
-
+		if(!radarNodeInstance.nearbyPointNodes) this.getNearbyPointNodes(radarNodeInstance);
+		for(let nearbyPointNode of radarNodeInstance.nearbyPointNodes) {
+			const totalBeats = radarNode.bars * radarNode.beats;
+			const ticks = ((nearbyPointNode.angle / (Math.PI*2)) * totalBeats * METER_TICKS) / radarNodeInstance.loop.playbackRate;
+			const triggerTime = Transport.toTicks() + Math.floor(ticks);
+			this.scheduleNote(radarNode, nearbyPointNode.ref, triggerTime);
+		}
 	}
 
 	// called when a node has been moved
@@ -379,7 +386,7 @@ class PrimaryInterface extends Component {
 			if(nearbyPointNode && nearbyPointNode.distance > ringSize) {
 				const ticks = Math.floor(((nearbyPointNode.distance - ringSize) / BEAT_PX) * METER_TICKS);
 				const triggerTime = Transport.toTicks() + ticks;
-				this.scheduleNote(ringNode, nearbyPoints.ref, triggerTime);
+				this.scheduleNote(ringNode, nearbyPointNode.ref, triggerTime);
 			}
 		}
 	}
@@ -446,7 +453,7 @@ class PrimaryInterface extends Component {
 		// redraw radar nodes
 		for(let attrs of originRadarNodes) {
 			const node = this.originRadarNodes[attrs.id];
-			const theta = node.loop.progress * (Math.PI*2);
+			const theta = node.loop.progress * (Math.PI*2) + Math.PI2;
 			node.graphic.clear();
 			node.graphic.lineStyle(2, 0xFFFFFF, 1);
 			node.graphic.moveTo(0,0);

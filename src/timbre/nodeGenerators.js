@@ -68,6 +68,7 @@ export function createRadarNode(_attrs) {
 	node.inited = false;
 	node.interactive = true;
 	node.buttonMode = true;
+	node.hitArea = new Rectangle(-10, -10, 20, 20);
 	node.radius = attrs.radius;
 	node.scale.set(attrs.scale);
 	node.position.set(attrs.position.x, attrs.position.y);
