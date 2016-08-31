@@ -7,6 +7,17 @@ import _debounce from 'lodash/debounce'
 import _get from 'lodash/get'
 import $ from 'jquery'
 
+import ArcNode from './nodes/ArcNode'
+import PointNode from './nodes/PointNode'
+import OriginRingNode from './nodes/OriginRingNode'
+import OriginRadarNode from './nodes/OriginRadarNode'
+
+import FpsCounter from './nodes/FpsCounter'
+import PlacementIndicator from './nodes/PlacementIndicator'
+import ActiveNodeIndicator from './nodes/ActiveNodeIndicator'
+import PrimaryInterfaceStage from './PrimaryInterfaceStage'
+import PrimaryInterfaceRenderer from './PrimaryInterfaceRenderer'
+
 import Point from '../Point'
 import newId from '../utils/newId'
 import { getValueById } from '../utils/arrayUtils'
@@ -42,16 +53,21 @@ class PrimaryInterface extends Component {
 
 	constructor(props) {
 		super(props);
-		this.handlePointerMove = _throttle(this.handlePointerMove, mouseMoveThrottle);
+		this.handlePointerMove = _throttle(this.handlePointerMove.bind(this), mouseMoveThrottle);
 		this.handleMousewheel = _throttle(this.handleMousewheel, scrollwheelThrottle);
 		this.handleNodeMove = _debounce(this.handleNodeMove, 50);
+		this.state = {
+			pointer: new Point(0,0),
+			stagePointer: new Point(0,0),
+		}
 	}
 
 	componentDidMount() {
 
+		/*
 		// get initial dimensions
-		this.$container = $(this.refs.container);
 		this.handleResize();
+		this.$container = $(this.refs.container);
 			
 		// init renderer
 		this.renderer = new PIXI.autoDetectRenderer(this.width/getPixelDensity(), this.height/getPixelDensity(), {
@@ -74,7 +90,6 @@ class PrimaryInterface extends Component {
 		// bind mouse / touch events
 		this.stage.on('mousedown', event => this.handlePointerDown(event));
 		this.stage.on('touchstart', event => this.handlePointerDown(event));
-		this.stage.on('mousemove', event => this.handlePointerMove(event));
 		this.stage.on('touchmove', event => this.handlePointerMove(event));
 		this.stage.on('mouseup', event => this.handlePointerUp(event));
 		this.stage.on('touchend', event => this.handlePointerUp(event));
@@ -162,6 +177,7 @@ class PrimaryInterface extends Component {
 		this.mounted = true;
 		this.createMissingNodeInstances();
 		this.animate();
+		*/
 
 	}
 
@@ -197,12 +213,19 @@ class PrimaryInterface extends Component {
 	}
 
 	handlePointerMove(event) {
+		/*
 		const { snapping } = this.props.gui;
 
 		// update mouse position vars
 		this.cursor = new Point(event.data.originalEvent.clientX, event.data.originalEvent.clientY - this.offsetY);
 		this.stageCursor = event.data.getLocalPosition(this.stage);
+		*/
+		this.setState({
+			pointer: new Point(event.data.originalEvent.clientX, event.data.originalEvent.clientY - this.offsetY),
+			stagePointer: event.data.getLocalPosition(event.target),
+		});
 
+		/*
 		// placement snapping
 		if(snapping) {
 			const closestNode = this.getClosestOriginNode(this.stageCursor);
@@ -269,6 +292,7 @@ class PrimaryInterface extends Component {
 		// set mouse vars for next event
 		this.lastCursor = this.cursor;
 		this.lastStageCursor = this.stageCursor;
+		*/
 	}
 
 	// called by Tone transport on every beat
@@ -587,6 +611,7 @@ class PrimaryInterface extends Component {
 	// this lifecycle event is primarily used for updating pixi instances where needed when the store changes
 	componentWillReceiveProps(nextProps) {
 
+		/*
 		// force animation to start again if props updates
 		if(nextProps.transport.playing && !this.props.transport.playing) {
 			setTimeout(() => this.animate());
@@ -715,15 +740,31 @@ class PrimaryInterface extends Component {
 				}
 			}
 		}
-	}
-
-	shouldComponentUpdate() {
-		return !this.mounted;
+		*/
 	}
 
 	render() {
+		const { pointer, stagePointer } = this.state;
+		const { gui, stage, musicality } = this.props;
+
+		const { scale, notes } = musicality;
+		const { arcNodes, pointNodes, originRingNodes, originRadarNodes } = stage;
+
 		return (
-			<div className="primary-interface" ref="container"></div>
+			<PrimaryInterfaceRenderer width={this.width} height={this.height}>
+				<FpsCounter key="fps" />
+				
+				<PrimaryInterfaceStage key="stage" onMouseMove={this.handlePointerMove}>
+					<PlacementIndicator key="placementIndicator" pointer={stagePointer} />
+					<ActiveNodeIndicator key="activeNodeIndicator" activeNode={gui.activeNode} />
+				
+					{pointNodes.map(node => 
+						<PointNode key={node.id} node={node} scale={scale} notes={notes} />
+					)}
+
+				</PrimaryInterfaceStage>
+				
+			</PrimaryInterfaceRenderer>
 		)
 	}
 

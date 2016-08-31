@@ -1,4 +1,5 @@
 import localStore from 'store'
+import newId from '../utils/newId'
 import { BEAT_PX } from '../constants/globals'
 import * as NoteTypes from '../constants/noteTypes'
 import * as ActionTypes from '../constants/actionTypes'
@@ -7,7 +8,7 @@ import { nodeTypeLookup, ARC_NODE, POINT_NODE, ORIGIN_RING_NODE, ORIGIN_RADAR_NO
 const initialState = {
 	originRingNodes: [],
 	originRadarNodes: [],
-	pointNodes: [],
+	pointNodes: [{id: newId(), position: {x: 250, y: 250}, scale: 1, radius: 4, noteType: NoteTypes.RANDOM, nodeType: POINT_NODE}],
 	arcNodes: [],
 };
 
