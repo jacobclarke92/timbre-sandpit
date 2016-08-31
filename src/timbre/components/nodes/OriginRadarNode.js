@@ -1,11 +1,15 @@
 import React, { Component } from 'react'
 import PIXI, { Container, Graphics, Rectangle } from 'pixi.js'
 
+import { createOriginLoop } from '../../timing'
+
 export default class OriginRadarNode extends Component {
 
 	constructor(props) {
 		super(props);
 		const { id, nodeType, position, radius, scale } = props.node;
+
+		this.loop = createOriginLoop(props.node);
 
 		const graphic = new Graphics();
 		const guides = new Graphics();
@@ -55,6 +59,13 @@ export default class OriginRadarNode extends Component {
 	}
 	
 	render() {
+		const { radius } = this.props.node;
+		const theta = this.loop.progress * (Math.PI*2) + Math.PI;
+		this.node.graphic.clear();
+		this.node.graphic.lineStyle(2, 0xFFFFFF, 1);
+		this.node.graphic.moveTo(0,0);
+		this.node.graphic.lineTo(Math.cos(theta)*radius, Math.sin(theta)*radius);
+		this.node.guides.renderable = this.props.showGuides;
 		return this.node;
 	}
 }

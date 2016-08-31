@@ -2,6 +2,7 @@ import React, { Component } from 'react'
 import PIXI, { Container, Graphics, Rectangle } from 'pixi.js'
 
 import { BEAT_PX } from '../../constants/globals'
+import { createOriginLoop } from '../../timing'
 import { checkDifferenceAny } from '../../utils/lifecycleUtils'
 
 export default class OriginRingNode extends Component {
@@ -9,6 +10,8 @@ export default class OriginRingNode extends Component {
 	constructor(props) {
 		super(props);
 		const { id, nodeType, position, scale } = props.node;
+
+		this.loop = createOriginLoop(props.node);
 
 		const graphic = new Graphics();
 		const guides = new Graphics();
@@ -68,7 +71,12 @@ export default class OriginRingNode extends Component {
 	}
 
 	render() {
-		// draw ring
+		const { bars, beats } = this.props.node;
+		const ringSize = BEAT_PX * (this.loop.progress * (bars * beats));
+		this.node.ring.clear();
+		this.node.ring.lineStyle(2, 0xFFFFFF, 1);
+		this.node.ring.drawCircle(0, 0, ringSize);
+		this.node.guides.renderable = this.props.showGuides;
 		return this.node;
 	}
 }

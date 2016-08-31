@@ -374,7 +374,8 @@ class PrimaryInterface extends Component {
 	// creates a node based on current tool selected
 	createNode(event) {
 		if(!event.target || !event.data) return;
-		const spawnPoint = this.props.gui.snapping ? this.placementPosition : event.data.getLocalPosition(event.target);
+		const spawnPoint = this.props.gui.snapping ? this.state.placementPosition : event.data.getLocalPosition(event.target);
+		console.log('creating node', event, spawnPoint);
 		const nodeType = this.props.gui.tool;
 		const attrs = {
 			id: newId(), 
@@ -481,6 +482,7 @@ class PrimaryInterface extends Component {
 		}
 	}
 
+	/*
 	// called whenever a note needs to be scheduled
 	// registers it to the target's scheduledNotes array under the source's id
 	scheduleNote(originNode, nodeInstance, ticks = Transport.toTicks()) {
@@ -510,6 +512,7 @@ class PrimaryInterface extends Component {
 			this.scheduleNote(radarNode, nearbyPointNode.ref, triggerTime);
 		}
 	}
+	*/
 
 	// called when a node has been moved
 	checkForNoteReschedule(node) {
@@ -825,11 +828,11 @@ class PrimaryInterface extends Component {
 					)}
 
 					{originRingNodes.map(node => 
-						<OriginRingNode key={node.id} node={node} onPointerDown={this.handleNodePointerDown.bind(this)} onPointerUp={this.handleNodePointerUp.bind(this)} />
+						<OriginRingNode key={node.id} node={node} showGuides={gui.showGuides} onPointerDown={this.handleNodePointerDown.bind(this)} onPointerUp={this.handleNodePointerUp.bind(this)} />
 					)}
 
 					{originRadarNodes.map(node => 
-						<OriginRadarNode key={node.id} node={node} onPointerDown={this.handleNodePointerDown.bind(this)} onPointerUp={this.handleNodePointerUp.bind(this)} />
+						<OriginRadarNode key={node.id} node={node} showGuides={gui.showGuides} onPointerDown={this.handleNodePointerDown.bind(this)} onPointerUp={this.handleNodePointerUp.bind(this)} />
 					)}
 
 				</PrimaryInterfaceStage>
