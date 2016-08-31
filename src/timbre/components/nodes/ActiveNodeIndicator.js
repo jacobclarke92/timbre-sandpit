@@ -15,9 +15,9 @@ export default class ActiveNodeIndicator extends Component {
 	render() {
 		if(this.props.activeNode) {
 			this.indicatorOsc = (this.indicatorOsc + 0.1) % (Math.PI*2);
-			this.activeNodeIndicator.renderable = true;
 			this.activeNodeIndicator.position = this.props.activeNode.position;
 			this.activeNodeIndicator.scale.set(1 + Math.cos(this.indicatorOsc)*0.05);
+			this.activeNodeIndicator.renderable = true;
 		}else{
 			this.activeNodeIndicator.renderable = false;
 		}

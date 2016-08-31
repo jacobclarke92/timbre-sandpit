@@ -564,37 +564,6 @@ class PrimaryInterface extends Component {
 			}
 		}
 
-		// update active node if relevant
-		// the alternative would be to deep-check all nodes, this is cheaper, simpler and just as effective
-		const activeNode = this.props.gui.activeNode;
-		const nextActiveNode = nextProps.gui.activeNode;
-		if(activeNode && nextActiveNode && activeNode.id == nextActiveNode.id) {
-			const key = nodeTypeLookup[nextActiveNode.nodeType];
-			switch(activeNode.nodeType) {
-				case POINT_NODE:
-					if(checkDifferenceAny(activeNode, nextActiveNode, ['noteType', 'noteIndex'])) {
-						redrawPointNode(nextActiveNode, this[key][nextActiveNode.id]);
-					}	
-					break;
-				case ORIGIN_RING_NODE:
-					const ringNode = this[key][nextActiveNode.id];
-					if(checkDifferenceAny(activeNode, nextActiveNode, ['bars', 'beats'])) {
-						redrawRingGuides(nextActiveNode, ringNode);
-						ringNode.loop.interval = '0:'+(nextActiveNode.bars * nextActiveNode.beats)+':0';
-					}
-					if(activeNode.speed != nextActiveNode.speed) ringNode.loop.playbackRate = nextActiveNode.speed;
-					break;
-				case ORIGIN_RADAR_NODE:
-					const radarNode = this[key][nextActiveNode.id];
-					if(checkDifferenceAny(activeNode, nextActiveNode, ['bars', 'beats', 'radius'])) {
-						redrawRadarGuides(nextActiveNode, radarNode);
-						radarNode.loop.interval = '0:'+(nextActiveNode.bars * nextActiveNode.beats)+':0';
-					}
-					if(activeNode.speed != nextActiveNode.speed) radarNode.loop.playbackRate = nextActiveNode.speed;
-					break;
-			}
-		}
-
 		// the only thing that should be updating in the store while dragging a node is the node's position
 		// so assuming that, we can recalculate note schedules for the node being dragged
 		// this saves having to deep-check positions of all nodes
