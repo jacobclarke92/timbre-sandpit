@@ -31,6 +31,7 @@
   "dependencies": {
     "axios": "^0.13.0",
     "classname": "0.0.0",
+    "deep-equal": "^1.0.1",
     "jquery": "^3.0.0",
     "keycode": "^2.1.4",
     "pixi.js": "^3.0.11",

@@ -56,9 +56,18 @@ class PrimaryInterface extends Component {
 		this.handlePointerMove = _throttle(this.handlePointerMove.bind(this), mouseMoveThrottle);
 		this.handleMousewheel = _throttle(this.handleMousewheel, scrollwheelThrottle);
 		this.handleNodeMove = _debounce(this.handleNodeMove, 50);
+		this.handlePointerDown = this.handlePointerDown.bind(this);
+		this.handlePointerUp = this.handlePointerUp.bind(this);
+
 		this.state = {
+			offsetY: 136,
 			pointer: new Point(0,0),
 			stagePointer: new Point(0,0),
+			mouseDown: false,
+			mouseMoved: false,
+			mouseDownPosition: new Point(0,0),
+			dragTarget: null,
+			activeTarget: null,
 		}
 	}
 
@@ -197,16 +206,22 @@ class PrimaryInterface extends Component {
 	}
 
 	handlePointerDown(event) {
-		this.mouseDown = true;
-		this.mouseMoved = false;
-		this.dragTarget = null;
-		this.mouseDownPosition = new Point(event.data.originalEvent.clientX, event.data.originalEvent.clientY - this.offsetY);
+		console.log('mousedown');
+		this.setState({
+			mouseDown: true,
+			mouseMoved: false,
+			dragTarget: null,
+			mouseDownPosition: new Point(event.data.originalEvent.clientX, event.data.originalEvent.clientY - this.state.offsetY),
+		});
 	}
 
 	handlePointerUp(event) {
-		this.mouseDown = false;
-		this.dragTarget = null;
-		if(!this.mouseMoved) {
+		console.log('mouseup');
+		this.setState({
+			mouseDown: false,
+			dragTarget: null,
+		});
+		if(!this.state.mouseMoved) {
 			if(this.activeNode) this.clearActiveNode();
 			else this.createNode(event);
 		}
@@ -220,9 +235,13 @@ class PrimaryInterface extends Component {
 		this.cursor = new Point(event.data.originalEvent.clientX, event.data.originalEvent.clientY - this.offsetY);
 		this.stageCursor = event.data.getLocalPosition(this.stage);
 		*/
+		const pointer = new Point(event.data.originalEvent.clientX, event.data.originalEvent.clientY - this.offsetY);
+		const stagePointer = event.data.getLocalPosition(event.target);
+		const placementPosition = stagePointer;
 		this.setState({
-			pointer: new Point(event.data.originalEvent.clientX, event.data.originalEvent.clientY - this.offsetY),
-			stagePointer: event.data.getLocalPosition(event.target),
+			pointer,
+			stagePointer,
+			placementPosition,
 		});
 
 		/*
@@ -260,16 +279,21 @@ class PrimaryInterface extends Component {
 		this.stage.position.x += (this.stageCursor.x - this.stage.pivot.x) * this.stage.scale.x;
 		this.stage.position.y += (this.stageCursor.y - this.stage.pivot.y) * this.stage.scale.y;
 		this.stage.pivot = this.stageCursor;
-
+		
+		*/
+		const { mouseDown, mouseMoved, mouseDownPosition, dragTarget } = this.state;
 		// enforce a minimum distance before allowing panning
-		if(this.mouseDown && !this.mouseMoved && this.cursor.distance(this.mouseDownPosition) < 10) return true;
-		this.mouseMoved = true;
+		if(mouseDown && !mouseMoved && pointer.distance(mouseDownPosition) < 10) return true;
 
-		if(this.mouseDown) {
-			if(this.dragTarget) {
+		this.setState({
+			mouseMoved: true,
+		})
+
+		if(mouseDown) {
+			if(dragTarget) {
 				// reposition node if dragging
-				this.dragTarget.position.x = snapping ? this.placementPosition.x : this.stageCursor.x;
-				this.dragTarget.position.y = snapping ? this.placementPosition.y : this.stageCursor.y;
+				dragTarget.position.x = snapping ? placementPosition.x : stagePointer.x;
+				dragTarget.position.y = snapping ? placementPosition.y : stagePointer.y;
 				this.handleNodeMove();
 
 				// cancel any scheduled notes
@@ -284,15 +308,14 @@ class PrimaryInterface extends Component {
 				}
 			}else{
 				// pan stage if dragging
-				this.stage.position.x += this.cursor.x - this.lastCursor.x;
-				this.stage.position.y += this.cursor.y - this.lastCursor.y;
+				// this.stage.position.x += this.cursor.x - this.lastCursor.x;
+				// this.stage.position.y += this.cursor.y - this.lastCursor.y;
 			}
 		}
 
 		// set mouse vars for next event
-		this.lastCursor = this.cursor;
-		this.lastStageCursor = this.stageCursor;
-		*/
+		// this.lastCursor = this.cursor;
+		// this.lastStageCursor = this.stageCursor;
 	}
 
 	// called by Tone transport on every beat
@@ -754,7 +777,12 @@ class PrimaryInterface extends Component {
 			<PrimaryInterfaceRenderer width={this.width} height={this.height}>
 				<FpsCounter key="fps" />
 				
-				<PrimaryInterfaceStage key="stage" onMouseMove={this.handlePointerMove}>
+				<PrimaryInterfaceStage 
+					key="stage" 
+					onMouseMove={this.handlePointerMove} 
+					onPointerDown={this.handlePointerDown} 
+					onPointerUp={this.handlePointerUp}>
+
 					<PlacementIndicator key="placementIndicator" pointer={stagePointer} />
 					<ActiveNodeIndicator key="activeNodeIndicator" activeNode={gui.activeNode} />
 				

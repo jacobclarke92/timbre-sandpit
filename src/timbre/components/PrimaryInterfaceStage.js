@@ -1,5 +1,6 @@
 import React, { Component, Children } from 'react'
 import PIXI, { Container } from 'pixi.js'
+import deepEqual from 'deep-equal'
 
 import { getPixelDensity } from '../utils/screenUtils'
 
@@ -14,6 +15,10 @@ export default class PrimaryInterfaceStage extends Component {
 		this.stage.interactive = true;
 		this.stage.hitArea = new PIXI.Rectangle(0,0,10000,10000);
 		this.stage.on('mousemove', event => props.onMouseMove(event));
+		this.stage.on('mousedown', event => props.onPointerDown(event));
+		this.stage.on('touchstart', event => props.onPointerDown(event));
+		this.stage.on('mouseup', event => props.onPointerUp(event));
+		this.stage.on('touchend', event => props.onPointerUp(event));
 	}
 
 	render() {
@@ -31,6 +36,7 @@ export default class PrimaryInterfaceStage extends Component {
 					this.stage.addChild(result);
 				}
 			}else{
+				if(instance.componentWillReceiveProps && !deepEqual(instance.props, child.props)) instance.componentWillReceiveProps(child.props);
 				instance.props = child.props;
 				instance.render();
 			}

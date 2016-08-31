@@ -1,6 +1,7 @@
 import React, { Component, Children } from 'react'
 import PIXI, { Container } from 'pixi.js'
 import $ from 'jquery'
+import deepEqual from 'deep-equal'
 
 import { getPixelDensity } from '../utils/screenUtils'
 
@@ -53,6 +54,7 @@ export default class PrimaryInterfaceRenderer extends Component {
 					this.stageWrapper.addChild(result);
 				}
 			}else{
+				if(instance.componentWillReceiveProps && !deepEqual(instance.props, child.props)) instance.componentWillReceiveProps(child.props);
 				instance.props = child.props;
 				instance.render();
 			}
