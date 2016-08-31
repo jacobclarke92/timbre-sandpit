@@ -25,6 +25,11 @@ export default class PointNode extends Component {
 		this.node.radius = radius;
 		this.node.scale.set(scale);
 		this.node.position.set(position.x, position.y);
+
+		this.node.on('mousedown', props.onPointerDown);
+		this.node.on('touchstart', props.onPointerDown);
+		this.node.on('mouseup', props.onPointerUp);
+		this.node.on('touchend', props.onPointerUp);
 	}
 
 	drawPointNode(props = this.props) {

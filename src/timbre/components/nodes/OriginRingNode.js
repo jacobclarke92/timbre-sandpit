@@ -2,6 +2,7 @@ import React, { Component } from 'react'
 import PIXI, { Container, Graphics, Rectangle } from 'pixi.js'
 
 import { BEAT_PX } from '../../constants/globals'
+import { checkDifferenceAny } from '../../utils/lifecycleUtils'
 
 export default class OriginRingNode extends Component {
 	
@@ -38,6 +39,11 @@ export default class OriginRingNode extends Component {
 		this.node.addChild(graphic);
 		this.node.addChild(guides);
 		this.node.addChild(ring);
+
+		this.node.on('mousedown', props.onPointerDown);
+		this.node.on('touchstart', props.onPointerDown);
+		this.node.on('mouseup', props.onPointerUp);
+		this.node.on('touchend', props.onPointerUp);
 	}
 
 	drawGuides() {
@@ -53,6 +59,12 @@ export default class OriginRingNode extends Component {
 			this.node.guides.drawCircle(0, 0, BEAT_PX*beat);
 		}
 		this.node.guides.cacheAsBitmap = true;
+	}
+
+	componentWillReceiveProps(nextProps) {
+		if(checkDifferenceAny(this.props.node, nextProps.node, ['bars', 'beats'])) {
+			this.drawGuides();
+		}
 	}
 
 	render() {

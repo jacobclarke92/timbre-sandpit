@@ -27,6 +27,11 @@ export default class OriginRadarNode extends Component {
 		
 		this.node.addChild(guides);
 		this.node.addChild(graphic);
+
+		this.node.on('mousedown', props.onPointerDown);
+		this.node.on('touchstart', props.onPointerDown);
+		this.node.on('mouseup', props.onPointerUp);
+		this.node.on('touchend', props.onPointerUp);
 	}
 
 	drawGuides() {

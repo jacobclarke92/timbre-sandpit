@@ -14,11 +14,11 @@ export default class PrimaryInterfaceStage extends Component {
 		this.stage.pivot.set(0, 0);
 		this.stage.interactive = true;
 		this.stage.hitArea = new PIXI.Rectangle(0,0,10000,10000);
-		this.stage.on('mousemove', event => props.onMouseMove(event));
-		this.stage.on('mousedown', event => props.onPointerDown(event));
-		this.stage.on('touchstart', event => props.onPointerDown(event));
-		this.stage.on('mouseup', event => props.onPointerUp(event));
-		this.stage.on('touchend', event => props.onPointerUp(event));
+		this.stage.on('mousemove', props.onMouseMove);
+		this.stage.on('mousedown', props.onPointerDown);
+		this.stage.on('touchstart', props.onPointerDown);
+		this.stage.on('mouseup', props.onPointerUp);
+		this.stage.on('touchend', props.onPointerUp);
 	}
 
 	render() {

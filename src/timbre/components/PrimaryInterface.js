@@ -68,6 +68,7 @@ class PrimaryInterface extends Component {
 			mouseDownPosition: new Point(0,0),
 			dragTarget: null,
 			activeTarget: null,
+			activeNode: null,
 		}
 	}
 
@@ -222,15 +223,15 @@ class PrimaryInterface extends Component {
 			dragTarget: null,
 		});
 		if(!this.state.mouseMoved) {
-			if(this.activeNode) this.clearActiveNode();
+			if(this.state.activeNode) this.clearActiveNode();
 			else this.createNode(event);
 		}
 	}
 
 	handlePointerMove(event) {
-		/*
 		const { snapping } = this.props.gui;
 
+		/*
 		// update mouse position vars
 		this.cursor = new Point(event.data.originalEvent.clientX, event.data.originalEvent.clientY - this.offsetY);
 		this.stageCursor = event.data.getLocalPosition(this.stage);
@@ -297,11 +298,11 @@ class PrimaryInterface extends Component {
 				this.handleNodeMove();
 
 				// cancel any scheduled notes
-				if(this.dragTarget.nodeType == POINT_NODE && this.dragTarget.scheduledNotes) {
+				if(dragTarget.nodeType == POINT_NODE && dragTarget.scheduledNotes) {
 					this.clearScheduledNotes(this.dragTarget);
-					this.dragTarget.scheduledNotes = {};
-				}else if((this.dragTarget.nodeType == ORIGIN_RING_NODE || this.dragTarget.nodeType == ORIGIN_RADAR_NODE) && this.dragTarget.nearbyPointNodes) {
-					for(let nearbyPointNode of this.dragTarget.nearbyPointNodes) {
+					dragTarget.scheduledNotes = {};
+				}else if((dragTarget.nodeType == ORIGIN_RING_NODE || dragTarget.nodeType == ORIGIN_RADAR_NODE) && dragTarget.nearbyPointNodes) {
+					for(let nearbyPointNode of dragTarget.nearbyPointNodes) {
 						this.clearScheduledNotes(nearbyPointNode.ref);
 						nearbyPointNode.ref.scheduledNotes = {};
 					}
@@ -324,6 +325,33 @@ class PrimaryInterface extends Component {
 		if(this.beat >= this.props.transport.meterBeats) this.beat = 0;
 		this.renderer.backgroundColor = this.beat === 0 ? 0x050505 : 0x020202;
 		setTimeout(() => this.renderer.backgroundColor = 0x000, 100);
+	}
+
+	handleNodePointerDown(event) {
+		event.stopPropagation();
+		this.setState({
+			mouseMoved: false,
+			mouseDown: true,
+			dragTarget: event.target,
+		});
+	}
+
+	handleNodePointerUp(event) {
+		console.log('mouse up');
+		event.stopPropagation();
+		if(event.target) {
+			event.stopPropagation();
+			if(!this.state.mouseMoved) {
+				this.setActiveNode(event.target);
+			}else if(this.state.dragTarget) {
+				this.setState({dragTarget: null});
+			}
+		}
+
+		this.setState({
+			mouseMoved: false,
+			mouseDown: false,
+		});
 	}
 
 	getClosestOriginNode(point) {
@@ -382,7 +410,7 @@ class PrimaryInterface extends Component {
 		if(!nodeInstance) return;
 		const key = nodeTypeLookup[nodeInstance.nodeType];
 		const actualNode = getValueById(this.props.stage[key], nodeInstance.id);
-		this.activeNode = nodeInstance;
+		this.setState({activeNode: nodeInstance});
 		this.props.dispatch({type: ActionTypes.SET_ACTIVE_NODE, node: actualNode});
 	}
 
@@ -390,7 +418,7 @@ class PrimaryInterface extends Component {
 	clearActiveNode() {
 		if(this.props.gui.activeNode) {
 			this.props.dispatch({type: ActionTypes.CLEAR_ACTIVE_NODE})
-			this.activeNode = null;
+			this.setState({activeNode: null});
 		}
 	}
 	
@@ -506,6 +534,7 @@ class PrimaryInterface extends Component {
 
 	// called on node delete of any kind
 	clearScheduledNotes(nodeInstance) {
+		/*
 		switch(nodeInstance.nodeType) {
 			case POINT_NODE:
 				for(let key of Object.keys(nodeInstance.scheduledNotes)) {
@@ -524,6 +553,7 @@ class PrimaryInterface extends Component {
 				});
 				break;
 		}
+		*/
 	}
 
 	// clear all scheduled notes originating from a specific source
@@ -767,7 +797,7 @@ class PrimaryInterface extends Component {
 	}
 
 	render() {
-		const { pointer, stagePointer } = this.state;
+		const { pointer, stagePointer, activeNode } = this.state;
 		const { gui, stage, musicality } = this.props;
 
 		const { scale, notes } = musicality;
@@ -784,18 +814,18 @@ class PrimaryInterface extends Component {
 					onPointerUp={this.handlePointerUp}>
 
 					<PlacementIndicator key="placementIndicator" pointer={stagePointer} />
-					<ActiveNodeIndicator key="activeNodeIndicator" activeNode={gui.activeNode} />
+					<ActiveNodeIndicator key="activeNodeIndicator" activeNode={activeNode} />
 				
 					{pointNodes.map(node => 
-						<PointNode key={node.id} node={node} scale={scale} notes={notes} />
+						<PointNode key={node.id} node={node} scale={scale} notes={notes} onPointerDown={this.handleNodePointerDown.bind(this)} onPointerUp={this.handleNodePointerUp.bind(this)} />
 					)}
 
 					{originRingNodes.map(node => 
-						<OriginRingNode key={node.id} node={node} />
+						<OriginRingNode key={node.id} node={node} onPointerDown={this.handleNodePointerDown.bind(this)} onPointerUp={this.handleNodePointerUp.bind(this)} />
 					)}
 
 					{originRadarNodes.map(node => 
-						<OriginRadarNode key={node.id} node={node} />
+						<OriginRadarNode key={node.id} node={node} onPointerDown={this.handleNodePointerDown.bind(this)} onPointerUp={this.handleNodePointerUp.bind(this)} />
 					)}
 
 				</PrimaryInterfaceStage>
