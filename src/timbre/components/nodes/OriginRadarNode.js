@@ -2,6 +2,7 @@ import React, { Component } from 'react'
 import PIXI, { Container, Graphics, Rectangle } from 'pixi.js'
 
 import { createOriginLoop } from '../../timing'
+import { checkDifferenceAny } from '../../utils/lifecycleUtils'
 
 export default class OriginRadarNode extends Component {
 
@@ -38,8 +39,8 @@ export default class OriginRadarNode extends Component {
 		this.node.on('touchend', props.onPointerUp);
 	}
 
-	drawGuides() {
-		const { bars, beats, radius } = this.props.node;
+	drawGuides(props = this.props) {
+		const { bars, beats, radius } = props.node;
 
 		const totalBeats = bars * beats;
 		const radSeg = Math.PI*2 / totalBeats;
@@ -56,6 +57,12 @@ export default class OriginRadarNode extends Component {
 			);
 		}
 		this.node.guides.cacheAsBitmap = true;
+	}
+
+	componentWillReceiveProps(nextProps) {
+		if(checkDifferenceAny(this.props.node, nextProps.node, ['bars', 'beats'])) {
+			this.drawGuides(nextProps);
+		}
 	}
 	
 	render() {

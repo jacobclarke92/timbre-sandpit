@@ -49,8 +49,8 @@ export default class OriginRingNode extends Component {
 		this.node.on('touchend', props.onPointerUp);
 	}
 
-	drawGuides() {
-		const { bars, beats } = this.props.node;
+	drawGuides(props = this.props) {
+		const { bars, beats } = props.node;
 		const totalBeats = bars * beats;
 		this.node.radius = totalBeats * BEAT_PX;
 		this.node.guides.cacheAsBitmap = false;
@@ -66,7 +66,7 @@ export default class OriginRingNode extends Component {
 
 	componentWillReceiveProps(nextProps) {
 		if(checkDifferenceAny(this.props.node, nextProps.node, ['bars', 'beats'])) {
-			this.drawGuides();
+			this.drawGuides(nextProps);
 		}
 	}
 
