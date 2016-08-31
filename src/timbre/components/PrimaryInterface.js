@@ -12,6 +12,7 @@ import PointNode from './nodes/PointNode'
 import OriginRingNode from './nodes/OriginRingNode'
 import OriginRadarNode from './nodes/OriginRadarNode'
 
+import RingFX from './nodes/RingFX'
 import FpsCounter from './nodes/FpsCounter'
 import PlacementIndicator from './nodes/PlacementIndicator'
 import ActiveNodeIndicator from './nodes/ActiveNodeIndicator'
@@ -22,6 +23,7 @@ import Point from '../Point'
 import newId from '../utils/newId'
 import { getValueById } from '../utils/arrayUtils'
 import { checkDifferenceAny } from '../utils/lifecycleUtils'
+import { cancelLoop, clearScheduledNotes } from '../timing'
 import { dist, clamp, inBounds, getDistance, getAngle } from '../utils/mathUtils'
 import { getPixelDensity, addResizeCallback, triggerResize } from '../utils/screenUtils'
 import { isUpKeyPressed, isDownKeyPressed, isLeftKeyPressed, isRightKeyPressed, addKeyListener } from '../utils/keyUtils'
@@ -37,7 +39,6 @@ import { createPointNode, createRingNode, createArcNode, createRadarNode } from 
 import { createRingFX, redrawPointNode, redrawRingGuides, redrawRadarGuides } from '../nodeGraphics'
 import { nodeTypeLookup, nodeTypeKeys, POINT_NODE, ARC_NODE, ORIGIN_RING_NODE, ORIGIN_RADAR_NODE } from '../constants/nodeTypes'
 
-const scaleEase = 10;
 const mouseMoveThrottle = 1000/50; // 50fps
 const scrollwheelThrottle = 1000/50; // 50fps
 let indicatorOsc = 0;
@@ -54,13 +55,16 @@ class PrimaryInterface extends Component {
 	constructor(props) {
 		super(props);
 		this.handlePointerMove = _throttle(this.handlePointerMove.bind(this), mouseMoveThrottle);
-		this.handleMousewheel = _throttle(this.handleMousewheel, scrollwheelThrottle);
+		this.handleMousewheel = _throttle(this.handleMousewheel.bind(this), scrollwheelThrottle);
 		this.handleNodeMove = _debounce(this.handleNodeMove, 50);
 		this.handlePointerDown = this.handlePointerDown.bind(this);
 		this.handlePointerUp = this.handlePointerUp.bind(this);
 
 		this.state = {
+			width: 800,
+			height: 450,
 			offsetY: 136,
+			aimScale: 1/getPixelDensity(),
 			pointer: new Point(0,0),
 			stagePointer: new Point(0,0),
 			mouseDown: false,
@@ -74,39 +78,9 @@ class PrimaryInterface extends Component {
 
 	componentDidMount() {
 
+		this.$container = $(this.refs.renderer.refs.container);
+
 		/*
-		// get initial dimensions
-		this.handleResize();
-		this.$container = $(this.refs.container);
-			
-		// init renderer
-		this.renderer = new PIXI.autoDetectRenderer(this.width/getPixelDensity(), this.height/getPixelDensity(), {
-			resolution: getPixelDensity(), 
-			transparent: false, 
-			backgroundColor: 0x000000, 
-			antialiasing: true
-		});
-		this.canvas = this.renderer.view;
-		this.$container.append(this.canvas);
-
-		// init stage
-		this.stage = new Container();
-		this.stage.scale.set(1/getPixelDensity());
-		this.stage.pivot.set(0, 0);
-		this.stage.interactive = true;
-		this.stage.hitArea = new PIXI.Rectangle(0,0,10000,10000);
-		this.aimScale = 1;
-
-		// bind mouse / touch events
-		this.stage.on('mousedown', event => this.handlePointerDown(event));
-		this.stage.on('touchstart', event => this.handlePointerDown(event));
-		this.stage.on('touchmove', event => this.handlePointerMove(event));
-		this.stage.on('mouseup', event => this.handlePointerUp(event));
-		this.stage.on('touchend', event => this.handlePointerUp(event));
-
-		// wrapper for stage
-		this.stageWrapper = new Container();
-		this.stageWrapper.addChild(this.stage);
 
 		// debug rainbow dots
 		if(this.props.showDebugDots) {
@@ -122,89 +96,40 @@ class PrimaryInterface extends Component {
 			this.stage.addChild(dots);
 		}
 
-		// fps counter
-		if(this.props.showFPS) {
-			this.fps = new Text('', {font: '16px Orbitron', fontWeight: '500', fill: 'white'});
-			this.fps.scale.set(1/getPixelDensity());
-			this.fps.position = {x: 5, y: 5};
-			this.fpsCache = new Array(60).map(t => 60);
-			this.lastFps = Date.now();
-			// wait for font to load / fps to stabilize
-			setTimeout(() => this.stageWrapper.addChild(this.fps), 1000); 
-		}
-
-		// placement indicator
-		this.placementIndicator = new Graphics();
-		this.placementIndicator.lineStyle(2, 0xFFFFFF, 0.5);
-		this.placementIndicator.moveTo(0, -15);
-		this.placementIndicator.lineTo(0, 15);
-		this.placementIndicator.moveTo(-15, 0);
-		this.placementIndicator.lineTo(15, 0);
-		this.placementIndicator.cacheAsBitmap = true;
-		this.stage.addChild(this.placementIndicator);
-
-		this.dragTarget = null;
-		this.activeNode = null;
-		this.activeNodeIndicator = new Graphics();
-		this.activeNodeIndicator.lineStyle(2, 0xFFFFFF, 0.5);
-		this.activeNodeIndicator.drawCircle(0, 0, 15);
-		this.activeNodeIndicator.cacheAsBitmap = true;
-		this.stage.addChild(this.activeNodeIndicator);
-
-		this.ringsFX = [];
-		this.fxContainer = new Container();
-		this.stage.addChild(this.fxContainer);
-
-		// state vars
-		this.mouseMoved = false;
-		this.mouseDown = false;
-		this.stageCursor = new Point(0,0);
-		this.lastStageCursor = new Point(0,0);
-		this.cursor = new Point(0,0);
-		this.lastCursor = new Point(0,0);
-		this.mouseDownPosition = new Point(0,0);
-		this.placementPosition = new Point(0,0);
-
-		// instanciate local references of pixi node instances
-		this.initedNodeIds = [];
-		for(let nodeKey of Object.keys(nodeTypeLookup)) {
-			this[nodeTypeLookup[nodeKey]] = {};
-		}
-
 		// transport callback
 		this.loop = new Loop(::this.tick, this.props.transport.meterTime+'n');
 		this.beat = -1;
 
-		// bind scrollwheel to sizing anchor nodes
-		$(window).on('mousewheel DOMMouseScroll', ::this.handleMousewheel);
-
-		addResizeCallback(::this.handleResize);
 		*/
+	
+		// bind scrollwheel to sizing anchor nodes
+		$(window).on('mousewheel DOMMouseScroll', this.handleMousewheel);
+	
+		addResizeCallback(::this.handleResize);
 		addKeyListener('backspace', ::this.removeActiveNode);
 		addKeyListener('delete', ::this.removeActiveNode);
 		addKeyListener('esc', ::this.clearActiveNode);
-		/*
 		setTimeout(() => triggerResize(), 10);
-
-		this.mounted = true;
-		this.createMissingNodeInstances();
-		this.animate();
-		*/
 
 	}
 
 	handleResize() {
-		this.width = this.$container.width();
-		this.height = this.$container.height();
-		this.offsetY = this.$container.offset().top;
-		if(this.renderer) this.renderer.resize(this.width/getPixelDensity(), this.height/getPixelDensity());
+		this.setState({
+			width: this.$container.width(),
+			height: this.$container.height(),
+			offsetY: this.$container.offset().top,
+		});
 	}
 
 	handleMousewheel(event) {
+		const { mouseDown, pointer, width, height } = this.state;
 		// disable scroll zoom while dragging / clicking
-		if(!this.mouseDown && inBounds(this.cursor, 0, 0, this.width, this.height)) {
+		if(!mouseDown && inBounds(pointer, 0, 0, width, height)) {
 			const scrollAmount = event.originalEvent.wheelDelta || event.originalEvent.detail;
-			if (scrollAmount !== 0) this.aimScale = clamp(this.aimScale + scrollAmount/200, this.props.minZoom, this.props.maxZoom);
+			if (scrollAmount !== 0) {
+				const aimScale = clamp(this.state.aimScale + scrollAmount/200, this.props.minZoom, this.props.maxZoom);
+				this.setState({aimScale});
+			}
 		}
 	}
 
@@ -238,7 +163,7 @@ class PrimaryInterface extends Component {
 		this.cursor = new Point(event.data.originalEvent.clientX, event.data.originalEvent.clientY - this.offsetY);
 		this.stageCursor = event.data.getLocalPosition(this.stage);
 		*/
-		const pointer = new Point(event.data.originalEvent.clientX, event.data.originalEvent.clientY - this.offsetY);
+		const pointer = new Point(event.data.originalEvent.clientX, event.data.originalEvent.clientY - this.state.offsetY);
 		const stagePointer = event.data.getLocalPosition(event.target);
 		const placementPosition = stagePointer;
 		this.setState({
@@ -391,13 +316,8 @@ class PrimaryInterface extends Component {
 	removeNode(nodeInstance) {
 		console.log('removing node', nodeInstance);
 		if(!nodeInstance) return;
-		/*
-		if(nodeInstance.loop) {
-			nodeInstance.loop.cancel();
-			nodeInstance.loop.dispose();
-		}
-		*/
-		this.clearScheduledNotes(nodeInstance);
+		cancelLoop(nodeInstance.id);
+		clearScheduledNotes(nodeInstance);
 		this.props.dispatch(removeNode(nodeInstance.nodeType, nodeInstance.id));
 	}
 
@@ -432,36 +352,6 @@ class PrimaryInterface extends Component {
 		if(!this.props.gui.activeNode) return;
 		this.removeNode(this.state.activeNode);
 		this.clearActiveNode();
-	}
-
-	// generate a pixi instance of a node
-	createNodeInstance(nodeType, nodeAttrs)  {
-		let node = null;
-		switch(nodeType) {
-			case POINT_NODE: node = createPointNode(nodeAttrs); break;
-			case ORIGIN_RING_NODE: node = createRingNode(nodeAttrs); break;
-			case ORIGIN_RADAR_NODE: node = createRadarNode(nodeAttrs); break;
-			default: console.log('Failed to create node instance', nodeType, nodeAttrs); return;
-		}
-		this.stage.addChild(node);
-		this[nodeTypeLookup[nodeType]][nodeAttrs.id] = node;
-		this.initedNodeIds.push(nodeAttrs.id);
-		bindNodeEvents.call(this, nodeType, node, nodeAttrs);
-	}
-
-	// go over all node types in stage store and generated new instances where required
-	createMissingNodeInstances(stage = this.props.stage) {
-		const newNodes = {};
-		for(let nodeKey of Object.keys(nodeTypeLookup)) {
-			newNodes[nodeKey] = [];
-			for(let node of stage[nodeTypeLookup[nodeKey]]) {
-				if(this.initedNodeIds.indexOf(node.id) < 0) {
-					this.createNodeInstance(nodeKey, node);
-					newNodes[nodeKey].push(node);
-				}
-			}
-		}
-		return newNodes;
 	}
 
 	// returns an array of nearby point nodes given a node with a radius attribute
@@ -539,9 +429,10 @@ class PrimaryInterface extends Component {
 		}
 	}
 
+
+	/*
 	// called on node delete of any kind
 	clearScheduledNotes(nodeInstance) {
-		/*
 		switch(nodeInstance.nodeType) {
 			case POINT_NODE:
 				for(let key of Object.keys(nodeInstance.scheduledNotes)) {
@@ -560,7 +451,6 @@ class PrimaryInterface extends Component {
 				});
 				break;
 		}
-		*/
 	}
 
 	// clear all scheduled notes originating from a specific source
@@ -573,6 +463,7 @@ class PrimaryInterface extends Component {
 			}
 		}
 	}
+	*/
 
 	// plays a note!
 	triggerNote(originNode, nodeInstance, eventId) {
@@ -596,37 +487,6 @@ class PrimaryInterface extends Component {
 	animate() {
 		const { gui, stage, transport, musicality, showFPS } = this.props;
 		const { pointNodes, originRingNodes, originRadarNodes } = stage;
-
-		// active node indiciator
-		if(this.activeNode) {
-			indicatorOsc = (indicatorOsc + 0.1) % (Math.PI*2);
-			this.activeNodeIndicator.renderable = true;
-			this.activeNodeIndicator.position = this.activeNode.position;
-			this.activeNodeIndicator.scale.set(1 + Math.cos(indicatorOsc)*0.05);
-		}else{
-			this.activeNodeIndicator.renderable = false;
-		}
-
-		// redraw ring nodes
-		for(let attrs of originRingNodes) {
-			const node = this.originRingNodes[attrs.id];
-			const ringSize = BEAT_PX * (node.loop.progress * (attrs.bars * attrs.beats));
-			node.ring.clear();
-			node.ring.lineStyle(2, 0xFFFFFF, 1);
-			node.ring.drawCircle(0, 0, ringSize);
-			node.guides.renderable = gui.showGuides;
-		}
-
-		// redraw radar nodes
-		for(let attrs of originRadarNodes) {
-			const node = this.originRadarNodes[attrs.id];
-			const theta = node.loop.progress * (Math.PI*2) + Math.PI;
-			node.graphic.clear();
-			node.graphic.lineStyle(2, 0xFFFFFF, 1);
-			node.graphic.moveTo(0,0);
-			node.graphic.lineTo(Math.cos(theta)*attrs.radius, Math.sin(theta)*attrs.radius);
-			node.guides.renderable = gui.showGuides;
-		}
 		
 		// render FX rings
 		for(let ring of this.ringsFX) {
@@ -638,34 +498,6 @@ class PrimaryInterface extends Component {
 		}
 		// remove invisible rings from array
 		this.ringsFX = this.ringsFX.filter(ring => ring.alpha > 0);
-
-		// pan controls
-		if(isUpKeyPressed()) this.stage.position.y += scaleEase;
-		else if(isDownKeyPressed()) this.stage.position.y -= scaleEase;
-		if(isLeftKeyPressed()) this.stage.position.x += scaleEase;
-		else if(isRightKeyPressed()) this.stage.position.x -= scaleEase;
-		
-		// scale easing
-		const stageScale = this.stage.scale.x;
-		this.stage.scale.set(stageScale + (this.aimScale - stageScale)/scaleEase);
-
-		// placement indicator
-		this.placementIndicator.position = this.placementPosition;
-		this.placementIndicator.scale.set(1/this.stage.scale.x);
-
-		if(showFPS) {
-			const now = Date.now();
-			const currentFps = 1/(now-this.lastFps)*1000;
-			this.fpsCache.push(currentFps);
-			this.fpsCache.shift();
-			const fps = this.fpsCache.reduce((prev, current) => prev+current, 0)/this.fpsCache.length;
-			this.fps.text = Math.round(fps);
-			this.lastFps = now;
-		}
-
-		// render and animation loop 
-		this.renderer.render(this.stageWrapper);
-		if(transport.playing) requestAnimationFrame(this.animate.bind(this));
 	}
 
 	// this lifecycle event is primarily used for updating pixi instances where needed when the store changes
@@ -804,24 +636,27 @@ class PrimaryInterface extends Component {
 	}
 
 	render() {
-		const { pointer, stagePointer, activeNode } = this.state;
-		const { gui, stage, musicality } = this.props;
+		const { width, height, aimScale, pointer, stagePointer, activeNode } = this.state;
+		const { gui, stage, musicality, transport } = this.props;
 
 		const { scale, notes } = musicality;
 		const { arcNodes, pointNodes, originRingNodes, originRadarNodes } = stage;
 
 		return (
-			<PrimaryInterfaceRenderer width={this.width} height={this.height}>
+			<PrimaryInterfaceRenderer ref="renderer" width={width} height={height} playing={transport.playing}>
 				<FpsCounter key="fps" />
 				
 				<PrimaryInterfaceStage 
 					key="stage" 
+					aimScale={aimScale}
+					pointer={stagePointer}
 					onMouseMove={this.handlePointerMove} 
 					onPointerDown={this.handlePointerDown} 
 					onPointerUp={this.handlePointerUp}>
 
 					<PlacementIndicator key="placementIndicator" pointer={stagePointer} />
 					<ActiveNodeIndicator key="activeNodeIndicator" activeNode={activeNode} />
+					<RingFX key="ringFX" bpm={transport.bpm} />
 				
 					{pointNodes.map(node => 
 						<PointNode key={node.id} node={node} scale={scale} notes={notes} onPointerDown={this.handleNodePointerDown.bind(this)} onPointerUp={this.handleNodePointerUp.bind(this)} />

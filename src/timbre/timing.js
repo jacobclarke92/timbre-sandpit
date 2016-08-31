@@ -24,6 +24,12 @@ export function createOriginLoop(node) {
 	return loops[node.id];
 }
 
+export function cancelLoop(nodeId) {
+	if(!loops[nodeId]) return;
+	loops[nodeId].cancel();
+	loops[nodeId].dispose();
+}
+
 // called whenever a note needs to be scheduled
 // registers it to the target's scheduledNotes array under the source's id
 export function scheduleNote(originNode, nodeInstance, ticks = Transport.toTicks()) {
@@ -57,4 +63,35 @@ export function scheduleRadarNodeNotes(radarNodeInstance, radarNode) {
 		this.scheduleNote(radarNode, nearbyPointNode.ref, triggerTime);
 	}
 	*/
+}
+
+// clear all scheduled notes originating from a specific source
+export function clearScheduledNotesFromSource(source) {
+	if(!source) return;
+	for(let pointId of Object.keys(scheduledNotes)) {
+		for(let sourceId of Object.keys(scheduledNotes[pointId])) {
+			if(sourceId == source.id) {
+				scheduledNotes[pointId].forEach(noteId => Transport.cancel(noteId));
+				scheduledNotes[pointId] = [];
+			}
+		}
+	}
+}
+
+// called on node delete of any kind
+export function clearScheduledNotes(node) {
+	if(!node) return;
+	switch(node.nodeType) {
+		case NodeTypes.POINT_NODE:
+			for(let sourceId of Object.keys(scheduledNotes)) {
+				scheduledNotes[sourceId].forEach(noteId => Transport.cancel(noteId));
+				scheduledNotes[sourceId] = [];
+			}
+			break;
+
+		case NodeTypes.ORIGIN_RING_NODE:
+		case NodeTypes.ORIGIN_RADAR_NODE:
+			clearScheduledNotesFromSource(node.id);
+			break;
+	}
 }

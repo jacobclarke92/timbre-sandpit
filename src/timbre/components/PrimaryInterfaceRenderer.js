@@ -13,9 +13,8 @@ export default class PrimaryInterfaceRenderer extends Component {
 		this.instanceResults = {};
 
 		this.$container = $(this.refs.container);
-		this.handleResize();
 
-		this.renderer = new PIXI.autoDetectRenderer(this.width/getPixelDensity(), this.height/getPixelDensity(), {
+		this.renderer = new PIXI.autoDetectRenderer(this.props.width/getPixelDensity(), this.props.height/getPixelDensity(), {
 			resolution: getPixelDensity(), 
 			transparent: false, 
 			backgroundColor: 0x000000, 
@@ -30,13 +29,14 @@ export default class PrimaryInterfaceRenderer extends Component {
 		this.renderFrame();
 	}
 
-	handleResize() {
-		this.width = this.$container.width();
-		this.height = this.$container.height();
-		this.offsetY = this.$container.offset().top;
-		if(this.renderer) this.renderer.resize(this.width/getPixelDensity(), this.height/getPixelDensity());
+	componentWillReceiveProps(nextProps) {
+		if(nextProps.width != this.props.width || nextProps.height != this.props.height) {
+			this.renderer.resize(nextProps.width/getPixelDensity(), nextProps.height/getPixelDensity());
+		}
+		if(nextProps.playing && !this.props.playing) {
+			setTimeout(() => this.renderFrame());
+		}
 	}
-
 
 	renderFrame() {
 		let usedIds = [];
@@ -71,7 +71,7 @@ export default class PrimaryInterfaceRenderer extends Component {
 		});
 
 		this.renderer.render(this.stageWrapper);
-		/*if(transport.playing) */requestAnimationFrame(this.renderFrame.bind(this));
+		if(this.props.playing) requestAnimationFrame(this.renderFrame.bind(this));
 	}
 
 	render() {

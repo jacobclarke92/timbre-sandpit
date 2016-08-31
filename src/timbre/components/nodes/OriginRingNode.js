@@ -67,7 +67,9 @@ export default class OriginRingNode extends Component {
 	componentWillReceiveProps(nextProps) {
 		if(checkDifferenceAny(this.props.node, nextProps.node, ['bars', 'beats'])) {
 			this.drawGuides(nextProps);
+			this.loop.interval = '0:'+(nextProps.node.bars * nextProps.node.beats)+':0';
 		}
+		if(nextProps.node.speed != this.props.node.speed) this.loop.playbackRate = nextProps.node.speed;
 	}
 
 	render() {

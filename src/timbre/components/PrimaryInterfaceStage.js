@@ -2,7 +2,10 @@ import React, { Component, Children } from 'react'
 import PIXI, { Container } from 'pixi.js'
 import deepEqual from 'deep-equal'
 
+import { STAGE_MOVE_SPEED, SCALE_EASE } from '../constants/globals'
 import { getPixelDensity } from '../utils/screenUtils'
+import { checkDifferenceAny } from '../utils/lifecycleUtils'
+import { isUpKeyPressed, isDownKeyPressed, isLeftKeyPressed, isRightKeyPressed } from '../utils/keyUtils'
 
 export default class PrimaryInterfaceStage extends Component {
 
@@ -20,6 +23,14 @@ export default class PrimaryInterfaceStage extends Component {
 		this.stage.on('touchstart', props.onPointerDown);
 		this.stage.on('mouseup', props.onPointerUp);
 		this.stage.on('touchend', props.onPointerUp);
+	}
+
+	componentWillReceiveProps(nextProps) {
+		if(checkDifferenceAny(nextProps.pointer, this.props.pointer, ['x','y'])) {
+			this.stage.position.x += (nextProps.pointer.x - this.stage.pivot.x) * this.stage.scale.x;
+			this.stage.position.y += (nextProps.pointer.y - this.stage.pivot.y) * this.stage.scale.y;
+			this.stage.pivot = nextProps.pointer;
+		}
 	}
 
 	render() {
@@ -54,6 +65,14 @@ export default class PrimaryInterfaceStage extends Component {
 				}
 			}
 		});
+
+		if(isUpKeyPressed()) this.stage.position.y += STAGE_MOVE_SPEED;
+		else if(isDownKeyPressed()) this.stage.position.y -= STAGE_MOVE_SPEED;
+		if(isLeftKeyPressed()) this.stage.position.x += STAGE_MOVE_SPEED;
+		else if(isRightKeyPressed()) this.stage.position.x -= STAGE_MOVE_SPEED;
+
+		const stageScale = this.stage.scale.x;
+		this.stage.scale.set(stageScale + (this.props.aimScale - stageScale)/SCALE_EASE);
 
 		return this.stage;
 	}
