@@ -9,6 +9,7 @@ export default class PrimaryInterfaceStage extends Component {
 	constructor(props) {
 		super(props);
 		this.instances = {};
+		this.instanceResults = {};
 		this.stage = new Container();
 		this.stage.scale.set(1/getPixelDensity());
 		this.stage.pivot.set(0, 0);
@@ -32,6 +33,7 @@ export default class PrimaryInterfaceStage extends Component {
 				console.log('creating new', child, newInstance);
 				this.instances[child.key] = newInstance;
 				const result = newInstance.render({...child.props});
+				this.instanceResults[child.key] = result;
 				if(result instanceof PIXI.DisplayObject) {
 					this.stage.addChild(result);
 				}
@@ -44,8 +46,9 @@ export default class PrimaryInterfaceStage extends Component {
 
 		Object.keys(this.instances).forEach(key => {
 			if(usedIds.indexOf(key) < 0) {
-				if(this.instanceResults[key] instanceof PIXI.DisplayObject) {
-					this.stageWrapper.removeChild(this.instanceResults[key]);
+				if(this.instanceResults[key] && this.instanceResults[key] instanceof PIXI.DisplayObject) {
+					this.stage.removeChild(this.instanceResults[key]);
+					console.log('removing', this.instanceResults[key]);
 					delete this.instanceResults[key];
 					delete this.instances[key];
 				}

@@ -179,9 +179,11 @@ class PrimaryInterface extends Component {
 		$(window).on('mousewheel DOMMouseScroll', ::this.handleMousewheel);
 
 		addResizeCallback(::this.handleResize);
+		*/
 		addKeyListener('backspace', ::this.removeActiveNode);
 		addKeyListener('delete', ::this.removeActiveNode);
 		addKeyListener('esc', ::this.clearActiveNode);
+		/*
 		setTimeout(() => triggerResize(), 10);
 
 		this.mounted = true;
@@ -386,15 +388,16 @@ class PrimaryInterface extends Component {
 
 	// removes node locally and from store given pixi node instance
 	removeNode(nodeInstance) {
+		console.log('removing node', nodeInstance);
 		if(!nodeInstance) return;
+		/*
 		if(nodeInstance.loop) {
 			nodeInstance.loop.cancel();
 			nodeInstance.loop.dispose();
 		}
+		*/
 		this.clearScheduledNotes(nodeInstance);
-		this.stage.removeChild(nodeInstance);
 		this.props.dispatch(removeNode(nodeInstance.nodeType, nodeInstance.id));
-		delete this[nodeTypeLookup[nodeInstance.nodeType]][nodeInstance.id];
 	}
 
 	// is debounced, updates store with new position
@@ -416,6 +419,7 @@ class PrimaryInterface extends Component {
 
 	// for clearing active node selection
 	clearActiveNode() {
+		console.log('clearing active node');
 		if(this.props.gui.activeNode) {
 			this.props.dispatch({type: ActionTypes.CLEAR_ACTIVE_NODE})
 			this.setState({activeNode: null});
@@ -425,7 +429,7 @@ class PrimaryInterface extends Component {
 	// for actually deleting the active node
 	removeActiveNode() {
 		if(!this.props.gui.activeNode) return;
-		this.removeNode(this.activeNode);
+		this.removeNode(this.state.activeNode);
 		this.clearActiveNode();
 	}
 

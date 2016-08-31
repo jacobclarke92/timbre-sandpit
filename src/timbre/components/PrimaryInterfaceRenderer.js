@@ -62,7 +62,7 @@ export default class PrimaryInterfaceRenderer extends Component {
 
 		Object.keys(this.instances).forEach(key => {
 			if(usedIds.indexOf(key) < 0) {
-				if(this.instanceResults[key] instanceof PIXI.DisplayObject) {
+				if(this.instanceResults[key] && this.instanceResults[key] instanceof PIXI.DisplayObject) {
 					this.stageWrapper.removeChild(this.instanceResults[key]);
 					delete this.instanceResults[key];
 					delete this.instances[key];
