@@ -1,6 +1,55 @@
-export default class OriginRadarNode {
+import React, { Component } from 'react'
+import PIXI, { Container, Graphics, Rectangle } from 'pixi.js'
+
+export default class OriginRadarNode extends Component {
+
+	constructor(props) {
+		super(props);
+		const { id, nodeType, position, radius, scale } = props.node;
+
+		const graphic = new Graphics();
+		const guides = new Graphics();
+		this.node = new Container();
+		this.node.graphic = graphic;
+		this.node.guides = guides;
+
+		this.drawGuides();
+
+		this.node.id = id,
+		this.node.nodeType = nodeType;
+		this.node.inited = false;
+		this.node.interactive = true;
+		this.node.buttonMode = true;
+		this.node.hitArea = new Rectangle(-10, -10, 20, 20);
+		this.node.radius = radius;
+		this.node.scale.set(scale);
+		this.node.position.set(position.x, position.y);
+		
+		this.node.addChild(guides);
+		this.node.addChild(graphic);
+	}
+
+	drawGuides() {
+		const { bars, beats, radius } = this.props.node;
+
+		const totalBeats = bars * beats;
+		const radSeg = Math.PI*2 / totalBeats;
+		this.node.guides.cacheAsBitmap = false;
+		this.node.guides.clear();
+		for(let beat = 0; beat < totalBeats; beat++) {
+			const bar = beat % beats === 0;
+			if(bar) this.node.guides.lineStyle(2, 0xFFFFFF, 0.35);
+			else this.node.guides.lineStyle(2, 0xFFFFFF, 0.15);
+			this.node.guides.moveTo(0,0);
+			this.node.guides.lineTo(
+				Math.cos(beat*radSeg)*radius,
+				Math.sin(beat*radSeg)*radius
+			);
+		}
+		this.node.guides.cacheAsBitmap = true;
+	}
 	
 	render() {
-		return false;
+		return this.node;
 	}
 }

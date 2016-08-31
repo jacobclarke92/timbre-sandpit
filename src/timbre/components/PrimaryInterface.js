@@ -790,6 +790,14 @@ class PrimaryInterface extends Component {
 						<PointNode key={node.id} node={node} scale={scale} notes={notes} />
 					)}
 
+					{originRingNodes.map(node => 
+						<OriginRingNode key={node.id} node={node} />
+					)}
+
+					{originRadarNodes.map(node => 
+						<OriginRadarNode key={node.id} node={node} />
+					)}
+
 				</PrimaryInterfaceStage>
 				
 			</PrimaryInterfaceRenderer>
