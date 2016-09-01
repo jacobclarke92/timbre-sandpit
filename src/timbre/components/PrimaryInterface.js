@@ -57,8 +57,10 @@ class PrimaryInterface extends Component {
 		this.handlePointerMove = _throttle(this.handlePointerMove.bind(this), mouseMoveThrottle);
 		this.handleMousewheel = _throttle(this.handleMousewheel.bind(this), scrollwheelThrottle);
 		this.handleNodeMove = _debounce(this.handleNodeMove, 50);
-		this.handlePointerDown = this.handlePointerDown.bind(this);
 		this.handlePointerUp = this.handlePointerUp.bind(this);
+		this.handlePointerDown = this.handlePointerDown.bind(this);
+		this.handleNodePointerUp = this.handleNodePointerUp.bind(this);
+		this.handleNodePointerDown = this.handleNodePointerDown.bind(this);
 
 		this.state = {
 			width: 800,
@@ -67,6 +69,7 @@ class PrimaryInterface extends Component {
 			aimScale: 1/getPixelDensity(),
 			pointer: new Point(0,0),
 			stagePointer: new Point(0,0),
+			stagePosition: new Point(0,0),
 			mouseDown: false,
 			mouseMoved: false,
 			mouseDownPosition: new Point(0,0),
@@ -203,10 +206,6 @@ class PrimaryInterface extends Component {
 			this.placementPosition = this.stageCursor;
 		}
 
-		// reposition stage pivot to mouse position for zooming
-		this.stage.position.x += (this.stageCursor.x - this.stage.pivot.x) * this.stage.scale.x;
-		this.stage.position.y += (this.stageCursor.y - this.stage.pivot.y) * this.stage.scale.y;
-		this.stage.pivot = this.stageCursor;
 		
 		*/
 		const { mouseDown, mouseMoved, mouseDownPosition, dragTarget } = this.state;
@@ -234,16 +233,8 @@ class PrimaryInterface extends Component {
 						nearbyPointNode.ref.scheduledNotes = {};
 					}
 				}
-			}else{
-				// pan stage if dragging
-				// this.stage.position.x += this.cursor.x - this.lastCursor.x;
-				// this.stage.position.y += this.cursor.y - this.lastCursor.y;
 			}
 		}
-
-		// set mouse vars for next event
-		// this.lastCursor = this.cursor;
-		// this.lastStageCursor = this.stageCursor;
 	}
 
 	// called by Tone transport on every beat
@@ -605,38 +596,61 @@ class PrimaryInterface extends Component {
 	}
 
 	render() {
-		const { width, height, aimScale, pointer, stagePointer, activeNode } = this.state;
+		const { width, height, aimScale, pointer, stagePointer, activeNode, stagePosition, dragTarget, mouseDown} = this.state;
 		const { gui, stage, musicality, transport } = this.props;
 
 		const { scale, notes } = musicality;
-		const { arcNodes, pointNodes, originRingNodes, originRadarNodes } = stage;
+		const { arcNodes, pointNodes, originRingNodes, originRadarNodes, nearbyPointNodes } = stage;
 
 		return (
 			<PrimaryInterfaceRenderer ref="renderer" width={width} height={height} playing={transport.playing}>
+				
 				<FpsCounter key="fps" />
 				
 				<PrimaryInterfaceStage 
 					key="stage" 
 					aimScale={aimScale}
-					pointer={stagePointer}
+					pointer={pointer}
+					stagePointer={stagePointer}
+					position={stagePosition}
+					panning={!dragTarget && mouseDown}
 					onMouseMove={this.handlePointerMove} 
 					onPointerDown={this.handlePointerDown} 
 					onPointerUp={this.handlePointerUp}>
+
 
 					<PlacementIndicator key="placementIndicator" pointer={stagePointer} />
 					<ActiveNodeIndicator key="activeNodeIndicator" activeNode={activeNode} />
 					<RingFX key="ringFX" bpm={transport.bpm} />
 				
 					{pointNodes.map(node => 
-						<PointNode key={node.id} node={node} scale={scale} notes={notes} onPointerDown={this.handleNodePointerDown.bind(this)} onPointerUp={this.handleNodePointerUp.bind(this)} />
+						<PointNode 
+							key={node.id} 
+							node={node} 
+							scale={scale} 
+							notes={notes} 
+							onPointerDown={this.handleNodePointerDown} 
+							onPointerUp={this.handleNodePointerUp} />
 					)}
 
 					{originRingNodes.map(node => 
-						<OriginRingNode key={node.id} node={node} showGuides={gui.showGuides} onPointerDown={this.handleNodePointerDown.bind(this)} onPointerUp={this.handleNodePointerUp.bind(this)} />
+						<OriginRingNode
+							key={node.id}
+							node={node}
+							showGuides={gui.showGuides}
+							nearbyPointNodes={nearbyPointNodes[node.id] || []}
+							onPointerDown={this.handleNodePointerDown}
+							onPointerUp={this.handleNodePointerUp} />
 					)}
 
 					{originRadarNodes.map(node => 
-						<OriginRadarNode key={node.id} node={node} showGuides={gui.showGuides} onPointerDown={this.handleNodePointerDown.bind(this)} onPointerUp={this.handleNodePointerUp.bind(this)} />
+						<OriginRadarNode
+							key={node.id}
+							node={node}
+							showGuides={gui.showGuides}
+							nearbyPointNodes={nearbyPointNodes[node.id] || []}
+							onPointerDown={this.handleNodePointerDown}
+							onPointerUp={this.handleNodePointerUp} />
 					)}
 
 				</PrimaryInterfaceStage>

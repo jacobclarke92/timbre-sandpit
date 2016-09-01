@@ -26,10 +26,14 @@ export default class PrimaryInterfaceStage extends Component {
 	}
 
 	componentWillReceiveProps(nextProps) {
-		if(checkDifferenceAny(nextProps.pointer, this.props.pointer, ['x','y'])) {
-			this.stage.position.x += (nextProps.pointer.x - this.stage.pivot.x) * this.stage.scale.x;
-			this.stage.position.y += (nextProps.pointer.y - this.stage.pivot.y) * this.stage.scale.y;
-			this.stage.pivot = nextProps.pointer;
+		if(checkDifferenceAny(nextProps.stagePointer, this.props.stagePointer, ['x','y'])) {
+			this.stage.position.x += (nextProps.stagePointer.x - this.stage.pivot.x) * this.stage.scale.x;
+			this.stage.position.y += (nextProps.stagePointer.y - this.stage.pivot.y) * this.stage.scale.y;
+			this.stage.pivot = nextProps.stagePointer;
+			if(nextProps.panning) {
+				this.stage.position.x += (nextProps.pointer.x - this.props.pointer.x)/getPixelDensity();
+				this.stage.position.y += (nextProps.pointer.y - this.props.pointer.y)/getPixelDensity();
+			}
 		}
 	}
 
@@ -43,7 +47,7 @@ export default class PrimaryInterfaceStage extends Component {
 				const newInstance = child.$$typeof == 'Symbol(react.element)' ? React.createElement(child.type, child.props) : new child.type({...child.props});
 				console.log('creating new', child, newInstance);
 				this.instances[child.key] = newInstance;
-				const result = newInstance.render({...child.props});
+				const result = newInstance.render();
 				this.instanceResults[child.key] = result;
 				if(result instanceof PIXI.DisplayObject) {
 					this.stage.addChild(result);
@@ -70,6 +74,7 @@ export default class PrimaryInterfaceStage extends Component {
 		else if(isDownKeyPressed()) this.stage.position.y -= STAGE_MOVE_SPEED;
 		if(isLeftKeyPressed()) this.stage.position.x += STAGE_MOVE_SPEED;
 		else if(isRightKeyPressed()) this.stage.position.x -= STAGE_MOVE_SPEED;
+		this.stage.position = this.props.position;
 
 		const stageScale = this.stage.scale.x;
 		this.stage.scale.set(stageScale + (this.props.aimScale - stageScale)/SCALE_EASE);

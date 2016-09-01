@@ -15,6 +15,7 @@ export const isUpKeyPressed = () => upKeyPressed;
 export const isDownKeyPressed = () => downKeyPressed;
 
 const keyCallbacks = {};
+const keyUpCallbacks = {};
 
 function handleKeyDown(event) {
 	if(isInputFocused()) return;
@@ -47,10 +48,39 @@ function handleKeyUp(event) {
 		case 'ctrl': ctrlKeyPressed = false; break;
 		case 'command': ctrlKeyPressed = false; break;
 	}
-	if(key == 'up'/* || key == 'w'*/) upKeyPressed = false;
-	if(key == 'down'/* || key == 's'*/) downKeyPressed = false;
-	if(key == 'left'/* || key == 'a'*/) leftKeyPressed = false;
-	if(key == 'right'/* || key == 'd'*/) rightKeyPressed = false;
+	if(key == 'up') upKeyPressed = false;
+	if(key == 'down') downKeyPressed = false;
+	if(key == 'left') leftKeyPressed = false;
+	if(key == 'right') rightKeyPressed = false;
+
+	for(let checkKey of Object.keys(keyUpCallbacks)) {
+		if(checkKey == key) {
+			for(let callback of keyUpCallbacks[checkKey]) {
+				callback();
+			}
+		}
+	}
+}
+
+function handleKeyUp(event) {
+	const key = keycode(event);
+	switch (key) {
+		case 'shift': shiftKeyPressed = false; break;
+		case 'ctrl': ctrlKeyPressed = false; break;
+		case 'command': ctrlKeyPressed = false; break;
+	}
+	if(key == 'up') upKeyPressed = false;
+	if(key == 'down') downKeyPressed = false;
+	if(key == 'left') leftKeyPressed = false;
+	if(key == 'right') rightKeyPressed = false;
+
+	for(let checkKey of Object.keys(keyUpCallbacks)) {
+		if(checkKey == key) {
+			for(let callback of keyUpCallbacks[checkKey]) {
+				callback();
+			}
+		}
+	}
 }
 
 export function init(element = document) {
@@ -67,6 +97,22 @@ export function removeKeyListener(keyCode, func) {
 	if(Object.keys(keyCallbacks).indexOf(keyCode) >= 0) {
 		for(let i=0; i<keyCallbacks[keyCode].length; i++) {
 			if(keyCallbacks[keyCode][i] == func) keyCallbacks[keyCode].splice(i, 1);
+		}
+	}
+}
+
+export const addKeyDownListener = addKeyListener
+export const removeKeyDownListener = removeKeyListener
+
+export function addKeyUpListener(keyCode, func) {
+	if(Object.keys(keyUpCallbacks).indexOf(keyCode) < 0) keyUpCallbacks[keyCode] = [];
+	keyUpCallbacks[keyCode].push(func);
+}
+
+export function removeKeyUpListener(keyCode, func) {
+	if(Object.keys(keyUpCallbacks).indexOf(keyCode) >= 0) {
+		for(let i=0; i<keyUpCallbacks[keyCode].length; i++) {
+			if(keyUpCallbacks[keyCode][i] == func) keyUpCallbacks[keyCode].splice(i, 1);
 		}
 	}
 }
