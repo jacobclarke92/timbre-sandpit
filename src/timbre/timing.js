@@ -62,7 +62,7 @@ export function triggerNote(originNode, node, eventId) {
 }
 
 export function createOriginLoop(node) {
-	console.log('creating loop for', node);
+	// console.log('creating loop for', node);
 	const timing = '0:'+(node.bars * node.beats)+':0';
 	switch(node.nodeType) {
 		case ORIGIN_RING_NODE:

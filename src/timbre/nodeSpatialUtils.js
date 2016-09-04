@@ -13,7 +13,6 @@ export function receiveStore(_store) {
 	store.subscribe(receivedState);
 	receivedState();
 	updateNearbyPointNodes();
-	console.log('NEARBY POINT NODES', nearbyPointNodes);
 }
 
 function receivedState() {
@@ -27,7 +26,7 @@ function receivedState() {
 		updateNearbyPointNodes();
 		return;
 	}
-	
+
 	stage = newStage;
 }
 
