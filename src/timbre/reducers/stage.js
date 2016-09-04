@@ -4,7 +4,7 @@ import { BEAT_PX } from '../constants/globals'
 import * as NoteTypes from '../constants/noteTypes'
 import * as ActionTypes from '../constants/actionTypes'
 import { nodeTypeLookup, ARC_NODE, POINT_NODE, ORIGIN_RING_NODE, ORIGIN_RADAR_NODE } from '../constants/nodeTypes'
-import { updateNearbyPointNodes } from '../nodeSpatialUtils'
+import { updateNearbyPointNodes } from '../spatial'
 import { checkForNoteReschedule } from '../timing'
 
 const initialState = {

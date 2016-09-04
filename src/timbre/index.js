@@ -10,11 +10,9 @@ import '../../styles/index.less'
 import App from './components/App'
 import reducers from './reducers/index'
 import * as Sound  from './sound'
-import * as NodeGenerators  from './nodeGenerators'
-import * as NodeGraphics  from './nodeGraphics'
-import * as keyUtils  from './utils/keyUtils'
-import * as SpatialUtils from './nodeSpatialUtils'
+import * as Spatial from './spatial'
 import * as Timing from './timing'
+import * as keyUtils  from './utils/keyUtils'
 import { startTransport, stopTransport, setBpm } from './reducers/transport'
 import { TRANSPORT_START, WINDOW_VISIBLE, WINDOW_HIDDEN } from './constants/actionTypes'
 
@@ -24,9 +22,7 @@ window.logStore = () => console.log(store.getState());
 
 // give store to those in need
 Sound.receiveStore(store);
-NodeGraphics.receiveStore(store);
-NodeGenerators.receiveStore(store);
-SpatialUtils.receiveStore(store);
+Spatial.receiveStore(store);
 Timing.receiveStore(store);
 
 // press play

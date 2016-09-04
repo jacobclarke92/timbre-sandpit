@@ -24,21 +24,18 @@ import Point from '../Point'
 import newId from '../utils/newId'
 import { getValueById } from '../utils/arrayUtils'
 import { checkDifferenceAny } from '../utils/lifecycleUtils'
-import { getSnapPosition, updateNearbyPointNodes } from '../nodeSpatialUtils'
+import { getSnapPosition, updateNearbyPointNodes } from '../spatial'
 import { dist, clamp, inBounds, getDistance, getAngle } from '../utils/mathUtils'
 import { getPixelDensity, addResizeCallback, triggerResize } from '../utils/screenUtils'
+import { cancelLoop, clearScheduledNotes, checkForNoteReschedule, addNoteListener } from '../timing'
 import { isUpKeyPressed, isDownKeyPressed, isLeftKeyPressed, isRightKeyPressed, addKeyListener } from '../utils/keyUtils'
-import { cancelLoop, clearScheduledNotes, checkForNoteReschedule, removeScheduledNote, addNoteListener } from '../timing'
 
 import noteColors from '../constants/noteColors'
 import * as NoteTypes from '../constants/noteTypes'
 import * as ActionTypes from '../constants/actionTypes'
-import { bindNodeEvents } from '../nodeEventHandlers'
 import { BEAT_PX, METER_TICKS } from '../constants/globals'
 import { createNode, removeNode, updateNode } from '../reducers/stage'
 import { getRandomNote, getAscendingNote, getDescendingNote, playNote } from '../sound'
-import { createPointNode, createRingNode, createArcNode, createRadarNode } from '../nodeGenerators'
-import { createRingFX, redrawPointNode, redrawRingGuides, redrawRadarGuides } from '../nodeGraphics'
 import { nodeTypeLookup, nodeTypeKeys, POINT_NODE, ARC_NODE, ORIGIN_RING_NODE, ORIGIN_RADAR_NODE } from '../constants/nodeTypes'
 
 const mouseMoveThrottle = 1000/50; // 50fps
@@ -87,42 +84,21 @@ class PrimaryInterface extends Component {
 	componentDidMount() {
 
 		this.$container = $(this.refs.renderer.refs.container);
-
-		/*
-
-		// debug rainbow dots
-		if(this.props.showDebugDots) {
-			const dots = new Graphics();
-			dots.beginFill(0xFFFFFF);
-			for(let x=0; x<100; x ++) {
-				for(let y=0; y<100; y++) {
-					dots.beginFill(noteColors[(x+y)%noteColors.length]);
-					dots.drawCircle(x*40, y*40, 5);
-				}
-			}
-			dots.cacheAsBitmap = true;
-			this.stage.addChild(dots);
-		}
-
-		// transport callback
-		this.loop = new Loop(::this.tick, this.props.transport.meterTime+'n');
-		this.beat = -1;
-
-		*/
 	
 		// bind scrollwheel to sizing anchor nodes
 		$(window).on('mousewheel DOMMouseScroll', this.handleMousewheel);
-	
+		
+		// bind window resize
 		addResizeCallback(::this.handleResize);
+		setTimeout(() => triggerResize(), 10);
 
+		// bind note trigger
 		addNoteListener(this.handleNoteTrigger);
 
+		// bind key listeners
 		addKeyListener('backspace', ::this.removeActiveNode);
 		addKeyListener('delete', ::this.removeActiveNode);
 		addKeyListener('esc', ::this.clearActiveNode);
-
-
-		setTimeout(() => triggerResize(), 10);
 
 	}
 
@@ -205,14 +181,6 @@ class PrimaryInterface extends Component {
 				clearScheduledNotes(dragTarget);
 			}
 		}
-	}
-
-	// called by Tone transport on every beat
-	tick() {
-		this.beat ++;
-		if(this.beat >= this.props.transport.meterBeats) this.beat = 0;
-		this.renderer.backgroundColor = this.beat === 0 ? 0x050505 : 0x020202;
-		setTimeout(() => this.renderer.backgroundColor = 0x000, 100);
 	}
 
 	handleNodePointerDown(event) {
@@ -318,8 +286,6 @@ class PrimaryInterface extends Component {
 			speed: originNode.speed,
 		};
 		this.setState({ringsFX: [...this.state.ringsFX, ring]});
-
-		removeScheduledNote(originNode.id, node.id, eventId);
 	}
 
 	handleRemoveRingFX(ringFX) {
@@ -330,11 +296,17 @@ class PrimaryInterface extends Component {
 		const { width, height, aimScale, pointer, stagePointer, placementPosition, activeNode, stagePosition, dragTarget, mouseDown, ringsFX } = this.state;
 		const { gui, stage, musicality, transport } = this.props;
 
+		const { bpm, playing, meterTime } = transport;
 		const { scale, notes, modeString } = musicality;
 		const { arcNodes, pointNodes, originRingNodes, originRadarNodes } = stage;
 
 		return (
-			<PrimaryInterfaceRenderer ref="renderer" width={width} height={height} playing={transport.playing}>
+			<PrimaryInterfaceRenderer 
+				ref="renderer" 
+				width={width} 
+				height={height} 
+				playing={playing} 
+				meterTime={meterTime}>
 				
 				<FpsCounter key="fps" />
 				
@@ -349,18 +321,14 @@ class PrimaryInterface extends Component {
 					onPointerDown={this.handlePointerDown} 
 					onPointerUp={this.handlePointerUp}>
 
+					<FXContainer key="FXContainer">
+						{ringsFX.map(ring => 
+							<RingFX key={ring.id} bpm={bpm} onRemoveRingFX={() => this.handleRemoveRingFX(ring)} {...ring} />
+						)}
+					</FXContainer>
 
 					<PlacementIndicator key="placementIndicator" pointer={placementPosition} />
 					<ActiveNodeIndicator key="activeNodeIndicator" activeNode={activeNode} />
-					<FXContainer key="FXContainer">
-						{ringsFX.map(ring => 
-							<RingFX 
-								key={ring.id} 
-								bpm={transport.bpm} 
-								onRemoveRingFX={() => this.handleRemoveRingFX(ring)} 
-								{...ring} />
-						)}
-					</FXContainer>
 				
 					{pointNodes.map(node => 
 						<PointNode 

@@ -21,16 +21,15 @@ function handleKeyDown(event) {
 	if(isInputFocused()) return;
 
 	const key = keycode(event);
-	// console.log(key);
 	switch (key) {
 		case 'shift': shiftKeyPressed = true; break;
 		case 'ctrl': ctrlKeyPressed = true; break;
 		case 'command': ctrlKeyPressed = true; break;
 	}
-	if(key == 'up'/* || key == 'w'*/) upKeyPressed = true;
-	if(key == 'down'/* || key == 's'*/) downKeyPressed = true;
-	if(key == 'left'/* || key == 'a'*/) leftKeyPressed = true;
-	if(key == 'right'/* || key == 'd'*/) rightKeyPressed = true;
+	if(key == 'up') upKeyPressed = true;
+	if(key == 'down') downKeyPressed = true;
+	if(key == 'left') leftKeyPressed = true;
+	if(key == 'right') rightKeyPressed = true;
 
 	for(let checkKey of Object.keys(keyCallbacks)) {
 		if(checkKey == key) {
@@ -95,7 +94,7 @@ export function addKeyListener(keyCode, func) {
 
 export function removeKeyListener(keyCode, func) {
 	if(Object.keys(keyCallbacks).indexOf(keyCode) >= 0) {
-		for(let i=0; i<keyCallbacks[keyCode].length; i++) {
+		for(let i = 0; i < keyCallbacks[keyCode].length; i ++) {
 			if(keyCallbacks[keyCode][i] == func) keyCallbacks[keyCode].splice(i, 1);
 		}
 	}
@@ -111,7 +110,7 @@ export function addKeyUpListener(keyCode, func) {
 
 export function removeKeyUpListener(keyCode, func) {
 	if(Object.keys(keyUpCallbacks).indexOf(keyCode) >= 0) {
-		for(let i=0; i<keyUpCallbacks[keyCode].length; i++) {
+		for(let i = 0; i < keyUpCallbacks[keyCode].length; i ++) {
 			if(keyUpCallbacks[keyCode][i] == func) keyUpCallbacks[keyCode].splice(i, 1);
 		}
 	}

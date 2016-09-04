@@ -1,7 +1,7 @@
 import Tone, { Transport, Loop } from 'tone'
 
 import { METER_TICKS, BEAT_PX } from './constants/globals'
-import { getNearbyPointNodes } from './nodeSpatialUtils'
+import { getNearbyPointNodes } from './spatial'
 import { getValueById } from './utils/arrayUtils'
 import { ARC_NODE, POINT_NODE, ORIGIN_RING_NODE, ORIGIN_RADAR_NODE } from './constants/nodeTypes'
 
@@ -59,6 +59,7 @@ export function triggerNote(originNode, node, eventId) {
 	for(let callback of noteListeners) {
 		callback(originNode, node, eventId);
 	}
+	delete scheduledNotes[originNode.id][node.id];
 }
 
 export function createOriginLoop(node) {
@@ -157,10 +158,6 @@ export function rescheduleNote(originNode, nearbyPointNode) {
 			}
 			break;
 	}
-}
-
-export function removeScheduledNote(sourceId, nodeId, eventId) {
-	if(scheduledNotes[sourceId] && scheduledNotes[sourceId][nodeId]) delete scheduledNotes[sourceId][nodeId];
 }
 
 // clear all scheduled notes originating from a source node (ring, radar etc.)

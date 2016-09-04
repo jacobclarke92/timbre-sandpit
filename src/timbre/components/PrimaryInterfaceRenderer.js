@@ -1,5 +1,6 @@
 import React, { Component, Children } from 'react'
 import PIXI, { Container } from 'pixi.js'
+import { Loop } from 'tone'
 import $ from 'jquery'
 import deepEqual from 'deep-equal'
 
@@ -25,6 +26,10 @@ export default class PrimaryInterfaceRenderer extends Component {
 
 		this.stageWrapper = new Container();
 
+		// transport callback
+		this.loop = new Loop(::this.tick, this.props.meterTime+'n');
+		this.beat = -1;
+
 		// this.createInstances();
 		this.renderFrame();
 	}
@@ -36,6 +41,13 @@ export default class PrimaryInterfaceRenderer extends Component {
 		if(nextProps.playing && !this.props.playing) {
 			setTimeout(() => this.renderFrame());
 		}
+	}
+
+	tick() {
+		this.beat ++;
+		if(this.beat >= this.props.meterBeats) this.beat = 0;
+		this.renderer.backgroundColor = this.beat === 0 ? 0x050505 : 0x020202;
+		setTimeout(() => this.renderer.backgroundColor = 0x000, 100);
 	}
 
 	renderFrame() {
