@@ -1,3 +1,6 @@
+import { BEAT_PX } from '../constants/globals'
+import { ORIGIN_RING_NODE, ORIGIN_RADAR_NODE } from '../constants/nodeTypes'
+
  // gets distance between two points
 export function dist(p1, p2) {
 	return Math.sqrt(
@@ -25,4 +28,14 @@ export function getDistance(pt1, pt2) {
 
 export function getAngle(pt1, pt2) {
 	return Math.atan2(pt2.y - pt1.y, pt2.x - pt1.x);
+}
+
+export function getRadius(node) {
+	switch(node.nodeType) {
+		case ORIGIN_RING_NODE:
+			return node.bars * node.beats * BEAT_PX;
+		case ORIGIN_RADAR_NODE:
+			return node.radius;
+	}
+	return 99999;
 }

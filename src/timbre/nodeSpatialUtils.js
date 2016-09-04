@@ -1,7 +1,23 @@
 import { BEAT_PX } from './constants/globals'
 import { ORIGIN_RING_NODE, ORIGIN_RADAR_NODE } from './constants/nodeTypes'
 
-import { getAngle, getDistance } from './utils/mathUtils'
+import { getAngle, getDistance, getRadius } from './utils/mathUtils'
+
+let store = null;
+let stage = null;
+const nearbyPointNodes = {};
+
+export function receiveStore(_store) {
+	store = _store;
+	store.subscribe(receivedState);
+	receivedState();
+	updateNearbyPointNodes();
+	console.log('NEARBY POINT NODES', nearbyPointNodes);
+}
+
+function receivedState() {
+	stage = store.getState().stage;
+}
 
 export function getClosestNode(point, searchNodes) {
 	const nodes = [];
@@ -9,12 +25,9 @@ export function getClosestNode(point, searchNodes) {
 		let distance = 0;
 		switch(node.nodeType) {
 			case ORIGIN_RING_NODE:
-				distance = getDistance(point, node.position);
-				if(distance <= node.bars*node.beats*BEAT_PX) nodes.push({node, distance});
-				break;
 			case ORIGIN_RADAR_NODE:
 				distance = getDistance(point, node.position);
-				if(distance <= node.radius) nodes.push({node, distance});
+				if(distance <= getRadius(node)) nodes.push({node, distance});
 				break;
 		}
 	}
@@ -22,7 +35,8 @@ export function getClosestNode(point, searchNodes) {
 	return nodes.length > 0 ? nodes[0] : null;
 }
 
-export function getSnapPosition(point, searchNodes) {
+export function getSnapPosition(point, searchNodes = [...stage.originRingNodes, ...stage.originRadarNodes]) {
+
 	const closestNode = getClosestNode(point, searchNodes);
 	let snapPoint = point;
 	if(closestNode) {
@@ -49,4 +63,33 @@ export function getSnapPosition(point, searchNodes) {
 		};
 	}
 	return snapPoint;
+}
+
+export function getNearbyPointNodes(node) {
+	if(!nearbyPointNodes[node.id]) nearbyPointNodes[node.id] = fetchNearbyPointNodes(node);
+	return nearbyPointNodes[node.id];
+}
+
+export function fetchNearbyPointNodes(node, pointNodes = stage.pointNodes) {
+	const nearbyPointNodes = [];
+	for(let pointNode of pointNodes) {
+		const distance = getDistance(node.position, pointNode.position);
+		const angle = getAngle(node.position, pointNode.position) + Math.PI;
+		const radius = getRadius(node);
+		if(distance <= radius) {
+			nearbyPointNodes.push({
+				id: pointNode.id,
+				node: pointNode,
+				distance,
+				angle,
+			});
+		}
+	}
+	return nearbyPointNodes;
+}
+
+export function updateNearbyPointNodes(nodes = [...stage.originRingNodes, ...stage.originRadarNodes]) {
+	for(let node of nodes) {
+		nearbyPointNodes[node.id] = fetchNearbyPointNodes(node);
+	}
 }

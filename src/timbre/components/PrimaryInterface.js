@@ -169,10 +169,7 @@ class PrimaryInterface extends Component {
 
 		// placement snapping
 		let placementPosition = stagePointer;
-		if(snapping) {
-			const { originRingNodes, originRadarNodes } = this.props.stage;
-			placementPosition = getSnapPosition(stagePointer, [...originRingNodes, ...originRadarNodes]);
-		}
+		if(snapping) placementPosition = getSnapPosition(stagePointer);
 
 		this.setState({
 			pointer,
@@ -302,56 +299,6 @@ class PrimaryInterface extends Component {
 		this.removeNode(this.state.activeNode);
 		this.clearActiveNode();
 	}
-
-	// returns an array of nearby point nodes given a node with a radius attribute
-	getNearbyPointNodes(node, pointNodes = this.props.stage.pointNodes) {
-		node.nearbyPointNodes = [];
-		for(let pointNodeAttrs of pointNodes) {
-			const pointNode = this.pointNodes[pointNodeAttrs.id];
-			const distance = getDistance(node.position, pointNode.position);
-			const angle = getAngle(node.position, pointNode.position) + Math.PI;
-			if(distance <= node.radius) {
-				node.nearbyPointNodes.push({
-					id: pointNodeAttrs.id, 
-					ref: pointNode,
-					distance,
-					angle,
-				});
-			}
-		}
-	}
-
-	/*
-	// called whenever a note needs to be scheduled
-	// registers it to the target's scheduledNotes array under the source's id
-	scheduleNote(originNode, nodeInstance, ticks = Transport.toTicks()) {
-		if(!originNode || !nodeInstance) return;
-		const eventId = Transport.scheduleOnce(() => this.triggerNote(originNode, nodeInstance, eventId), ticks+'i');
-		if(!nodeInstance.scheduledNotes[originNode.id]) nodeInstance.scheduledNotes[originNode.id] = [];
-		nodeInstance.scheduledNotes[originNode.id].push(eventId);
-	}
-
-	// called by every ring node at the beginning of its loop
-	scheduleRingNodeNotes(ringNodeInstance, ringNode) {
-		if(!ringNodeInstance.nearbyPointNodes) this.getNearbyPointNodes(ringNodeInstance);
-		for(let nearbyPointNode of ringNodeInstance.nearbyPointNodes) {
-			const ticks = ((nearbyPointNode.distance / BEAT_PX) * METER_TICKS)/ringNodeInstance.loop.playbackRate;
-			const triggerTime = Transport.toTicks() + Math.floor(ticks);
-			this.scheduleNote(ringNode, nearbyPointNode.ref, triggerTime);
-		}
-	}
-
-	// called by every radar node at the beginning of its loop
-	scheduleRadarNodeNotes(radarNodeInstance, radarNode) {
-		if(!radarNodeInstance.nearbyPointNodes) this.getNearbyPointNodes(radarNodeInstance);
-		for(let nearbyPointNode of radarNodeInstance.nearbyPointNodes) {
-			const totalBeats = radarNode.bars * radarNode.beats;
-			const ticks = ((nearbyPointNode.angle / (Math.PI*2)) * totalBeats * METER_TICKS) / radarNodeInstance.loop.playbackRate;
-			const triggerTime = Transport.toTicks() + Math.floor(ticks);
-			this.scheduleNote(radarNode, nearbyPointNode.ref, triggerTime);
-		}
-	}
-	*/
 
 	// called when a node has been moved
 	checkForNoteReschedule(node) {

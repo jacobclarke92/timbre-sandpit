@@ -1,6 +1,7 @@
 import Tone, { Transport, Loop } from 'tone'
 
 import { METER_TICKS, BEAT_PX } from './constants/globals'
+import { getNearbyPointNodes } from './nodeSpatialUtils'
 import * as NodeTypes from './constants/nodeTypes'
 
 const loops = {};
@@ -30,39 +31,38 @@ export function cancelLoop(nodeId) {
 	loops[nodeId].dispose();
 }
 
+export function triggerNote(originNode, node, eventId) {
+	console.log('trigger note');
+}
+
 // called whenever a note needs to be scheduled
 // registers it to the target's scheduledNotes array under the source's id
-export function scheduleNote(originNode, nodeInstance, ticks = Transport.toTicks()) {
-	if(!originNode || !nodeInstance) return;
-	const eventId = Transport.scheduleOnce(() => this.triggerNote(originNode, nodeInstance, eventId), ticks+'i');
-	if(!nodeInstance.scheduledNotes[originNode.id]) nodeInstance.scheduledNotes[originNode.id] = [];
-	nodeInstance.scheduledNotes[originNode.id].push(eventId);
+export function scheduleNote(originNode, node, ticks = Transport.toTicks()) {
+	if(!originNode || !node) return;
+	const eventId = Transport.scheduleOnce(() => triggerNote(originNode, node, eventId), ticks+'i');
+	if(!scheduledNotes[originNode.id]) scheduledNotes[originNode.id] = [];
+	scheduledNotes[originNode.id].push(eventId);
 }
 
 // called by every ring node at the beginning of its loop
-export function scheduleRingNodeNotes(ringNodeInstance, ringNode) {
+export function scheduleRingNodeNotes(ringNode) {
 	console.log('ring node loop start');
-	/*
-	if(!ringNodeInstance.nearbyPointNodes) this.getNearbyPointNodes(ringNodeInstance);
-	for(let nearbyPointNode of ringNodeInstance.nearbyPointNodes) {
-		const ticks = ((nearbyPointNode.distance / BEAT_PX) * METER_TICKS)/ringNodeInstance.loop.playbackRate;
+	for(let nearbyPointNode of getNearbyPointNodes(ringNode)) {
+		const ticks = ((nearbyPointNode.distance / BEAT_PX) * METER_TICKS) / loops[ringNode.id].playbackRate;
 		const triggerTime = Transport.toTicks() + Math.floor(ticks);
-		this.scheduleNote(ringNode, nearbyPointNode.ref, triggerTime);
+		scheduleNote(ringNode, nearbyPointNode.node, triggerTime);
 	}
-	*/
 }
 
 // called by every radar node at the beginning of its loop
-export function scheduleRadarNodeNotes(radarNodeInstance, radarNode) {
-	/*
-	if(!radarNodeInstance.nearbyPointNodes) this.getNearbyPointNodes(radarNodeInstance);
-	for(let nearbyPointNode of radarNodeInstance.nearbyPointNodes) {
+export function scheduleRadarNodeNotes(radarNode) {
+	console.log('radar node loop start');
+	for(let nearbyPointNode of getNearbyPointNodes(radarNode)) {
 		const totalBeats = radarNode.bars * radarNode.beats;
-		const ticks = ((nearbyPointNode.angle / (Math.PI*2)) * totalBeats * METER_TICKS) / radarNodeInstance.loop.playbackRate;
+		const ticks = ((nearbyPointNode.angle / (Math.PI*2)) * totalBeats * METER_TICKS) / loops[radarNode.id].playbackRate;
 		const triggerTime = Transport.toTicks() + Math.floor(ticks);
-		this.scheduleNote(radarNode, nearbyPointNode.ref, triggerTime);
+		scheduleNote(radarNode, nearbyPointNode.node, triggerTime);
 	}
-	*/
 }
 
 // clear all scheduled notes originating from a specific source
