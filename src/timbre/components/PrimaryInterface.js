@@ -23,10 +23,10 @@ import Point from '../Point'
 import newId from '../utils/newId'
 import { getValueById } from '../utils/arrayUtils'
 import { checkDifferenceAny } from '../utils/lifecycleUtils'
-import { cancelLoop, clearScheduledNotes } from '../timing'
 import { getSnapPosition } from '../nodeSpatialUtils'
 import { dist, clamp, inBounds, getDistance, getAngle } from '../utils/mathUtils'
 import { getPixelDensity, addResizeCallback, triggerResize } from '../utils/screenUtils'
+import { cancelLoop, clearScheduledNotes } from '../timing'
 import { isUpKeyPressed, isDownKeyPressed, isLeftKeyPressed, isRightKeyPressed, addKeyListener } from '../utils/keyUtils'
 
 import noteColors from '../constants/noteColors'
@@ -194,15 +194,7 @@ class PrimaryInterface extends Component {
 				this.handleNodeMove();
 
 				// cancel any scheduled notes
-				if(dragTarget.nodeType == POINT_NODE && dragTarget.scheduledNotes) {
-					this.clearScheduledNotes(this.dragTarget);
-					dragTarget.scheduledNotes = {};
-				}else if((dragTarget.nodeType == ORIGIN_RING_NODE || dragTarget.nodeType == ORIGIN_RADAR_NODE) && dragTarget.nearbyPointNodes) {
-					for(let nearbyPointNode of dragTarget.nearbyPointNodes) {
-						this.clearScheduledNotes(nearbyPointNode.ref);
-						nearbyPointNode.ref.scheduledNotes = {};
-					}
-				}
+				clearScheduledNotes(dragTarget);
 			}
 		}
 	}
@@ -268,7 +260,7 @@ class PrimaryInterface extends Component {
 	}
 
 	// is debounced, updates store with new position
-	handleNodeMove(nodeInstance = this.dragTarget) {
+	handleNodeMove(nodeInstance = this.state.dragTarget) {
 		if(!nodeInstance) return;
 		const node = getValueById(this.props.stage[nodeTypeLookup[nodeInstance.nodeType]], nodeInstance.id);
 		node.position = {x: nodeInstance.position.x, y: nodeInstance.position.y};
@@ -300,6 +292,7 @@ class PrimaryInterface extends Component {
 		this.clearActiveNode();
 	}
 
+	/*
 	// called when a node has been moved
 	checkForNoteReschedule(node) {
 		for(let ringNode of this.props.stage.originRingNodes) {
@@ -324,42 +317,8 @@ class PrimaryInterface extends Component {
 			}
 		}
 	}
-
-
-	/*
-	// called on node delete of any kind
-	clearScheduledNotes(nodeInstance) {
-		switch(nodeInstance.nodeType) {
-			case POINT_NODE:
-				for(let key of Object.keys(nodeInstance.scheduledNotes)) {
-					nodeInstance.scheduledNotes[key].forEach(noteId => Transport.cancel(noteId));
-					nodeInstance.scheduledNotes[key] = [];
-				}
-				break;
-
-			case ORIGIN_RING_NODE:
-			case ORIGIN_RADAR_NODE:
-				if(nodeInstance.nearbyPointNodes) nodeInstance.nearbyPointNodes.forEach(npn => {
-					if(npn.ref.scheduledNotes[nodeInstance.id]) {
-						npn.ref.scheduledNotes[nodeInstance.id].forEach(noteId => Transport.cancel(noteId));
-						npn.ref.scheduledNotes[nodeInstance.id] = [];
-					}
-				});
-				break;
-		}
-	}
-
-	// clear all scheduled notes originating from a specific source
-	clearScheduledNotesFromSource(sourceInstance, pointNodes = this.props.stage.pointNodes) {
-		for(let pointNode of pointNodes) {
-			const pointInstance = this.pointNodes[pointNode.id];
-			if(pointInstance.scheduledNotes && pointInstance.scheduledNotes[sourceInstance.id]) {
-				pointInstance.scheduledNotes[sourceInstance.id].forEach(noteId => Transport.cancel(noteId));
-				pointInstance.scheduledNotes[sourceInstance.id] = [];
-			}
-		}
-	}
 	*/
+
 
 	// plays a note!
 	triggerNote(originNode, nodeInstance, eventId) {
@@ -505,7 +464,7 @@ class PrimaryInterface extends Component {
 		const { gui, stage, musicality, transport } = this.props;
 
 		const { scale, notes } = musicality;
-		const { arcNodes, pointNodes, originRingNodes, originRadarNodes, nearbyPointNodes } = stage;
+		const { arcNodes, pointNodes, originRingNodes, originRadarNodes } = stage;
 
 		return (
 			<PrimaryInterfaceRenderer ref="renderer" width={width} height={height} playing={transport.playing}>
@@ -543,7 +502,6 @@ class PrimaryInterface extends Component {
 							key={node.id}
 							node={node}
 							showGuides={gui.showGuides}
-							nearbyPointNodes={nearbyPointNodes[node.id] || []}
 							onPointerDown={this.handleNodePointerDown}
 							onPointerUp={this.handleNodePointerUp} />
 					)}
@@ -553,7 +511,6 @@ class PrimaryInterface extends Component {
 							key={node.id}
 							node={node}
 							showGuides={gui.showGuides}
-							nearbyPointNodes={nearbyPointNodes[node.id] || []}
 							onPointerDown={this.handleNodePointerDown}
 							onPointerUp={this.handleNodePointerUp} />
 					)}

@@ -2,21 +2,51 @@ import Tone, { Transport, Loop } from 'tone'
 
 import { METER_TICKS, BEAT_PX } from './constants/globals'
 import { getNearbyPointNodes } from './nodeSpatialUtils'
-import * as NodeTypes from './constants/nodeTypes'
+import { getValueById } from './utils/arrayUtils'
+import { ARC_NODE, POINT_NODE, ORIGIN_RING_NODE, ORIGIN_RADAR_NODE } from './constants/nodeTypes'
 
+/**
+ * {
+ * 		[sourceNodeId]: loopInstance,
+ * 		[sourceNodeId]: loopInstance
+ * }
+ */
 const loops = {};
+
+/**
+ * {
+ * 		[sourceNodeId]: [
+ * 			[nodeId]: scheduleEventId,
+ * 			[nodeId]: scheduleEventId,
+ * 			[nodeId]: scheduleEventId
+ * 		]
+ * }
+ */
 const scheduledNotes = {};
+
+let store = null;
+let stage = null;
+
+export function receiveStore(_store) {
+	store = _store;
+	store.subscribe(receivedState);
+	receivedState();
+}
+
+function receivedState() {
+	stage = store.getState().stage;
+}
 
 export function createOriginLoop(node) {
 	console.log('creating loop for', node);
 	const timing = '0:'+(node.bars * node.beats)+':0';
 	switch(node.nodeType) {
-		case NodeTypes.ORIGIN_RING_NODE:
+		case ORIGIN_RING_NODE:
 			loops[node.id] = new Loop(() => scheduleRingNodeNotes(node), timing);
 			loops[node.id].playbackRate = node.speed;
 			loops[node.id].start(0);
 			break
-		case NodeTypes.ORIGIN_RADAR_NODE:
+		case ORIGIN_RADAR_NODE:
 			loops[node.id] = new Loop(() => scheduleRadarNodeNotes(node), timing);
 			loops[node.id].playbackRate = node.speed;
 			loops[node.id].start(0);
@@ -40,8 +70,8 @@ export function triggerNote(originNode, node, eventId) {
 export function scheduleNote(originNode, node, ticks = Transport.toTicks()) {
 	if(!originNode || !node) return;
 	const eventId = Transport.scheduleOnce(() => triggerNote(originNode, node, eventId), ticks+'i');
-	if(!scheduledNotes[originNode.id]) scheduledNotes[originNode.id] = [];
-	scheduledNotes[originNode.id].push(eventId);
+	if(!scheduledNotes[originNode.id]) scheduledNotes[originNode.id] = {};
+	scheduledNotes[originNode.id][node.id] = eventId;
 }
 
 // called by every ring node at the beginning of its loop
@@ -65,14 +95,73 @@ export function scheduleRadarNodeNotes(radarNode) {
 	}
 }
 
-// clear all scheduled notes originating from a specific source
+export function checkForNoteReschedule(node) {
+	switch(node.nodeType) {
+		case ORIGIN_RING_NODE:
+		case ORIGIN_RADAR_NODE:
+			clearScheduledNotesFromSource(node);
+			const nearbyPointNodes = getNearbyPointNodes(node);
+			for(let nearbyPointNode of nearbyPointNodes) {
+				rescheduleNote(node, nearbyPointNode);
+			}
+			break;
+
+		case ARC_NODE:
+		case POINT_NODE:
+			clearScheduledNotesFromTarget(node);
+			const originNodes = [...stage.originRingNodes, ...stage.originRadarNodes];
+			for(let originNode of originNodes) {
+				const nearbyPointNode = getValueById(getNearbyPointNodes(originNode), node.id);
+				if(nearbyPointNode) rescheduleNote(originNode, nearbyPointNode);
+			}
+			break;
+	}
+}
+
+export function rescheduleNote(originNode, nearbyPointNode) {
+	switch(originNode.nodeType) {
+		case ORIGIN_RING_NODE:
+			console.log('rescheduling ring node note');
+			const ringSize = BEAT_PX * (loops[originNode.id].progress * (originNode.bars * originNode.beats));
+			if(nearbyPointNode.distance > ringSize) {
+				const ticks = Math.floor(((nearbyPointNode.distance - ringSize) / BEAT_PX) * METER_TICKS);
+				const triggerTime = Transport.toTicks() + ticks;
+				scheduleNote(originNode, nearbyPointNode.node, triggerTime);
+			}
+			break;
+
+		case ORIGIN_RADAR_NODE:
+			console.log('rescheduling radar node note');
+			const radarAngle = loops[originNode.id].progress * (Math.PI*2);
+			if(nearbyPointNode.angle > radarAngle) {
+				const totalBeats = originNode.bars * originNode.beats;
+				const ticks = Math.floor(((nearbyPointNode.angle / (Math.PI*2)) * totalBeats * METER_TICKS) / loops[originNode.id].playbackRate);
+				const triggerTime = Transport.toTicks() + ticks;
+				scheduleNote(originNode, nearbyPointNode.node, triggerTime);
+			}
+			break;
+	}
+}
+
+// clear all scheduled notes originating from a source node (ring, radar etc.)
 export function clearScheduledNotesFromSource(source) {
 	if(!source) return;
-	for(let pointId of Object.keys(scheduledNotes)) {
-		for(let sourceId of Object.keys(scheduledNotes[pointId])) {
-			if(sourceId == source.id) {
-				scheduledNotes[pointId].forEach(noteId => Transport.cancel(noteId));
-				scheduledNotes[pointId] = [];
+	for(let sourceId of Object.keys(scheduledNotes)) {
+		if(sourceId == source.id) {
+			Object.keys(scheduledNotes[sourceId]).forEach(nodeId => Transport.cancel(scheduledNotes[sourceId][nodeId]));
+			scheduledNotes[sourceId] = {};
+		}
+	}
+}
+
+// clear all scheduled notes pertaining to a target node (point, arc etc.)
+export function clearScheduledNotesFromTarget(node) {
+	if(!node) return;
+	for(let sourceId of Object.keys(scheduledNotes)) {
+		for(let nodeId of Object.keys(scheduledNotes[sourceId])) {
+			if(node.id == nodeId) {
+				Transport.cancel(scheduledNotes[sourceId][nodeId]);
+				delete scheduledNotes[sourceId][nodeId];
 			}
 		}
 	}
@@ -82,16 +171,14 @@ export function clearScheduledNotesFromSource(source) {
 export function clearScheduledNotes(node) {
 	if(!node) return;
 	switch(node.nodeType) {
-		case NodeTypes.POINT_NODE:
-			for(let sourceId of Object.keys(scheduledNotes)) {
-				scheduledNotes[sourceId].forEach(noteId => Transport.cancel(noteId));
-				scheduledNotes[sourceId] = [];
-			}
+		case ARC_NODE:
+		case POINT_NODE:
+			clearScheduledNotesFromTarget(node);
 			break;
 
-		case NodeTypes.ORIGIN_RING_NODE:
-		case NodeTypes.ORIGIN_RADAR_NODE:
-			clearScheduledNotesFromSource(node.id);
+		case ORIGIN_RING_NODE:
+		case ORIGIN_RADAR_NODE:
+			clearScheduledNotesFromSource(node);
 			break;
 	}
 }

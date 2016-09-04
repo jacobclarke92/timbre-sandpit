@@ -1,6 +1,7 @@
 import { BEAT_PX } from './constants/globals'
-import { ORIGIN_RING_NODE, ORIGIN_RADAR_NODE } from './constants/nodeTypes'
+import { nodeTypeLookup, ORIGIN_RING_NODE, ORIGIN_RADAR_NODE } from './constants/nodeTypes'
 
+import { checkDifferenceAny } from './utils/lifecycleUtils'
 import { getAngle, getDistance, getRadius } from './utils/mathUtils'
 
 let store = null;
@@ -16,7 +17,18 @@ export function receiveStore(_store) {
 }
 
 function receivedState() {
-	stage = store.getState().stage;
+	const newStage = store.getState().stage;
+
+	// check if length of nodes has changed if so update nearbypoints
+	const checks = Object.keys(nodeTypeLookup).map(key => nodeTypeLookup[key]+'.length');
+	if(stage && checkDifferenceAny(stage, newStage, checks)) {
+		console.log('updating nearby points');
+		stage = newStage;
+		updateNearbyPointNodes();
+		return;
+	}
+	
+	stage = newStage;
 }
 
 export function getClosestNode(point, searchNodes) {

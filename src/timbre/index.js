@@ -13,6 +13,7 @@ import * as NodeGenerators  from './nodeGenerators'
 import * as NodeGraphics  from './nodeGraphics'
 import * as keyUtils  from './utils/keyUtils'
 import * as SpatialUtils from './nodeSpatialUtils'
+import * as Timing from './timing'
 import { TRANSPORT_START } from './constants/actionTypes'
 import { startTransport, stopTransport, setBpm } from './reducers/transport'
 
@@ -25,6 +26,7 @@ Sound.receiveStore(store);
 NodeGraphics.receiveStore(store);
 NodeGenerators.receiveStore(store);
 SpatialUtils.receiveStore(store);
+Timing.receiveStore(store);
 
 // press play
 stopTransport();
