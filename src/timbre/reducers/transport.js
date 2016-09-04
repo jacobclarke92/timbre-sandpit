@@ -7,6 +7,7 @@ const initialState = {
 	meterBeats: 4,
 	meterTime: 4,
 	playing: false,
+	windowVisible: true,
 	startTime: Date.now(),
 };
 
@@ -53,6 +54,18 @@ export default function(state = localStore.get('transport') || initialState, act
 			return {
 				...state,
 				meterTime: action.meterTime,
+			}
+
+		case ActionTypes.WINDOW_VISIBLE:
+			return {
+				...state,
+				windowVisible: true,
+			}
+
+		case ActionTypes.WINDOW_HIDDEN:
+			return {
+				...state,
+				windowVisible: false,
 			}
 	}
 	return state;
