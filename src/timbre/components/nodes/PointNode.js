@@ -3,6 +3,7 @@ import PIXI, { Container, Graphics } from 'pixi.js'
 
 import noteColors from '../../constants/noteColors'
 import * as NoteTypes from '../../constants/noteTypes'
+import { checkDifferenceAny } from '../../utils/lifecycleUtils'
 
 export default class PointNode extends Component {
 
@@ -37,7 +38,7 @@ export default class PointNode extends Component {
 		const { noteType, noteIndex, radius} = props.node;
 
 		let color = 0xFFFFFF;
-		switch(this.props.noteType) {
+		switch(noteType) {
 			case NoteTypes.UP:
 				this.node.rotation = -Math.PI/2;
 				break;
@@ -61,6 +62,12 @@ export default class PointNode extends Component {
 			]);
 		}
 		this.node.graphic.cacheAsBitmap = true;
+	}
+
+	componentWillReceiveProps(nextProps) {
+		if(checkDifferenceAny(this.props, nextProps, ['scale', 'modeString', 'node.noteType', 'node.noteIndex', 'node.radius'])) {
+			this.drawPointNode(nextProps);
+		}
 	}
 
 	render() {
