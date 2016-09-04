@@ -24,6 +24,8 @@ const loops = {};
  */
 const scheduledNotes = {};
 
+const noteListeners = [];
+
 let store = null;
 let stage = null;
 
@@ -35,6 +37,28 @@ export function receiveStore(_store) {
 
 function receivedState() {
 	stage = store.getState().stage;
+}
+
+export function addNoteListener(func) {
+	noteListeners.push(func);
+}
+
+export function removeNoteListener(func) {
+	const index = noteListeners.indexOf(func);
+	if(index >= 0) noteListeners.splice(index, 0);
+}
+
+export function cancelLoop(nodeId) {
+	if(!loops[nodeId]) return;
+	loops[nodeId].cancel();
+	loops[nodeId].dispose();
+}
+
+export function triggerNote(originNode, node, eventId) {
+	console.log('trigger note');
+	for(let callback of noteListeners) {
+		callback(originNode, node, eventId);
+	}
 }
 
 export function createOriginLoop(node) {
@@ -53,16 +77,6 @@ export function createOriginLoop(node) {
 			break;
 	}
 	return loops[node.id];
-}
-
-export function cancelLoop(nodeId) {
-	if(!loops[nodeId]) return;
-	loops[nodeId].cancel();
-	loops[nodeId].dispose();
-}
-
-export function triggerNote(originNode, node, eventId) {
-	console.log('trigger note');
 }
 
 // called whenever a note needs to be scheduled
@@ -141,6 +155,10 @@ export function rescheduleNote(originNode, nearbyPointNode) {
 			}
 			break;
 	}
+}
+
+export function removeScheduledNote(sourceId, nodeId, eventId) {
+	if(scheduledNotes[sourceId] && scheduledNotes[sourceId][nodeId]) delete scheduledNotes[sourceId][nodeId];
 }
 
 // clear all scheduled notes originating from a source node (ring, radar etc.)

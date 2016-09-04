@@ -3,34 +3,25 @@ import PIXI, { Container, Graphics } from 'pixi.js'
 
 import { BEAT_PX } from '../../constants/globals'
 
-export default class ActiveNodeIndicator extends Component {
+export default class RingFX extends Component {
 
 	constructor(props) {
 		super(props);
-		this.rings = [];
-		this.ringFX = new Container();
-	}
-
-	createRing() {
-		const ring = new Graphics();
-		ring.lineStyle(3, color, 1);
-		ring.drawCircle(0, 0, BEAT_PX*3);
-		ring.cacheAsBitmap = true;
-		ring.scale.set(0);
-		ring.position = position;
-		ring.counter = 0;
-		this.rings.push(ring);
+		this.counter = 0;
+		this.ring = new Graphics();
+		this.ring.lineStyle(3, props.color, 1);
+		this.ring.drawCircle(0, 0, BEAT_PX*3);
+		this.ring.cacheAsBitmap = true;
+		this.ring.scale.set(0);
+		this.ring.position = props.position;
 	}
 
 	render() {
-		for(let ring of this.rings) {
-			ring.scale.set(ring.scale.x + (this.props.bpm/11000)*ring.speed); // just eyeballed this one
-			if(++ring.counter >= 60) {
-				if(ring.alpha > 0) ring.alpha -= 0.05;
-				else this.ringFX.removeChild(ring);
-			}
+		this.ring.scale.set(this.ring.scale.x + (this.props.bpm/11000)*this.props.speed); // just eyeballed this one
+		if(++this.counter >= 60) {
+			if(this.ring.alpha > 0) this.ring.alpha -= 0.05;
+			else this.props.onRemoveRingFX();
 		}
-		this.rings = this.rings.filter(ring => ring.alpha > 0);
-		return this.ringFX;
+		return this.ring;
 	}
 }

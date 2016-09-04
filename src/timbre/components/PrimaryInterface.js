@@ -14,6 +14,7 @@ import OriginRadarNode from './nodes/OriginRadarNode'
 
 import RingFX from './nodes/RingFX'
 import FpsCounter from './nodes/FpsCounter'
+import FXContainer from './nodes/FXContainer'
 import PlacementIndicator from './nodes/PlacementIndicator'
 import ActiveNodeIndicator from './nodes/ActiveNodeIndicator'
 import PrimaryInterfaceStage from './PrimaryInterfaceStage'
@@ -26,8 +27,8 @@ import { checkDifferenceAny } from '../utils/lifecycleUtils'
 import { getSnapPosition, updateNearbyPointNodes } from '../nodeSpatialUtils'
 import { dist, clamp, inBounds, getDistance, getAngle } from '../utils/mathUtils'
 import { getPixelDensity, addResizeCallback, triggerResize } from '../utils/screenUtils'
-import { cancelLoop, clearScheduledNotes, checkForNoteReschedule } from '../timing'
 import { isUpKeyPressed, isDownKeyPressed, isLeftKeyPressed, isRightKeyPressed, addKeyListener } from '../utils/keyUtils'
+import { cancelLoop, clearScheduledNotes, checkForNoteReschedule, removeScheduledNote, addNoteListener } from '../timing'
 
 import noteColors from '../constants/noteColors'
 import * as NoteTypes from '../constants/noteTypes'
@@ -62,6 +63,7 @@ class PrimaryInterface extends Component {
 		this.handlePointerDown = this.handlePointerDown.bind(this);
 		this.handleNodePointerUp = this.handleNodePointerUp.bind(this);
 		this.handleNodePointerDown = this.handleNodePointerDown.bind(this);
+		this.handleNoteTrigger = this.handleNoteTrigger.bind(this);
 
 		this.state = {
 			width: 800,
@@ -78,6 +80,7 @@ class PrimaryInterface extends Component {
 			dragTarget: null,
 			activeTarget: null,
 			activeNode: null,
+			ringsFX: [],
 		}
 	}
 
@@ -111,9 +114,14 @@ class PrimaryInterface extends Component {
 		$(window).on('mousewheel DOMMouseScroll', this.handleMousewheel);
 	
 		addResizeCallback(::this.handleResize);
+
+		addNoteListener(this.handleNoteTrigger);
+
 		addKeyListener('backspace', ::this.removeActiveNode);
 		addKeyListener('delete', ::this.removeActiveNode);
 		addKeyListener('esc', ::this.clearActiveNode);
+
+
 		setTimeout(() => triggerResize(), 10);
 
 	}
@@ -296,66 +304,28 @@ class PrimaryInterface extends Component {
 	}
 
 	// plays a note!
-	triggerNote(originNode, nodeInstance, eventId) {
+	handleNoteTrigger(originNode, node, eventId) {
 		const { musicality, stage } = this.props;
-		const node = getValueById(stage[nodeTypeLookup[nodeInstance.nodeType]], nodeInstance.id);
-		if(!node) return;
 		const noteIndex = playNote(node, originNode.synthId);
-		const ringColor = noteColors[(noteIndex + musicality.scale)%12];
-		const ring = createRingFX(nodeInstance.position, ringColor);
-		ring.speed = originNode.speed;
-		this.fxContainer.addChild(ring);
-		this.ringsFX.push(ring);
-		
-		// remove scheduled event id from note
-		if(eventId && nodeInstance.scheduledNotes[originNode.id]) {
-			nodeInstance.scheduledNotes[originNode.id] = nodeInstance.scheduledNotes[originNode.id].filter(id => id != eventId);
-		}
+		const color = noteColors[(noteIndex + musicality.scale)%12];
+
+		const ring = {
+			id: newId(),
+			color,
+			position: node.position,
+			speed: originNode.speed,
+		};
+		this.setState({ringsFX: [...this.state.ringsFX, ring]});
+
+		removeScheduledNote(originNode.id, node.id, eventId);
 	}
 
-	// pixi animation loop
-	animate() {
-		const { gui, stage, transport, musicality, showFPS } = this.props;
-		const { pointNodes, originRingNodes, originRadarNodes } = stage;
-		
-		// render FX rings
-		for(let ring of this.ringsFX) {
-			ring.scale.set(ring.scale.x + (transport.bpm/11000)*ring.speed); // just eyeballed this one
-			if(++ring.counter >= 60) {
-				if(ring.alpha > 0) ring.alpha -= 0.05;
-				else this.fxContainer.removeChild(ring);
-			}
-		}
-		// remove invisible rings from array
-		this.ringsFX = this.ringsFX.filter(ring => ring.alpha > 0);
-	}
-
-	// this lifecycle event is primarily used for updating pixi instances where needed when the store changes
-	componentWillReceiveProps(nextProps) {
-
-		/*
-		// force animation to start again if props updates
-		if(nextProps.transport.playing && !this.props.transport.playing) {
-			setTimeout(() => this.animate());
-			this.beat = -1;
-			this.loop.start(0);
-		}else if(!nextProps.transport.playing && this.props.transport.playing) {
-			this.loop.stop();
-		}
-
-		// redraw coloured nodes if scale or mode changes
-		if(checkDifferenceAny(this.props, nextProps, ['musicality.scale', 'musicality.modeString'])) {
-			for(let pointNode of nextProps.stage.pointNodes) {
-				if(pointNode.noteType == NoteTypes.NOTE) {
-					redrawPointNode(pointNode, this.pointNodes[pointNode.id]);
-				}
-			}
-		}
-		*/
+	handleRemoveRingFX(ringFX) {
+		this.setState({ringsFX: this.state.ringsFX.filter(ring => ring != ringFX)});
 	}
 
 	render() {
-		const { width, height, aimScale, pointer, stagePointer, placementPosition, activeNode, stagePosition, dragTarget, mouseDown} = this.state;
+		const { width, height, aimScale, pointer, stagePointer, placementPosition, activeNode, stagePosition, dragTarget, mouseDown, ringsFX } = this.state;
 		const { gui, stage, musicality, transport } = this.props;
 
 		const { scale, notes, modeString } = musicality;
@@ -380,7 +350,15 @@ class PrimaryInterface extends Component {
 
 					<PlacementIndicator key="placementIndicator" pointer={placementPosition} />
 					<ActiveNodeIndicator key="activeNodeIndicator" activeNode={activeNode} />
-					<RingFX key="ringFX" bpm={transport.bpm} />
+					<FXContainer key="FXContainer">
+						{ringsFX.map(ring => 
+							<RingFX 
+								key={ring.id} 
+								bpm={transport.bpm} 
+								onRemoveRingFX={() => this.handleRemoveRingFX(ring)} 
+								{...ring} />
+						)}
+					</FXContainer>
 				
 					{pointNodes.map(node => 
 						<PointNode 
