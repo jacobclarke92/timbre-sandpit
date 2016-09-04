@@ -55,7 +55,7 @@ export function cancelLoop(nodeId) {
 }
 
 export function triggerNote(originNode, node, eventId) {
-	console.log('trigger note');
+	// console.log('trigger note');
 	for(let callback of noteListeners) {
 		callback(originNode, node, eventId);
 	}
@@ -90,6 +90,7 @@ export function scheduleNote(originNode, node, ticks = Transport.toTicks()) {
 
 // called by every ring node at the beginning of its loop
 export function scheduleRingNodeNotes(ringNode) {
+	ringNode = getValueById(stage.originRingNodes, ringNode.id);
 	console.log('ring node loop start');
 	for(let nearbyPointNode of getNearbyPointNodes(ringNode)) {
 		const ticks = ((nearbyPointNode.distance / BEAT_PX) * METER_TICKS) / loops[ringNode.id].playbackRate;
@@ -100,6 +101,7 @@ export function scheduleRingNodeNotes(ringNode) {
 
 // called by every radar node at the beginning of its loop
 export function scheduleRadarNodeNotes(radarNode) {
+	radarNode = getValueById(stage.originRadarNodes, radarNode.id);
 	console.log('radar node loop start');
 	for(let nearbyPointNode of getNearbyPointNodes(radarNode)) {
 		const totalBeats = radarNode.bars * radarNode.beats;
