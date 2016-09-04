@@ -24,6 +24,7 @@ import newId from '../utils/newId'
 import { getValueById } from '../utils/arrayUtils'
 import { checkDifferenceAny } from '../utils/lifecycleUtils'
 import { cancelLoop, clearScheduledNotes } from '../timing'
+import { getSnapPosition } from '../nodeSpatialUtils'
 import { dist, clamp, inBounds, getDistance, getAngle } from '../utils/mathUtils'
 import { getPixelDensity, addResizeCallback, triggerResize } from '../utils/screenUtils'
 import { isUpKeyPressed, isDownKeyPressed, isLeftKeyPressed, isRightKeyPressed, addKeyListener } from '../utils/keyUtils'
@@ -70,9 +71,10 @@ class PrimaryInterface extends Component {
 			pointer: new Point(0,0),
 			stagePointer: new Point(0,0),
 			stagePosition: new Point(0,0),
+			placementPosition: new Point(0,0),
+			mouseDownPosition: new Point(0,0),
 			mouseDown: false,
 			mouseMoved: false,
-			mouseDownPosition: new Point(0,0),
 			dragTarget: null,
 			activeTarget: null,
 			activeNode: null,
@@ -161,53 +163,24 @@ class PrimaryInterface extends Component {
 	handlePointerMove(event) {
 		const { snapping } = this.props.gui;
 
-		/*
 		// update mouse position vars
-		this.cursor = new Point(event.data.originalEvent.clientX, event.data.originalEvent.clientY - this.offsetY);
-		this.stageCursor = event.data.getLocalPosition(this.stage);
-		*/
 		const pointer = new Point(event.data.originalEvent.clientX, event.data.originalEvent.clientY - this.state.offsetY);
 		const stagePointer = event.data.getLocalPosition(event.target);
-		const placementPosition = stagePointer;
+
+		// placement snapping
+		let placementPosition = stagePointer;
+		if(snapping) {
+			const { originRingNodes, originRadarNodes } = this.props.stage;
+			placementPosition = getSnapPosition(stagePointer, [...originRingNodes, ...originRadarNodes]);
+		}
+
 		this.setState({
 			pointer,
 			stagePointer,
 			placementPosition,
 		});
-
-		/*
-		// placement snapping
-		if(snapping) {
-			const closestNode = this.getClosestOriginNode(this.stageCursor);
-			if(closestNode) {
-				const angle = getAngle(closestNode.node.position, this.stageCursor);
-				if(closestNode.node.nodeType == ORIGIN_RING_NODE) {
-					const distance = Math.round(closestNode.distance / BEAT_PX) * BEAT_PX - 0.1;
-					this.placementPosition = {
-						x: closestNode.node.position.x + Math.cos(angle)*distance,
-						y: closestNode.node.position.y + Math.sin(angle)*distance,
-					};
-				}else if(closestNode.node.nodeType == ORIGIN_RADAR_NODE) {
-					const absAngle = angle+Math.PI;
-					const anglePart = (Math.PI*2)/(closestNode.node.bars*closestNode.node.beats);
-					const angleSnap = Math.round(absAngle / anglePart) * anglePart - Math.PI;
-					this.placementPosition = {
-						x: closestNode.node.position.x + Math.cos(angleSnap)*closestNode.distance,
-						y: closestNode.node.position.y + Math.sin(angleSnap)*closestNode.distance,
-					}
-				}
-			}else{
-				this.placementPosition = {
-					x: Math.round(this.stageCursor.x / BEAT_PX) * BEAT_PX, 
-					y: Math.round(this.stageCursor.y / BEAT_PX) * BEAT_PX,
-				};
-			}
-		}else{
-			this.placementPosition = this.stageCursor;
-		}
-
 		
-		*/
+		
 		const { mouseDown, mouseMoved, mouseDownPosition, dragTarget } = this.state;
 		// enforce a minimum distance before allowing panning
 		if(mouseDown && !mouseMoved && pointer.distance(mouseDownPosition) < 10) return true;
@@ -270,21 +243,6 @@ class PrimaryInterface extends Component {
 			mouseMoved: false,
 			mouseDown: false,
 		});
-	}
-
-	getClosestOriginNode(point) {
-		const { originRingNodes, originRadarNodes } = this.props.stage;
-		const nodes = [];
-		for(let node of originRingNodes) {
-			const distance = getDistance(point, node.position);
-			if(distance <= node.bars*node.beats*BEAT_PX) nodes.push({node, distance});
-		}
-		for(let node of originRadarNodes) {
-			const distance = getDistance(point, node.position);
-			if(distance <= node.radius) nodes.push({node, distance});
-		}
-		nodes.sort((a,b) => a.distance < b.distance ? -1 : (a.distance > b.distance ? 1 : 0))
-		return nodes.length > 0 ? nodes[0] : null;
 	}
 
 	// creates a node based on current tool selected
@@ -596,7 +554,7 @@ class PrimaryInterface extends Component {
 	}
 
 	render() {
-		const { width, height, aimScale, pointer, stagePointer, activeNode, stagePosition, dragTarget, mouseDown} = this.state;
+		const { width, height, aimScale, pointer, stagePointer, placementPosition, activeNode, stagePosition, dragTarget, mouseDown} = this.state;
 		const { gui, stage, musicality, transport } = this.props;
 
 		const { scale, notes } = musicality;
@@ -619,7 +577,7 @@ class PrimaryInterface extends Component {
 					onPointerUp={this.handlePointerUp}>
 
 
-					<PlacementIndicator key="placementIndicator" pointer={stagePointer} />
+					<PlacementIndicator key="placementIndicator" pointer={placementPosition} />
 					<ActiveNodeIndicator key="activeNodeIndicator" activeNode={activeNode} />
 					<RingFX key="ringFX" bpm={transport.bpm} />
 				
