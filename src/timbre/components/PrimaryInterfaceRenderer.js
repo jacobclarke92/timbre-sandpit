@@ -46,7 +46,7 @@ export default class PrimaryInterfaceRenderer extends Component {
 			const instance = this.instances[child.key];
 			if (!instance) {
 				const newInstance = child.$$typeof == 'Symbol(react.element)' ? React.createElement(child.type, child.props) : new child.type({...child.props});
-				console.log('creating new', child, newInstance);
+				// console.log('creating new', child, newInstance);
 				this.instances[child.key] = newInstance;
 				const result = newInstance.render();
 				this.instanceResults[child.key] = result;
