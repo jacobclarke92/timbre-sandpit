@@ -27,3 +27,12 @@ export const inversions = {
 export const suffixes = {
 	'7' : '7',
 }
+
+/**
+ * TODO:
+ * Work out what these are:
+ * b4
+ * b5
+ * b7    -- apparently is the same as 4/4 (4 over 4)
+ * b67
+ */

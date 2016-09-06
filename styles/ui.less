@@ -133,11 +133,29 @@
     height: 75px;
 }
 
-.chord-select {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    > * {
-        margin-top: @margin-small;
+.chords-interface {
+
+    .chord-select {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        > * {
+            margin-top: @margin-small;
+        }
+    }
+
+    .chord-list {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+    }
+
+    ul {
+        list-style: none;
+        padding-left: 0;
+        li {
+            display: inline-block;
+            margin: 0 @margin-medium;
+        }
     }
 }

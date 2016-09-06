@@ -2,6 +2,7 @@ import React, { Component } from 'react'
 import { connect } from 'react-redux'
 import { get } from 'axios'
 
+import { modePrefixes } from '../constants/hookTheory'
 import { DISABLE_CHORDS, ENABLE_CHORDS } from '../constants/actionTypes'
 
 import Button from './ui/Button'
@@ -28,11 +29,12 @@ class ChordsInterface extends Component {
 	}
 
 	fetchChords() {
-		const { scale, notes } = this.props.musicality;
+		const { scale, notes, modeString } = this.props.musicality;
 		const { selectedChords, total, random } = this.state;
 		if(!selectedChords.length) return;
 
-		const path = selectedChords.map(note => notes.indexOf(note) + 1).join(',');
+		const modePrefix = modePrefixes[modeString];
+		const path = selectedChords.map(note => modePrefix+(notes.indexOf(note) + 1)).join(',');
 		this.setState({loadingChords: true});
 		get('/chords/search.json', {params: {path, total, random}})
 			.then(response => {
@@ -48,7 +50,7 @@ class ChordsInterface extends Component {
 	}
 
 	render() {
-		const { scale, notes } = this.props.musicality;
+		const { scale, notes, modeString } = this.props.musicality;
 		const { chordsEnabled } = this.props.gui;
 		const { selectedChords, loadingChords, responseChords, total, random } = this.state;
 		return (
@@ -62,10 +64,15 @@ class ChordsInterface extends Component {
 				<div className="chord-select">
 
 					<div>
-						<NumberInput label="Total Chords" value={total} min={2} max={6} onChange={total => this.setState({total})} />
+						<NumberInput label="Total Chords" value={total} min={2} max={8} onChange={total => this.setState({total})} />
 						<NumberInput label="Variation" min={0} max={50} value={random} onChange={random => this.setState({random})} />
 					</div>
-					<div>
+					<div className="chord-list">
+
+						<label>
+							Mode: <b style={{display: 'inline-block', width: 162}}>{modeString.toUpperCase()}</b>
+						</label>
+
 						{selectedChords.map((chord, i) => 
 							<ChordSelect key={i} value={chord} scale={scale} notes={notes} onChange={value => this.handleChordSelect(value, i)} />
 						)}
@@ -79,11 +86,14 @@ class ChordsInterface extends Component {
 						}
 					</div>
 
-					<Button label="Generate Progression" onClick={() => this.fetchChords()} />
+					<div>
+						<Button label="Generate Progression" selected={selectedChords.length > 0} onClick={() => this.fetchChords()} />
+						<Button label="Clear" onClick={() => this.setState({selectedChords: []})} />
+					</div>
 				</div>
 				<div>
 					{loadingChords ? (
-						<h2>Loading chords...</h2>
+						<span>Loading chords...</span>
 					) : (
 						<ul>
 							{responseChords.map((chord, i) => {
