@@ -10,6 +10,7 @@ const initialState = {
 	octave: 4,
 	modeString: 'lydian',
 	notes: modes['lydian'].degrees(),
+	chords: [],
 };
 
 export default function (state = localStore.get('musicality') || initialState, action) {
@@ -35,6 +36,12 @@ export default function (state = localStore.get('musicality') || initialState, a
 				...state, 
 				modeString: action.mode, mode, 
 				notes: mode ? mode.degrees() : [],
+			}
+
+		case ActionTypes.UPDATE_CHORDS:
+			return {
+				...state,
+				chords: action.chords,
 			}
 
 	}

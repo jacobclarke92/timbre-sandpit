@@ -36,6 +36,7 @@
         .cover();
     }
 
+    > .chords-interface,
     > .oscillators-interface,
     > .mappings-interface,
     > .fx-interface {
@@ -130,4 +131,13 @@
     max-width: 350px;
     flex-grow: 3;
     height: 75px;
+}
+
+.chord-select {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    > * {
+        margin-top: @margin-small;
+    }
 }

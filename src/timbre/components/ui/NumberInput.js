@@ -51,7 +51,7 @@ export default class NumberInput extends Component {
 
 	isValid(value) {
 		const { min, max } = this.props;
-		return !(!value || (value && (value < min || value > max)));
+		return !((!value && value !== 0) || (value && (value < min || value > max)));
 	}
 
 	handleChange(value) {
