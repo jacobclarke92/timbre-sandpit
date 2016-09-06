@@ -76,4 +76,21 @@ class HooktheoryComponent extends Component
 
     	return $response->json;
 	}
+
+	public function getSongChords($path)
+	{
+		if(!$path) throw new BadRequestException();
+		$bearerToken = self::getBearerToken();
+
+		$response = $this->client->get(
+			$this->endpoint.'trends/songs',
+			['cp' => $path],
+			['type' => 'json', 'headers' => ['Authorization' => 'Bearer '.$bearerToken]]
+		);
+
+		// check response code
+    	if($response->code < 200 || $response->code > 300) throw new UnauthorizedException();
+
+    	return $response->json;
+	}
 }

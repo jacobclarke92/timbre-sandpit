@@ -3,6 +3,7 @@ import { connect } from 'react-redux'
 import { get } from 'axios'
 
 import { modePrefixes } from '../constants/hookTheory'
+import { chordStringToObject } from '../utils/hookTheoryUtils'
 import { DISABLE_CHORDS, ENABLE_CHORDS } from '../constants/actionTypes'
 
 import Button from './ui/Button'
@@ -84,6 +85,7 @@ class ChordsInterface extends Component {
 								label={selectedChords.length ? 'Next Chord' : 'First Chord'} 
 								onChange={value => this.handleChordSelect(value, selectedChords.length)} />
 						}
+
 					</div>
 
 					<div>
@@ -99,7 +101,7 @@ class ChordsInterface extends Component {
 							{responseChords.map((chord, i) => {
 								// const chordId = parseInt(chord.chord_ID);
 								return (
-									<li key={i}>{chord.chord_ID}</li>
+									<li key={i}>{chord.chord_ID+': '}<pre>{JSON.stringify(chordStringToObject(chord.chord_ID), null, '  ')}</pre></li>
 								)
 							})}
 						</ul>

@@ -69,9 +69,16 @@ class ChordsController extends AppController
 			$path = $chord['child_path'];
 		}
 
+		// get songs that match chord progression because yolo
+		// if(!$path && $child_path) $path = $child_path;
+		// $songs = $this->Hooktheory->getSongChords($path);
+		// $this->set('songs', $songs);
+
 		// set response data
 		$this->set('data', $chords);
-		$this->set('_serialize', ['data']);
+		$this->set('_serialize', ['data', 'songs']);
 	}
+
+
 
 }

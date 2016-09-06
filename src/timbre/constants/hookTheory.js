@@ -2,6 +2,7 @@
  * References:
  * http://forum.hooktheory.com/t/trends-api-chord-input/272
  * http://forum.hooktheory.com/t/vizualitation-of-all-chord-progressions-kinda/164/4
+ * http://musictheoryprof.com/2014/05/how-to-interpret-chord-symbols/
  */
 
 export const modePrefixes = {
@@ -15,14 +16,17 @@ export const modePrefixes = {
 	locrian: 'C',
 }
 
-export const appliedSuffixes = {
+// swap dem key values
+export const prefixModes = Object.keys(modePrefixes).reduce((obj, mode) => ({...obj, [modePrefixes[mode]]: mode}), {});
+
+export const inversions = {
 	'/3': 'over 3',
 	'/4': 'over 4',
 	'/5': 'over 5',
 	'/7': 'over 7',
 }
 
-export const inversions = {
+export const triads = {
 	'6': '6',    // <sup>6</sup>			 -- major 6
 	'64': '64',	 // <sup>6</sup><sub>4</sub> -- minor 6 ??
 	'65': '65',  // augmented ? 
@@ -43,11 +47,15 @@ export const suffixes = {
  * b67
  *
  * 242 	= ii<sup>4</sup><sub>2</sub>
- * C164 = i°<sup>6</sup><sub>4</sub>
+ * C164 = i°<sup>6</sup><sub>4</sub> 		 -- ° = dimished chord
  * Y6 	= ♭VI
  * 7/5 	= vii°/V
- * 77/5 = vii<sup>ø</sup><sup>7</sup> / V    -- ø = half diminished 7th chord
- * M17	= Ib7
+ * 77/5 = vii<sup>ø</sup><sup>7</sup> / V    -- ø7 = half diminished 7th chord (maj7 ♭5)
+ * 57/3	= V<sup>7</sup>/iii 				 -- 7  = minor 7th
+ * M17	= I♭7 								 -- ♭7 = Dominant seventh flat five chord
  * D57 	= v<sup>7</sup>
  * D47	= IVb7
+ *  										    °7 = fully-diminished seventh 
+ *                								/X = chord inversion where X is the note index that is played lowest
+ * 
  */
