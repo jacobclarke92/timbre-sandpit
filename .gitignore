@@ -1,4 +1,9 @@
 node_modules
+vendor
 dist/*.js
 dist/*.map
 !.gitkeep
+app/config/app.php
+app/webroot/dist/*.js
+app/webroot/dist/*.css
+app/webroot/dist/*.map

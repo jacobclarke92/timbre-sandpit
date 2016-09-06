@@ -26,6 +26,7 @@ const initialState = {
 	activeNode: null,
 	showGuides: true,
 	snapping: false,
+	chordsEnabled: false,
 };
 
 export default function(state = localStore.get('gui') || initialState, action) {
@@ -75,6 +76,13 @@ export default function(state = localStore.get('gui') || initialState, action) {
 
 		case ActionTypes.DISABLE_SNAPPING:
 			return {...state, snapping: false};
+
+
+		case ActionTypes.ENABLE_CHORDS:
+			return {...state, chordsEnabled: true};
+
+		case ActionTypes.DISABLE_CHORDS:
+			return {...state, chordsEnabled: false};
 	}
 	return state;
 }

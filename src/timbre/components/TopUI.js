@@ -19,6 +19,7 @@ import ToolsUI from './ui/ToolsUI'
 
 const views = [
 	{type: UiViews.STAGE, icon: 'stage', label: 'Stage'},
+	{type: UiViews.CHORDS, icon: 'piano', label: 'Chords'},
 	{type: UiViews.OSCILLATORS, icon: 'waveform', label: 'Oscillators'},
 	{type: UiViews.MAPPINGS, icon: 'list', label: 'Mappings'},
 	{type: UiViews.FX, icon: 'note', label: 'FX'},
@@ -72,6 +73,7 @@ class TopUI extends Component {
 				<div className="ui-global">
 					<div>
 						<ButtonIcon icon={playing ? 'pause' : 'play'} selected={playing} onClick={() => this.handlePlayPause()} />
+						<hr className="vertical" />
 						{views.map((view, i) => 
 							<Button key={i} {...view} selected={gui.view == view.type} onClick={() => dispatch(changeView(view.type))} />
 						)}

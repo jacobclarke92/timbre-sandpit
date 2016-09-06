@@ -44,7 +44,7 @@ function receivedState() {
 
 export function getRandomNote() {
 	if(!store) return;
-	console.log('Getting random note');
+	// console.log('Getting random note');
 	const notes = _get(store.getState(), 'musicality.notes');
 	let note = notes[Math.floor(Math.random()*notes.length)];
 	while(Math.abs(note-lastNote) % 12 <= 1) note = notes[Math.floor(Math.random()*notes.length)];
@@ -54,7 +54,7 @@ export function getRandomNote() {
 
 export function getAscendingNote() {
 	if(!store) return;
-	console.log('Getting ascending note');
+	// console.log('Getting ascending note');
 	const notes = _get(store.getState(), 'musicality.notes');
 	let index = notes.indexOf(lastNote);
 	if(index >= notes.length-1) index = 0;
@@ -66,7 +66,7 @@ export function getAscendingNote() {
 
 export function getDescendingNote() {
 	if(!store) return;
-	console.log('Getting descending note');
+	// console.log('Getting descending note');
 	const notes = _get(store.getState(), 'musicality.notes');
 	let index = notes.indexOf(lastNote);
 	if(index === 0) index = notes.length-1;

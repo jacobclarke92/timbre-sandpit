@@ -1,5 +1,6 @@
 import * as WaveTypes from '../constants/waveTypes'
 
+// returns array of y co-ords for a wave type given 'size' of x co-ords
 export function getWaveLookupArray(waveType, size, phase = 1) {
 	const array = new Float32Array(size);
 	const piParts = Math.PI*2 / size;

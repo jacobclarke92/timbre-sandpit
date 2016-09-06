@@ -173,7 +173,7 @@ hr.vertical {
   border-left: 1px solid #DADFE6;
 }
 .ui {
-  height: 126px;
+  height: 132px;
   padding: 5px;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -205,10 +205,10 @@ hr.vertical {
 }
 .interface-container {
   position: absolute;
-  top: 136px;
+  top: 142px;
   left: 0;
   width: 100vw;
-  height: calc(100vh - 136px);
+  height: calc(100vh - 142px);
 }
 .interface-container > .primary-interface {
   position: absolute;

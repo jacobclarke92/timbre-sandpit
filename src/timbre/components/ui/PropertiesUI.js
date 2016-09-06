@@ -29,8 +29,10 @@ class PointNodeProperties extends Component {
 	}
 
 	render() {
-		const { dispatch } = this.props;
 		const { activeNode } = this.props.gui;
+		if(!activeNode || activeNode.nodeType != NodeTypes.POINT_NODE) return false;
+
+		const { dispatch } = this.props;
 		const { modeString, scaleString, scale, notes } = this.props.musicality;
 		return (
 			<div>
@@ -71,6 +73,8 @@ class RingNodeProperties extends Component {
 	render() {
 		const { dispatch, gui, synths } = this.props;
 		const { activeNode } = gui;
+		if(!activeNode || activeNode.nodeType != NodeTypes.ORIGIN_RING_NODE) return false;
+		
 		const synth = getByKey(synths, activeNode.synthId);
 		return (
 			<div className="properties-container">
@@ -104,6 +108,8 @@ class RadarNodeProperties extends Component {
 	render() {
 		const { dispatch, gui, synths } = this.props;
 		const { activeNode } = gui;
+		if(!activeNode || activeNode.nodeType != NodeTypes.ORIGIN_RADAR_NODE) return false;
+
 		const synth = getByKey(synths, activeNode.synthId);
 		return (
 			<div className="properties-container">

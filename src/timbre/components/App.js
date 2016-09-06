@@ -4,13 +4,13 @@ import $ from 'jquery'
 
 import { addKeyListener } from '../utils/keyUtils'
 import { changeView, changeTool } from '../reducers/gui'
-import { STAGE, OSCILLATORS, MAPPINGS, FX } from '../constants/uiViews'
+import { STAGE, CHORDS, OSCILLATORS, MAPPINGS, FX } from '../constants/uiViews'
 import { ORIGIN_RING_NODE, ORIGIN_RADAR_NODE, POINT_NODE, ARC_NODE } from '../constants/nodeTypes'
 
 import TopUI from './TopUI'
 import BottomUI from './BottomUI'
-import MusicalityInterface from './MusicalityInterface'
 import PrimaryInterface from './PrimaryInterface'
+import ChordsInterface from './ChordsInterface'
 import OscillatorsInterface from './OscillatorsInterface'
 import MappingsInterface from './MappingsInterface'
 import FxInterface from './FxInterface'
@@ -35,6 +35,7 @@ class App extends Component {
 				<TopUI />
 				<div className="interface-container">
 					<PrimaryInterface />
+					{view == CHORDS && <ChordsInterface />}
 					{view == OSCILLATORS && <OscillatorsInterface />}
 					{view == MAPPINGS && <MappingsInterface />}
 					{view == FX && <FxInterface />}
