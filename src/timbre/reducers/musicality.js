@@ -3,6 +3,9 @@ import * as ActionTypes from '../constants/actionTypes'
 import noteColors from '../constants/noteColors'
 import noteStrings from '../constants/noteStrings'
 import modes from '../constants/modes'
+import { modePrefixes } from '../constants/hookTheory'
+
+const hookTheoryModes = Object.keys(modePrefixes);
 
 const initialState = {
 	scale: 0,
@@ -42,6 +45,15 @@ export default function (state = localStore.get('musicality') || initialState, a
 			return {
 				...state,
 				chords: action.chords,
+			}
+
+		case ActionTypes.ENABLE_CHORDS:
+			if(hookTheoryModes.indexOf(state.modeString) < 0) {
+				return {
+					...state,
+					modeString: 'major',
+					notes: modes['major'].degrees(),
+				}
 			}
 
 	}

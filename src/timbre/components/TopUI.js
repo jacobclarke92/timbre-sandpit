@@ -5,6 +5,7 @@ import Select from 'react-select'
 import icons from '../constants/icons'
 import modes from '../constants/modes'
 import noteStrings from '../constants/noteStrings'
+import { modePrefixes } from '../constants/hookTheory'
 import * as ActionTypes from '../constants/actionTypes'
 import * as NodeTypes from '../constants/nodeTypes'
 import * as UiViews from '../constants/uiViews'
@@ -16,6 +17,8 @@ import ButtonIcon from './ui/ButtonIcon'
 import NumberInput from './ui/NumberInput'
 import BeatIndicator from './ui/BeatIndicator'
 import ToolsUI from './ui/ToolsUI'
+
+const hookTheoryModes = Object.keys(modePrefixes);
 
 const views = [
 	{type: UiViews.STAGE, icon: 'stage', label: 'Stage'},
@@ -63,6 +66,13 @@ class TopUI extends Component {
 		this.props.dispatch({type: ActionTypes.UPDATE_METER_TIME, meterTime});
 	}
 
+	getModeOptions() {
+		const { chordsEnabled } = this.props.gui;
+		let modeStrings = Object.keys(modes);
+		if(chordsEnabled) modeStrings = modeStrings.filter(mode => hookTheoryModes.indexOf(mode) >= 0);
+		return modeStrings.map(value => ({value, label: value}));
+	}
+
 	render() {
 		const { gui, dispatch } = this.props;
 		const { modeString, scaleString, scale } = this.props.musicality;
@@ -87,7 +97,7 @@ class TopUI extends Component {
 						</label>
 						<label>
 							Mode: 
-							<Select value={modeString} onChange={({value}) => this.handleModeChange(value)} clearable={false} options={Object.keys(modes).map(value => ({value, label: value}))} style={{width: 160}} />
+							<Select value={modeString} onChange={({value}) => this.handleModeChange(value)} clearable={false} options={this.getModeOptions()} style={{width: 160}} />
 						</label>
 						<label>
 							Scale: 
