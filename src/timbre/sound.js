@@ -99,7 +99,7 @@ export function playNote(node, synthId) {
 
 	// get vars from store
 	const state = store.getState();
-	const synthData = getByKey(state.synths, synthId);
+	const synthData = synthId ? getByKey(state.synths, synthId) : state.synths[0];
 	if(!synthData) return;
 
 	const synth = requestSynthVoice(synthData);
@@ -113,6 +113,7 @@ export function playNote(node, synthId) {
 		case NoteTypes.UP: note = getAscendingNote(); break;
 		case NoteTypes.DOWN: note = getDescendingNote(); break;
 		case NoteTypes.NOTE: note = notes[node.noteIndex % notes.length]; break;
+		case NoteTypes.SPECIFIC: note = node.noteIndex; break;
 		default: note = getRandomNote();
 	}
 
