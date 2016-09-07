@@ -2,9 +2,12 @@ import React, { Component } from 'react'
 import { connect } from 'react-redux'
 import { get } from 'axios'
 
+import { playNote } from '../sound'
+import { SPECIFIC } from '../constants/noteTypes'
+import noteStrings from '../constants/noteStrings'
 import { modePrefixes } from '../constants/hookTheory'
-import { chordStringToObject } from '../utils/hookTheoryUtils'
 import { DISABLE_CHORDS, ENABLE_CHORDS } from '../constants/actionTypes'
+import { chordStringToObject, getNotesFromChord } from '../utils/hookTheoryUtils'
 
 import Button from './ui/Button'
 import NumberInput from './ui/NumberInput'
@@ -48,6 +51,12 @@ class ChordsInterface extends Component {
 				this.setState({loadingChords: false});
 				console.log(response);
 			});
+	}
+
+	playChord(notes) {
+		for(let note of notes) {
+			playNote({noteType: SPECIFIC, noteIndex: note});
+		}
 	}
 
 	render() {
@@ -99,9 +108,19 @@ class ChordsInterface extends Component {
 					) : (
 						<ul>
 							{responseChords.map((chord, i) => {
-								// const chordId = parseInt(chord.chord_ID);
+								const chordObj = chordStringToObject(chord.chord_ID);
+								const chordNotes = getNotesFromChord(chordObj, scale, modeString);
+								const chordNoteToScale = chordNotes.map(note => (note + scale) % 12);
+								const chordNoteStrings = chordNoteToScale.map(int => noteStrings[int]);
 								return (
-									<li key={i}>{chord.chord_ID+': '}<pre>{JSON.stringify(chordStringToObject(chord.chord_ID), null, '  ')}</pre></li>
+									<li key={i}>
+										{'Chord ID: '+chord.chord_ID}<br />
+										{'Numerials: '+chordNotes.join(', ')}<br />
+										{'To scale: '+chordNoteToScale.join(', ')}<br />
+										{'Notes: '+chordNoteStrings.join(', ')}<br />
+										<Button label="Play" onClick={() => this.playChord(chordNotes)} />
+										<pre>{JSON.stringify(chordObj, null, '  ')}</pre>
+									</li>
 								)
 							})}
 						</ul>

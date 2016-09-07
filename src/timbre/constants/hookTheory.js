@@ -27,12 +27,14 @@ export const inversions = {
 }
 
 export const triads = {
-	'6': '6',    // <sup>6</sup>			 -- major 6
-	'64': '64',	 // <sup>6</sup><sub>4</sub> -- minor 6 ??
-	'65': '65',  // augmented ? 
-	'42': '42',	 // <sup>4</sup><sub>2</sub>
-	'43': '43',  // <sup>4</sup><sub>3</sub>
+	'6': 'major 6',    	// <sup>6</sup>			 -- major 6
+	'64': 'diminished',	// <sup>6</sup><sub>4</sub> -- minor 6 ??
+	'65': '65',  		// augmented ? 
+	'42': '42',	 		// <sup>4</sup><sub>2</sub>
+	'43': '43',  		// <sup>4</sup><sub>3</sub>
 }
+
+export const triadValues = Object.keys(triads).reduce((obj, key) => ({...obj, [triads[key]]: key}), {});
 
 export const suffixes = {
 	'7' : '7', 

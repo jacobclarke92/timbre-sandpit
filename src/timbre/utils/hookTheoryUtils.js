@@ -1,9 +1,11 @@
-import { prefixModes, inversions, triads, suffixes } from '../constants/hookTheory'
+import modes from '../constants/modes'
+import { prefixModes, modePrefixes, inversions, triads, triadValues, suffixes } from '../constants/hookTheory'
 
 const minorNumerals = [2,3,6];
+const triadKeys = Object.keys(triads);
 const prefixModeKeys = Object.keys(prefixModes);
 
-export function chordStringToObject(str, scale) {
+export function chordStringToObject(str) {
 	if(typeof str != 'string') str = str.toString();
 
 	const chord = {};
@@ -28,11 +30,10 @@ export function chordStringToObject(str, scale) {
 	}
 
 	if(str.length > 1) {
-		switch(str.substring(1, str.length)) {
-			case '6': chord.triad = 'major 6'; break;
-			case '64': chord.triad = 'diminished'; break;
-			case '65': chord.triad = '65 - unknown'; break;
-		}
+		const triad = str.substring(1, str.length);
+		const triadIndex = triadKeys.indexOf(triad);
+		// console.log(triad, triadIndex, triadIndex >= 0 ? triads[triad] : '');
+		if(triadIndex >= 0) chord.triad = triads[triad];
 		str = str.charAt(0);
 	} 
 
@@ -46,6 +47,41 @@ export function chordStringToObject(str, scale) {
 	return chord;
 }
 
-export function getNotesFromChord(chord, key = 0) {
+export function chordObjectToString(chord, scale) {
+	const { mode, numeral, triad, seventh, inversion } = chord;
+	let string = '';
 
+	if(mode && modePrefixes[mode]) string += modePrefixes[mode];
+	if(numeral) string += numeral;
+	if(triad) string += triadValues[triad];
+	if(seventh) string += '7';
+	if(inversion) string += '/'+inversion;
+
+	return string;
+}
+
+export function getNotesFromChord(chord, key = 0, mode) {
+	const modeNotes = (chord.mode && modes[chord.mode]) ? modes[chord.mode].degrees() : modes[mode].degrees();
+	const notes = [];
+	const numeral = chord.numeral - 1;
+
+	notes.push(modeNotes[(numeral + 0) % 7]);
+	notes.push(modeNotes[(numeral + 2) % 7]);
+	notes.push(modeNotes[(numeral + 4) % 7]);
+
+	if(chord.triad) switch(chord.triad) {
+		case 'major 6': notes.push(modeNotes[(numeral + 5) % 7]); break;
+		case 'diminished':
+			notes[1] = (notes[1] - 1) % 12;
+			notes[2] = (notes[2] - 1) % 12;
+			if(notes[1] < 0) notes[1] = 11;
+			if(notes[2] < 0) notes[2] = 11;
+			break;
+	}
+
+	if(chord.seventh) notes.push(modeNotes[(numeral + 6) % 7]);
+
+	// if(chord.inversion) // do something
+
+	return notes;
 }
