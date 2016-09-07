@@ -2,8 +2,8 @@ import React, { Component } from 'react'
 import { connect } from 'react-redux'
 import $ from 'jquery'
 
-import { addKeyListener } from '../utils/keyUtils'
 import { changeView, changeTool } from '../reducers/gui'
+import { addKeyListener, isCommandKeyPressed } from '../utils/keyUtils'
 import { STAGE, CHORDS, OSCILLATORS, MAPPINGS, FX } from '../constants/uiViews'
 import { ORIGIN_RING_NODE, ORIGIN_RADAR_NODE, POINT_NODE, ARC_NODE } from '../constants/nodeTypes'
 
@@ -18,14 +18,16 @@ import FxInterface from './FxInterface'
 class App extends Component {
 
 	componentDidMount() {
-		addKeyListener('q', () => this.props.dispatch(changeView(STAGE)));
-		addKeyListener('w', () => this.props.dispatch(changeView(OSCILLATORS)));
-		addKeyListener('e', () => this.props.dispatch(changeView(MAPPINGS)));
-		addKeyListener('r', () => this.props.dispatch(changeView(FX)));
-		addKeyListener('a', () => this.props.dispatch(changeTool(ORIGIN_RING_NODE)));
-		addKeyListener('s', () => this.props.dispatch(changeTool(ORIGIN_RADAR_NODE)));
-		addKeyListener('d', () => this.props.dispatch(changeTool(POINT_NODE)));
-		addKeyListener('f', () => this.props.dispatch(changeTool(ARC_NODE)));
+		addKeyListener('q', () => { if(!isCommandKeyPressed()) this.props.dispatch(changeView(STAGE)) });
+		addKeyListener('w', () => { if(!isCommandKeyPressed()) this.props.dispatch(changeView(CHORDS)) });
+		addKeyListener('e', () => { if(!isCommandKeyPressed()) this.props.dispatch(changeView(OSCILLATORS)) });
+		addKeyListener('r', () => { if(!isCommandKeyPressed()) this.props.dispatch(changeView(MAPPINGS)) });
+		addKeyListener('t', () => { if(!isCommandKeyPressed()) this.props.dispatch(changeView(FX)) });
+
+		addKeyListener('a', () => { if(!isCommandKeyPressed()) this.props.dispatch(changeTool(ORIGIN_RING_NODE)) });
+		addKeyListener('s', () => { if(!isCommandKeyPressed()) this.props.dispatch(changeTool(ORIGIN_RADAR_NODE)) });
+		addKeyListener('d', () => { if(!isCommandKeyPressed()) this.props.dispatch(changeTool(POINT_NODE)) });
+		addKeyListener('f', () => { if(!isCommandKeyPressed()) this.props.dispatch(changeTool(ARC_NODE)) });
 	}
 
 	render() {

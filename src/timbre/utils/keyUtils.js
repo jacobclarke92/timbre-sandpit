@@ -6,9 +6,12 @@ let leftKeyPressed = false;
 let rightKeyPressed = false;
 let upKeyPressed = false;
 let downKeyPressed = false;
+let leftCommandKeyPressed = false;
+let rightCommandKeyPressed = false;
 
 export const isShiftKeyPressed = () => shiftKeyPressed;
 export const isCtrlKeyPressed = () => ctrlKeyPressed;
+export const isCommandKeyPressed = () => leftCommandKeyPressed || rightCommandKeyPressed;
 export const isLeftKeyPressed = () => leftKeyPressed;
 export const isRightKeyPressed = () => rightKeyPressed;
 export const isUpKeyPressed = () => upKeyPressed;
@@ -24,7 +27,8 @@ function handleKeyDown(event) {
 	switch (key) {
 		case 'shift': shiftKeyPressed = true; break;
 		case 'ctrl': ctrlKeyPressed = true; break;
-		case 'command': ctrlKeyPressed = true; break;
+		case 'left command': leftCommandKeyPressed = true; break;
+		case 'right command': rightCommandKeyPressed = true; break;
 	}
 	if(key == 'up') upKeyPressed = true;
 	if(key == 'down') downKeyPressed = true;
@@ -45,28 +49,8 @@ function handleKeyUp(event) {
 	switch (key) {
 		case 'shift': shiftKeyPressed = false; break;
 		case 'ctrl': ctrlKeyPressed = false; break;
-		case 'command': ctrlKeyPressed = false; break;
-	}
-	if(key == 'up') upKeyPressed = false;
-	if(key == 'down') downKeyPressed = false;
-	if(key == 'left') leftKeyPressed = false;
-	if(key == 'right') rightKeyPressed = false;
-
-	for(let checkKey of Object.keys(keyUpCallbacks)) {
-		if(checkKey == key) {
-			for(let callback of keyUpCallbacks[checkKey]) {
-				callback();
-			}
-		}
-	}
-}
-
-function handleKeyUp(event) {
-	const key = keycode(event);
-	switch (key) {
-		case 'shift': shiftKeyPressed = false; break;
-		case 'ctrl': ctrlKeyPressed = false; break;
-		case 'command': ctrlKeyPressed = false; break;
+		case 'left command': leftCommandKeyPressed = false; break;
+		case 'right command': rightCommandKeyPressed = false; break;
 	}
 	if(key == 'up') upKeyPressed = false;
 	if(key == 'down') downKeyPressed = false;
