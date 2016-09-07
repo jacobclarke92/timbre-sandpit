@@ -31,6 +31,7 @@ import { cancelLoop, clearScheduledNotes, checkForNoteReschedule, addNoteListene
 import { isUpKeyPressed, isDownKeyPressed, isLeftKeyPressed, isRightKeyPressed, addKeyListener } from '../utils/keyUtils'
 
 import noteColors from '../constants/noteColors'
+import * as UiViews from '../constants/uiViews'
 import * as NoteTypes from '../constants/noteTypes'
 import * as ActionTypes from '../constants/actionTypes'
 import { BEAT_PX, METER_TICKS } from '../constants/globals'
@@ -111,6 +112,7 @@ class PrimaryInterface extends Component {
 	}
 
 	handleMousewheel(event) {
+		if(this.props.gui.view != UiViews.PRIMARY) return;
 		const { mouseDown, pointer, width, height } = this.state;
 		// disable scroll zoom while dragging / clicking
 		if(!mouseDown && inBounds(pointer, 0, 0, width, height)) {
