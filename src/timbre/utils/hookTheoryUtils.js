@@ -2,7 +2,6 @@ import { prefixModes, inversions, triads, suffixes } from '../constants/hookTheo
 
 const minorNumerals = [2,3,6];
 const prefixModeKeys = Object.keys(prefixModes);
-console.log(prefixModeKeys);
 
 export function chordStringToObject(str, scale) {
 	if(typeof str != 'string') str = str.toString();
@@ -10,7 +9,6 @@ export function chordStringToObject(str, scale) {
 	const chord = {};
 	
 	// check for mode character (always at beginning)
-	console.log(str.charAt(0), prefixModeKeys);
 	if(prefixModeKeys.indexOf(str.charAt(0)) >= 0) {
 		chord.mode = prefixModes[str.charAt(0)];
 		str = str.substring(1);
@@ -35,7 +33,7 @@ export function chordStringToObject(str, scale) {
 			case '64': chord.triad = 'diminished'; break;
 			case '65': chord.triad = '65 - unknown'; break;
 		}
-		str = str.charAt(1);
+		str = str.charAt(0);
 	} 
 
 	if(str.length == 1) {
