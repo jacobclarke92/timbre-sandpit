@@ -4,7 +4,7 @@ import { Loop } from 'tone'
 import $ from 'jquery'
 import deepEqual from 'deep-equal'
 
-import { getPixelDensity } from '../utils/screenUtils'
+import { getPixelDensity } from '../../utils/screenUtils'
 
 export default class PrimaryInterfaceRenderer extends Component {
 

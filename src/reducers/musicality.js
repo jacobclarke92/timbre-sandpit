@@ -13,7 +13,7 @@ const initialState = {
 	octave: 4,
 	modeString: 'lydian',
 	notes: modes['lydian'].degrees(),
-	chords: [],
+	sections: [],
 };
 
 export default function (state = localStore.get('musicality') || initialState, action) {
@@ -41,12 +41,6 @@ export default function (state = localStore.get('musicality') || initialState, a
 				notes: mode ? mode.degrees() : [],
 			}
 
-		case ActionTypes.UPDATE_CHORDS:
-			return {
-				...state,
-				chords: action.chords,
-			}
-
 		case ActionTypes.ENABLE_CHORDS:
 			if(hookTheoryModes.indexOf(state.modeString) < 0) {
 				return {
@@ -54,6 +48,12 @@ export default function (state = localStore.get('musicality') || initialState, a
 					modeString: 'major',
 					notes: modes['major'].degrees(),
 				}
+			}
+
+		case ActionTypes.ADD_SECTION:
+			return {
+				...state,
+				sections: [...state.sections, action.section],
 			}
 
 	}

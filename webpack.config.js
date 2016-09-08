@@ -6,8 +6,7 @@ var ExtractTextPlugin = require("extract-text-webpack-plugin");
 
 module.exports = {
 	entry: {
-		timbre: './src/timbre/index.js',
-		hooktheory: './src/hooktheory/index.js',
+		timbre: './src/index.js',
 	},
 	output: {
 		path: path.join(__dirname, 'app/webroot/dist'),

@@ -9,6 +9,7 @@ import { ORIGIN_RING_NODE, ORIGIN_RADAR_NODE, POINT_NODE, ARC_NODE } from '../co
 
 import TopUI from './TopUI'
 import BottomUI from './BottomUI'
+import ModalHost from './ModalHost'
 import PrimaryInterface from './PrimaryInterface'
 import ChordsInterface from './ChordsInterface'
 import OscillatorsInterface from './OscillatorsInterface'
@@ -34,6 +35,7 @@ class App extends Component {
 		const { view } = this.props.gui || {};
 		return(
 			<main className="app">
+				<ModalHost />
 				<TopUI />
 				<div className="interface-container">
 					<PrimaryInterface />

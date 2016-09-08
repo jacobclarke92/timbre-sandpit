@@ -46,7 +46,7 @@ export default class Oscillator extends Component {
 				</label>
 				<div>
 					<Button label="hz" selected={timeMode == 'hz'} onClick={() => this.setState({timeMode: 'hz'})} />
-					<ButtonIcon icon="note" size={11} selected={timeMode == 'note'} onClick={() => this.setState({timeMode: 'note'})} />
+					<ButtonIcon icon="note" size="xsmall" selected={timeMode == 'note'} onClick={() => this.setState({timeMode: 'note'})} />
 				</div>
 				{timeMode == 'hz' ? (
 					<NumberInput label="hz" min={0.1} max={100} step={0.1} value={frequency} onChange={::this.handleFrequencyChange} />
@@ -56,8 +56,8 @@ export default class Oscillator extends Component {
 							value={freqNote} 
 							options={timeSyntax}
 							clearable={false}
-							style={{width: 117}}
-							optionRenderer={option => (<span><Icon name={option.icon} size={16} />{option.label}</span>)}
+							style={{width: 110}}
+							optionRenderer={option => (<span><Icon name={option.icon} size="small" />{option.label}</span>)}
 							onChange={({value}) => this.handleFreqNoteChange(value)} />
 					</label>
 				)}

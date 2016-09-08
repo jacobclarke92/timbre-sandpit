@@ -9,6 +9,7 @@ export default class NumberInput extends Component {
 
 	static defaultProps = {
 		label: 'Label',
+		size: 'medium',
 		className: '',
 		step: 1,
 	};
@@ -72,7 +73,7 @@ export default class NumberInput extends Component {
 	}
 
 	render() {
-		const { value, label, onChange, className, ...rest } = this.props;
+		const { value, label, onChange, size, className, ...rest } = this.props;
 		return (
 			<label>
 				{label && label+': '}
@@ -80,7 +81,7 @@ export default class NumberInput extends Component {
 					type="number" 
 					value={this.state.dirtyValue} 
 					size={3} 
-					className={classname(className, this.state.invalid && 'invalid')}
+					className={classname(className, this.state.invalid && 'invalid', size)}
 					onChange={event => this.handleChange(event.target.value)}
 					onMouseDown={::this.handleMouseDown} 
 					{...rest} />

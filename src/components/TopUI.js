@@ -89,9 +89,9 @@ class TopUI extends Component {
 						)}
 					</div>
 					<div>
-						<NumberInput label="Signature" value={meterBeats} min={2} max={15} step={1} onChange={meterBeats => this.handleMeterBeatsChange(meterBeats)} style={{width: 30}} /> / 
-						<NumberInput label="" value={meterTime} min={3} max={16} step={1} onChange={meterTime => this.handleMeterTimeChange(meterTime)} style={{width: 30}} />
-						<NumberInput label="BPM" value={bpm} min={20} max={420} step={0.5} onChange={bpm => this.handleBpmChange(bpm)} />
+						<NumberInput label="Signature" size="xsmall" value={meterBeats} min={2} max={15} step={1} onChange={meterBeats => this.handleMeterBeatsChange(meterBeats)} style={{width: 30}} /> / 
+						<NumberInput label="" size="xsmall" value={meterTime} min={3} max={16} step={1} onChange={meterTime => this.handleMeterTimeChange(meterTime)} style={{width: 30}} />
+						<NumberInput label="BPM" size="xsmall" value={bpm} min={20} max={420} step={0.5} onChange={bpm => this.handleBpmChange(bpm)} />
 						<label>
 							<BeatIndicator />
 						</label>

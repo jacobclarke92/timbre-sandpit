@@ -159,3 +159,25 @@
         }
     }
 }
+
+.chord-input {
+    margin: @margin-xsmall 0;
+    padding: @margin-xsmall @margin-small;
+    min-width: 350px;
+    border: 1px solid @light;
+    display: flex;
+    align-items: center;
+    transition: background-color @transition-fast linear;
+
+    &.suggested {
+        background-color: @light;
+    }
+
+    &.playing {
+        background-color: @highlight;
+    }
+
+    >* {
+        margin-bottom: 0;
+    }
+}

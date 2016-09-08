@@ -5,6 +5,7 @@ select {
 label {
 	display: inline-block;
 	margin: 0 5px 5px 5px;
+	font-size: 12px;
 	&:first-of-type {
 		margin-left: 0;
 	}
@@ -19,6 +20,7 @@ label>input,
 label>select,
 label>.Select {
 	margin-left: 5px;
+	vertical-align: sub;
 }
 
 label>.Select {
@@ -43,6 +45,12 @@ input[type='number'] {
 		background-color: @error;
 		color: @white;
 	}
+
+	&.xsmall {
+		padding: 7px 5px 5px 7px;
+		font-size: 12px;
+		vertical-align: baseline;
+	}
 }
 
 button + button,
@@ -62,11 +70,18 @@ button {
 	color: @secondary;
 	text-align: center;
 	font-family: @serif-font-family;
+	font-size: 12px;
 
 	&.active {
 		border-color: @primary;
 		background-color: @primary-light;
 		color: @primary;		
+	}
+
+	&.disabled {
+		border-color: @light-grey;
+		background-color: @light;
+		color: @light-grey;
 	}
 
 	svg {
@@ -80,6 +95,24 @@ button {
 			vertical-align: top;
 			line-height: 24px;
 		}
+	}
+
+	&.xlarge span {
+		line-height: 48px;
+		font-size: 24px;
+	}
+
+	&.large span {
+		line-height: 32px;
+		font-size: 16px;
+	}
+
+	&.small span {
+		line-height: 18px;
+	}
+
+	&.xsmall span {
+		line-height: 12px;
 	}
 }
 

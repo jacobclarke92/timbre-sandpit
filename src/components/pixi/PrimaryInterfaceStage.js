@@ -2,10 +2,10 @@ import React, { Component, Children } from 'react'
 import PIXI, { Container } from 'pixi.js'
 import deepEqual from 'deep-equal'
 
-import { STAGE_MOVE_SPEED, SCALE_EASE } from '../constants/globals'
-import { getPixelDensity } from '../utils/screenUtils'
-import { checkDifferenceAny } from '../utils/lifecycleUtils'
-import { isUpKeyPressed, isDownKeyPressed, isLeftKeyPressed, isRightKeyPressed } from '../utils/keyUtils'
+import { STAGE_MOVE_SPEED, SCALE_EASE } from '../../constants/globals'
+import { getPixelDensity } from '../../utils/screenUtils'
+import { checkDifferenceAny } from '../../utils/lifecycleUtils'
+import { isUpKeyPressed, isDownKeyPressed, isLeftKeyPressed, isRightKeyPressed } from '../../utils/keyUtils'
 
 export default class PrimaryInterfaceStage extends Component {
 

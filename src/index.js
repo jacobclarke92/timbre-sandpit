@@ -6,7 +6,7 @@ import Visibility from 'visibilityjs'
 import localStore from 'store'
 import $ from 'jquery'
 
-import '../../styles/index.less'
+import '../styles/index.less'
 import App from './components/App'
 import reducers from './reducers/index'
 import * as Sound  from './sound'
