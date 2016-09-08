@@ -1,0 +1,33 @@
+.sections {
+
+
+	.section {
+
+		padding: @margin-xsmall;
+		display: flex;
+		border: 1px solid @light-grey;
+		background-color: @white;
+
+		.section-chord {
+			position: relative;
+			height: 50px;
+			margin-right: @margin-xsmall;
+			display: flex;
+			flex-direction: column;
+
+
+			&:last-child {
+				margin-right: 0;
+			}
+
+			&.playing .chord-note {
+				opacity: 1;
+			}
+			.chord-note {
+				flex-grow: 1;
+				opacity: 0.3;
+				transition: opacity @transition-fast linear;
+			}
+		}
+	}
+}

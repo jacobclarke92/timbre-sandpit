@@ -49,11 +49,18 @@ export default function (state = localStore.get('musicality') || initialState, a
 					notes: modes['major'].degrees(),
 				}
 			}
+			break;
 
 		case ActionTypes.ADD_SECTION:
 			return {
 				...state,
 				sections: [...state.sections, action.section],
+			}
+
+		case ActionTypes.UPDATE_SECTION:
+			return {
+				...state,
+				sections: state.sections.map(section => section.id == action.section.id ? action.section : section),
 			}
 
 	}

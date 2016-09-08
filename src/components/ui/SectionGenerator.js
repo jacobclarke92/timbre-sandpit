@@ -67,7 +67,8 @@ class SectionGenerator extends Component {
 	handleChordAdd() {
 		const { section } = this.state;
 		const { modeString } = this.props.musicality;
-		section.chords = [...section.chords, {id: newId(true), numeral: 1, mode: modeString}];
+		const newChord = {id: newId(true), numeral: 1, mode: modeString, loops: 0};
+		section.chords = [...section.chords, newChord];
 		this.setState({section});
 	}
 
