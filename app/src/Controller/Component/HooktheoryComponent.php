@@ -38,7 +38,7 @@ class HooktheoryComponent extends Component
     	$password = Configure::read('App.API.Hooktheory.password');
 
     	// cofigure app config pls
-    	if(!$username || !$password) throw new UnauthorizedException();
+    	if(!$username || !$password) throw new UnauthorizedException('Username or password not set in app config');
 
     	// make request
     	$response = $this->client->post(
@@ -48,10 +48,10 @@ class HooktheoryComponent extends Component
     	);
 
     	// check response code
-    	if($response->code < 200 || $response->code > 300) throw new UnauthorizedException();
+    	if($response->code < 200 || $response->code > 300) throw new UnauthorizedException('Auth response was not in 200 range. '.$response->body);
 
     	// check that response contains bearerToken
-    	if(!isset($response->json->activkey)) throw new UnauthorizedException();
+    	if(!isset($response->json->activkey)) throw new UnauthorizedException('No bearer token provided in auth response');
 
     	// store and return bearer token
     	$this->bearerToken = $response->json->activkey;
@@ -72,7 +72,7 @@ class HooktheoryComponent extends Component
 		);
 
 		// check response code
-    	if($response->code < 200 || $response->code > 300) throw new UnauthorizedException();
+    	if($response->code < 200 || $response->code > 300) throw new UnauthorizedException('Response not in 200 range');
 
     	return $response->json;
 	}
@@ -89,7 +89,7 @@ class HooktheoryComponent extends Component
 		);
 
 		// check response code
-    	if($response->code < 200 || $response->code > 300) throw new UnauthorizedException();
+    	if($response->code < 200 || $response->code > 300) throw new UnauthorizedException('Response not in 200 range');
 
     	return $response->json;
 	}
