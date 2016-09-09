@@ -1,9 +1,9 @@
 node_modules
 vendor
-dist/*.js
-dist/*.map
+app/dist/*.js
+app/dist/*.map
 !.gitkeep
-app/config/app.php
-app/webroot/dist/*.js
-app/webroot/dist/*.css
-app/webroot/dist/*.map
+backend/config/app.php
+backend/webroot/dist/*.js
+backend/webroot/dist/*.css
+backend/webroot/dist/*.map

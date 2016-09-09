@@ -9,14 +9,16 @@ module.exports = {
 		timbre: './src/index.js',
 	},
 	output: {
-		path: path.join(__dirname, 'app/webroot/dist'),
+		path: path.join(__dirname, 'backend/webroot/dist'),
 		filename: '[name].js',
 	},
+	devtool: 'cheap-module-eval-source-map',
 	plugins: [
 		new webpack.NoErrorsPlugin(),
-		// new webpack.DefinePlugin({'process.env': {'NODE_ENV': JSON.stringify('production')}}),
-		new webpack.DefinePlugin({'process.env': {'NODE_ENV': JSON.stringify('development')}}),
 		new ExtractTextPlugin('timbre.css', {allChunks: false}),
+		new webpack.DefinePlugin({
+		    'process.env.NODE_ENV': JSON.stringify('development')
+		}),
 		new BrowserSyncPlugin({
 			host: 'localhost',
 			port: 3000,

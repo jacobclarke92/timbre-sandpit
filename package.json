@@ -2,10 +2,13 @@
   "name": "timbre-sandpit",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "app/dist/index.js",
   "scripts": {
     "watch": "webpack -d --watch --progress",
-    "deploy": "webpack -p --progress && packer -i dist/scripts.js -o dist/scripts.min.js -b"
+    "deploy": "webpack -p --progress --config webpack.production.config.js",
+    "app:build:es5": "babel app/src/ -d app/dist --presets react,es2015,stage-0",
+    "app:build:electron": "electron .",
+    "app:build": "npm run app:build:es5 && npm run app:build:electron"
   },
   "author": "",
   "license": "ISC",
@@ -18,6 +21,7 @@
     "browser-sync": "^2.13.0",
     "browser-sync-webpack-plugin": "^1.1.0",
     "css-loader": "^0.23.1",
+    "electron": "^1.3.5",
     "extract-text-webpack-plugin": "^1.0.1",
     "json-loader": "^0.5.4",
     "less": "^2.7.1",
