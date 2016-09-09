@@ -1,4 +1,5 @@
 import electron, { app, BrowserWindow } from 'electron'
+import { client } from 'electron-connect'
 import midi from 'midi'
 
 let mainWindow;
@@ -20,6 +21,9 @@ function createWindow() {
 	mainWindow.on('closed', () => {
 		mainWindow = null;
 	});
+
+
+	client.create(mainWindow);
 }
 
 app.on('ready', createWindow);
