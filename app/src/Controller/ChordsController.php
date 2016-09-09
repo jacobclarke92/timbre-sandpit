@@ -22,7 +22,7 @@ class ChordsController extends AppController
 	{
 		// get query vars
 		$path = $this->request->query('path');
-		if(!$path) throw new BadRequestException();
+		if(!$path) throw new BadRequestException('No chord list provided');
 		$total = $this->request->query('total') ?: 4;
 		$total = min(24, $total);
 		$random = $this->request->query('random');
