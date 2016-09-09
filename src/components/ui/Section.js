@@ -29,7 +29,7 @@ class Chord extends Component {
 		return (
 			<div className={classname('section-chord', playing && 'playing')} style={{width: (chord.loops ? chord.loops+1 : 1)*80}} data-numbered={'x'+((chord.loops || 0)+1)}>
 				{notes.map((note, i) => 
-					<div key={i} className="chord-note" style={{backgroundColor: '#'+noteColors[note].toString(16)}} />
+					<div key={i} className="chord-note" style={{backgroundColor: '#'+(noteColors[note] || 0xCCC).toString(16)}} />
 				)}
 			</div>
 		)
