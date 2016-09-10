@@ -22,7 +22,10 @@ module.exports = {
 		new BrowserSyncPlugin({
 			host: 'localhost',
 			port: 3000,
-			server: { baseDir: ['./'] }
+			server: { 
+				baseDir: ['./'] ,
+				index: 'app/index.html',
+			}
 		}),
 	],
 	resolve: {

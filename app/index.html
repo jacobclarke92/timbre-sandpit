@@ -7,9 +7,26 @@
 </head>
 <body>
     <div class="app" id="app"></div>
+    <script>
+    	/**
+    	 * Dynamically adds js and css based onwhere being served from.
+    	 */
+    	var scriptSrc = '/backend/webroot/dist/timbre.js';
+    	var stylesSrc = '/backend/webroot/dist/timbre.css';
 
-    <link rel="stylesheet" href="../backend/webroot/dist/timbre.css"/>
-    <script src="../backend/webroot/dist/timbre.js"></script>
+    	if(window.location.href.indexOf('localhost') < 0) {
+    		scriptSrc = '../backend/webroot/dist/timbre.js';
+    		stylesSrc = '../backend/webroot/dist/timbre.css';
+    	}
+
+    	var script = document.createElement('script');
+    	var styles = document.createElement('link');
+    	script.setAttribute('src', scriptSrc);
+    	styles.setAttribute('rel', 'stylesheet');
+    	styles.setAttribute('href', stylesSrc);
+    	document.head.appendChild(script);
+    	document.head.appendChild(styles);
+    </script>
     <link href="https://fonts.googleapis.com/css?family=Jura:500|Orbitron:900" rel="stylesheet">
     </body>
 </html>
