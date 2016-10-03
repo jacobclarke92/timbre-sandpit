@@ -1,6 +1,6 @@
 var webpack = require('webpack');
 var ExtractTextPlugin = require("extract-text-webpack-plugin");
-var config = require('./webpack.config.js');
+var config = require('./webpack.config.base.js');
 
 if(config.devtool) delete config.devtool;
 config.plugins = [
