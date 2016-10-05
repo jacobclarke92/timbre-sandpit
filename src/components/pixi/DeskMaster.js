@@ -1,10 +1,11 @@
 import React, { Component } from 'react'
 import ReactDOMServer from 'react-dom/server'
-import PIXI, { Container, Graphics } from 'pixi.js'
+import PIXI, { Container, Graphics, Text } from 'pixi.js'
 import SVGGraphics from 'pixi-svg-graphics'
 import $ from 'jquery'
 
 import Icons from '../../constants/icons'
+import { getPixelDensity } from '../../utils/screenUtils'
 
 export default class PointNode extends Component {
 
@@ -18,11 +19,19 @@ export default class PointNode extends Component {
 		this.node = new Container();
 		const graphic = new Graphics();
 		const icon = new Graphics();
+		const label = new Text('Master', {font: '24px Orbitron', fontWeight: '500', fill: '#222222'});
+		label.scale.set(1/getPixelDensity());
+		label.anchor.set(0.5);
+		label.position = {x: 100, y: 170};
+		icon.position = {x: 20, y: 5};
+
 		this.node.icon = icon;
 		this.node.graphic = graphic;
+		this.node.label = label;
 		this.drawDeskMaster(props);
 		this.node.addChild(graphic);
 		this.node.addChild(icon);
+		this.node.addChild(label);
 
 		this.node.inited = false;
 		this.node.interactive = true;
@@ -40,11 +49,11 @@ export default class PointNode extends Component {
 		this.node.graphic.cacheAsBitmap = false;
 		this.node.graphic.clear();
 		this.node.graphic.beginFill(0xEEEEEE);
-		this.node.graphic.drawRect(0, 0, 200, 200);
+		this.node.graphic.drawRoundedRect(0, 0, 200, 200, 10);
 		this.node.graphic.cacheAsBitmap = true;
 
 		// this.node.icon.cacheAsBitmap = false;
-		this.node.icon.scale.set(8);
+		this.node.icon.scale.set(6);
 		SVGGraphics.drawSVG(this.node.icon, this.$icon[0]);
 		// this.node.icon.cacheAsBitmap = true;
 	}
