@@ -7,7 +7,7 @@ import { getPixelDensity } from '../../utils/screenUtils'
 import { checkDifferenceAny } from '../../utils/lifecycleUtils'
 import { isUpKeyPressed, isDownKeyPressed, isLeftKeyPressed, isRightKeyPressed } from '../../utils/keyUtils'
 
-export default class PrimaryInterfaceStage extends Component {
+export default class InterfaceStage extends Component {
 
 	constructor(props) {
 		super(props);

@@ -1,7 +1,6 @@
 import React, { Component } from 'react'
-import { connect } from 'react-redux'
-import PIXI, { Container, Graphics, Sprite, Text } from 'pixi.js'
 import Tone, { Loop, Transport } from 'tone'
+import { connect } from 'react-redux'
 import _throttle from 'lodash/throttle'
 import _debounce from 'lodash/debounce'
 import _get from 'lodash/get'
@@ -13,11 +12,11 @@ import OriginRingNode from './pixi/OriginRingNode'
 import OriginRadarNode from './pixi/OriginRadarNode'
 
 import RingFX from './pixi/RingFX'
+import Container from './pixi/Container'
 import FpsCounter from './pixi/FpsCounter'
-import FXContainer from './pixi/FXContainer'
 import PlacementIndicator from './pixi/PlacementIndicator'
 import ActiveNodeIndicator from './pixi/ActiveNodeIndicator'
-import PrimaryInterfaceStage from './pixi/PrimaryInterfaceStage'
+import InterfaceStage from './pixi/InterfaceStage'
 import PrimaryInterfaceRenderer from './pixi/PrimaryInterfaceRenderer'
 
 import Point from '../Point'
@@ -112,7 +111,7 @@ class PrimaryInterface extends Component {
 	}
 
 	handleMousewheel(event) {
-		if(this.props.gui.view != UiViews.PRIMARY) return;
+		if(this.props.gui.view != UiViews.STAGE) return;
 		const { mouseDown, pointer, width, height } = this.state;
 		// disable scroll zoom while dragging / clicking
 		if(!mouseDown && inBounds(pointer, 0, 0, width, height)) {
@@ -125,6 +124,7 @@ class PrimaryInterface extends Component {
 	}
 
 	handlePointerDown(event) {
+		if(this.props.gui.view != UiViews.STAGE) return;
 		console.log('mousedown');
 		this.setState({
 			mouseDown: true,
@@ -135,6 +135,7 @@ class PrimaryInterface extends Component {
 	}
 
 	handlePointerUp(event) {
+		if(this.props.gui.view != UiViews.STAGE) return;
 		console.log('mouseup');
 		this.setState({
 			mouseDown: false,
@@ -147,6 +148,7 @@ class PrimaryInterface extends Component {
 	}
 
 	handlePointerMove(event) {
+		if(this.props.gui.view != UiViews.STAGE) return;
 		const { snapping } = this.props.gui;
 
 		// update mouse position vars
@@ -312,7 +314,7 @@ class PrimaryInterface extends Component {
 				
 				<FpsCounter key="fps" />
 				
-				<PrimaryInterfaceStage 
+				<InterfaceStage 
 					key="stage" 
 					aimScale={aimScale}
 					pointer={pointer}
@@ -323,11 +325,11 @@ class PrimaryInterface extends Component {
 					onPointerDown={this.handlePointerDown} 
 					onPointerUp={this.handlePointerUp}>
 
-					<FXContainer key="FXContainer">
+					<Container key="FXContainer">
 						{ringsFX.map(ring => 
 							<RingFX key={ring.id} bpm={bpm} onRemoveRingFX={() => this.handleRemoveRingFX(ring)} {...ring} />
 						)}
-					</FXContainer>
+					</Container>
 
 					<PlacementIndicator key="placementIndicator" pointer={placementPosition} />
 					<ActiveNodeIndicator key="activeNodeIndicator" activeNode={activeNode} />
@@ -361,7 +363,7 @@ class PrimaryInterface extends Component {
 							onPointerUp={this.handleNodePointerUp} />
 					)}
 
-				</PrimaryInterfaceStage>
+				</InterfaceStage>
 				
 			</PrimaryInterfaceRenderer>
 		)

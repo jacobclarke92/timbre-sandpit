@@ -13,7 +13,7 @@ const initialState = [{
 	position: {
 		x: 0,
 		y: 0,
-	}
+	},
 }];
 
 export default function(state = localStore.get('fx') || initialState, action) {

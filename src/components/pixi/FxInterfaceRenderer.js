@@ -9,6 +9,7 @@ export default class FxInterfaceRenderer extends Component {
 
 	static defaultProps = {
 		playing: true,
+		backgroundColor: 0xFF0000,
 	};
 
 	componentDidMount() {
@@ -21,7 +22,7 @@ export default class FxInterfaceRenderer extends Component {
 		this.renderer = new PIXI.autoDetectRenderer(this.props.width/getPixelDensity(), this.props.height/getPixelDensity(), {
 			resolution: getPixelDensity(), 
 			transparent: false, 
-			backgroundColor: 0xFF0000, 
+			backgroundColor: this.props.backgroundColor, 
 			antialiasing: true
 		});
 		this.canvas = this.renderer.view;
