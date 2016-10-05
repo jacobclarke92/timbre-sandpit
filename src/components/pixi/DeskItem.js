@@ -86,8 +86,9 @@ export default class DeskItem extends Component {
 		ioNode.interactive = true;
 		ioNode.buttonMode = true;
 		ioNode.pivot.set(0.5);
-		ioNode.on('mouseover', () => { ioNode.alpha = 0.9; this.props.onOverIO(type) });
-		ioNode.on('mouseout', () => { ioNode.alpha = 1; this.props.onOverIO(null) });
+		ioNode.type = type;
+		ioNode.on('mouseover', event => { ioNode.alpha = 0.9; this.props.onOverIO(event, type) });
+		ioNode.on('mouseout', event => { ioNode.alpha = 1; this.props.onOverIO(event, null) });
 		ioNode.on('mousedown', this.props.onPointerDownIO);
 		ioNode.on('touchstart', this.props.onPointerDownIO);
 		return ioNode;

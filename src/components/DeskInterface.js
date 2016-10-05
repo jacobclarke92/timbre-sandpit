@@ -14,6 +14,7 @@ import DeskInterfaceRenderer from './pixi/DeskInterfaceRenderer'
 import InterfaceStage from './pixi/InterfaceStage'
 import Container from './pixi/Container'
 import DeskItem from './pixi/DeskItem'
+import DeskWire from './pixi/DeskWire'
 
 const mouseMoveThrottle = 1000/50; // 50fps
 const scrollwheelThrottle = 1000/50; // 50fps
@@ -113,6 +114,8 @@ class DeskInterface extends Component {
 		this.setState({
 			mouseDown: false,
 			dragTarget: null,
+			ioFrom: null,
+			ioTo: null,
 		});
 	}
 
@@ -181,8 +184,9 @@ class DeskInterface extends Component {
 		if(name) this.props.dispatch({type: ActionTypes.DESK_ITEM_RENAME, id: deskItem.id, name});
 	}
 
-	handleOverIO(deskItem, type) {
+	handleOverIO(event, deskItem, type) {
 		this.setState({overIO: type});
+		if(this.state.ioFrom) this.setState({ioTo: !type ? null : event.target});
 	}
 
 	render() {
@@ -206,12 +210,20 @@ class DeskInterface extends Component {
 					onPointerDown={this.handlePointerDown} 
 					onPointerUp={this.handlePointerUp}>
 
+					{ioFrom && 
+						<DeskWire 
+							key="active_wire" 
+							from={{x: ioFrom.parent.position.x + (ioFrom.type == 'output' ? 200 : 0), y: ioFrom.parent.position.y + 100}} 
+							to={ioTo ? {x: ioTo.parent.position.x + (ioTo.type == 'output' ? 200 : 0), y: ioTo.parent.position.y + 100} : stagePointer} 
+							desk={desk} />
+					}
+
 					{desk.map((deskItem, i) => 
 						<DeskItem 
 							key={i} 
 							{...deskItem} 
 							onRename={() => this.handleRename(deskItem)}
-							onOverIO={type => this.handleOverIO(deskItem, type)} 
+							onOverIO={(event, type) => this.handleOverIO(event, deskItem, type)} 
 							onPointerDown={event => this.handleItemPointerDown(event, deskItem)}
 							onPointerUp={event => null/*this.handleItemPointerUp(deskItem)*/}
 							onPointerDownIO={event => this.handlePointerDownIO(event, deskItem)} />
