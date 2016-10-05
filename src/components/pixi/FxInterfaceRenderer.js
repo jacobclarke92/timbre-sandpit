@@ -5,6 +5,8 @@ import deepEqual from 'deep-equal'
 
 import { getPixelDensity } from '../../utils/screenUtils'
 
+let raf = null;
+
 export default class FxInterfaceRenderer extends Component {
 
 	static defaultProps = {
@@ -32,6 +34,11 @@ export default class FxInterfaceRenderer extends Component {
 
 		// this.createInstances();
 		this.renderFrame();
+	}
+
+	componentWillUnmount() {
+		cancelAnimationFrame(raf);
+		this.renderer.destroy();
 	}
 
 	componentWillReceiveProps(nextProps) {
@@ -76,7 +83,7 @@ export default class FxInterfaceRenderer extends Component {
 		});
 
 		this.renderer.render(this.stageWrapper);
-		if(this.props.playing) requestAnimationFrame(this.renderFrame.bind(this));
+		if(this.props.playing) raf = requestAnimationFrame(this.renderFrame.bind(this));
 	}
 
 	render() {
