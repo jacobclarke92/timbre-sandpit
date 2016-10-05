@@ -5,6 +5,7 @@ import gui from './gui'
 import stage from './stage'
 import oscillators from './oscillators'
 import synths from './synths'
+import fx from './fx'
 
 const reducers = combineReducers({
 	transport,
@@ -13,6 +14,7 @@ const reducers = combineReducers({
 	stage,
 	oscillators,
 	synths,
+	fx,
 });
 
 export default reducers

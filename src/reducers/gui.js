@@ -23,6 +23,7 @@ const initialState = {
 	tool: NodeTypes.ORIGIN_RING_NODE,
 	toolSettings: initialToolSettings[NodeTypes.POINT_NODE],
 	_toolSettings: {...initialToolSettings},
+	toolView: UiViews.STAGE,
 	activeNode: null,
 	showGuides: true,
 	snapping: false,
@@ -36,7 +37,7 @@ export default function(state = localStore.get('gui') || initialState, action) {
 			console.log('Changed tool', action.tool);
 			const _toolSettings = {...state._toolSettings, [state.tool]: state.toolSettings};
 			toolSettings = state._toolSettings[action.tool];
-			return {...state, tool: action.tool, toolSettings, _toolSettings};
+			return {...state, tool: action.tool, toolSettings, _toolSettings, toolView: action.toolView};
 		
 		case ActionTypes.VIEW_CHANGE:
 			console.log('Changed view', action.view);
@@ -87,8 +88,8 @@ export default function(state = localStore.get('gui') || initialState, action) {
 	return state;
 }
 
-export function changeTool(tool) {
-	return {type: ActionTypes.TOOL_CHANGE, tool};
+export function changeTool(tool, toolView) {
+	return {type: ActionTypes.TOOL_CHANGE, tool, toolView};
 }
 
 export function changeView(view) {

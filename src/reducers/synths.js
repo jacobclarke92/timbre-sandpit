@@ -14,6 +14,10 @@ const initialState = [{
 		sustain: 0,
 		release: 1,
 	},
+	position: {
+		x: 0,
+		y: 0,
+	}
 }];
 
 export default function(state = localStore.get('synths') || initialState, action) {
@@ -25,6 +29,10 @@ export default function(state = localStore.get('synths') || initialState, action
 
 		case ActionTypes.UPDATE_SYNTH:
 			return state.map(synth => synth.id == action.synth.id ? action.synth : synth);
+			break;
+
+		case ActionTypes.REPOSITION_SYNTH:
+			return state.map(synth => synth.id == action.synthId ? {...synth, position: action.position} : synth);
 			break;
 
 	}

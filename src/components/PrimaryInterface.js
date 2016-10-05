@@ -217,7 +217,7 @@ class PrimaryInterface extends Component {
 
 	// creates a node based on current tool selected
 	createNode(event) {
-		if(!event.target || !event.data) return;
+		if(!event.target || !event.data || this.props.gui.toolView != UiViews.STAGE) return;
 		const spawnPoint = this.props.gui.snapping ? this.state.placementPosition : event.data.getLocalPosition(event.target);
 		console.log('creating node', event, spawnPoint);
 		const nodeType = this.props.gui.tool;

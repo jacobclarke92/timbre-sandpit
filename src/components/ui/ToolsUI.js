@@ -4,6 +4,7 @@ import classname from 'classname'
 
 import noteColors from '../../constants/noteColors'
 import noteStrings from '../../constants/noteStrings'
+import * as UiViews from '../../constants/uiViews'
 import * as NodeTypes from '../../constants/nodeTypes'
 import { RANDOM, UP, DOWN, NOTE } from '../../constants/noteTypes'
 import { changeToolSetting, changeToolSettings } from '../../reducers/gui'
@@ -82,5 +83,7 @@ class PointNodeTools extends Component {
 }
 
 export default {
-	[NodeTypes.POINT_NODE]: connect(({gui, musicality}) => ({gui, musicality}))(PointNodeTools),
+	[UiViews.STAGE]: {
+		[NodeTypes.POINT_NODE]: connect(({gui, musicality}) => ({gui, musicality}))(PointNodeTools),
+	},
 }

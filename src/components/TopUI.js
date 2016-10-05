@@ -2,6 +2,7 @@ import React, { Component } from 'react'
 import { connect } from 'react-redux'
 import Select from 'react-select'
 
+import FX from '../constants/fx'
 import icons from '../constants/icons'
 import modes from '../constants/modes'
 import noteStrings from '../constants/noteStrings'
@@ -28,12 +29,15 @@ const views = [
 	{type: UiViews.FX, icon: 'note', label: 'FX'},
 ];
 
-const tools = [
-	{type: NodeTypes.ORIGIN_RING_NODE, icon: 'ring', label: 'Origin Ring Node'},
-	{type: NodeTypes.ORIGIN_RADAR_NODE, icon: 'radial-lines', label: 'Origin Radar Node'},
-	{type: NodeTypes.POINT_NODE, icon: 'action-add', label: 'Point Node'},
-	{type: NodeTypes.ARC_NODE, icon: 'arc', label: 'Arc Node'},
-];
+const tools = {
+	[UiViews.STAGE]: [
+		{type: NodeTypes.ORIGIN_RING_NODE, icon: 'ring', label: 'Origin Ring Node'},
+		{type: NodeTypes.ORIGIN_RADAR_NODE, icon: 'radial-lines', label: 'Origin Radar Node'},
+		{type: NodeTypes.POINT_NODE, icon: 'action-add', label: 'Point Node'},
+		{type: NodeTypes.ARC_NODE, icon: 'arc', label: 'Arc Node'},
+	],
+	[UiViews.FX]: Object.keys(FX).map(key => ({type: key, icon: FX[key].icon, label: FX[key].title})),
+};
 
 class TopUI extends Component {
 
@@ -77,7 +81,7 @@ class TopUI extends Component {
 		const { gui, dispatch } = this.props;
 		const { modeString, scaleString, scale } = this.props.musicality;
 		const { playing, bpm, meterBeats, meterTime } = this.props.transport;
-		const ToolUI = ToolsUI[gui.tool] || null;
+		const ToolUI = (ToolsUI[gui.view] && ToolsUI[gui.view][gui.tool]) || null;
 		return (
 			<div className="ui">
 				<div className="ui-global">
@@ -107,12 +111,16 @@ class TopUI extends Component {
 				</div>
 				<div className="ui-view">
 					<div>
-						{tools.map((tool, i) => 
-							<ButtonIcon key={i} {...tool} selected={gui.tool == tool.type} onClick={() => dispatch(changeTool(tool.type))} />
+						{(tools[gui.view] || []).map((tool, i) => 
+							<ButtonIcon key={i} {...tool} selected={gui.tool == tool.type} onClick={() => dispatch(changeTool(tool.type, gui.view))} />
 						)}
-						<hr className="vertical" />
-						<ButtonIcon icon="radar" label="Hide guides" selected={!gui.showGuides} onClick={() => dispatch({type: gui.showGuides ? ActionTypes.HIDE_GUIDES : ActionTypes.SHOW_GUIDES})} />
-						<ButtonIcon icon="snapping" label="Enable snapping" selected={gui.snapping} onClick={() => dispatch({type: gui.snapping ? ActionTypes.DISABLE_SNAPPING : ActionTypes.ENABLE_SNAPPING})} />
+						{gui.view == UiViews.STAGE && 
+							<span>
+								<hr className="vertical" />
+								<ButtonIcon icon="radar" label="Hide guides" selected={!gui.showGuides} onClick={() => dispatch({type: gui.showGuides ? ActionTypes.HIDE_GUIDES : ActionTypes.SHOW_GUIDES})} />
+								<ButtonIcon icon="snapping" label="Enable snapping" selected={gui.snapping} onClick={() => dispatch({type: gui.snapping ? ActionTypes.DISABLE_SNAPPING : ActionTypes.ENABLE_SNAPPING})} />
+							</span>
+						}
 					</div>
 				</div>
 				<div className="ui-selection">
