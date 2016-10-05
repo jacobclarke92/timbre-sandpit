@@ -15,6 +15,9 @@ export function getPixelDensity() {
 	return window.devicePixelRatio || 1;
 }
 
+export const getScreenWidth = () => screenWidth;
+export const getScreenHeight = () => screenHeight;
+
 export function hasPointerLock() {
 	return (
 		'pointerLockElement' in document ||
@@ -36,6 +39,11 @@ export function exitPointerLock() {
 
 export function addResizeCallback(func) {
 	resizeCallbacks.push(func);
+}
+
+export function removeResizeCallback(func) {
+	const index = resizeCallbacks.indexOf(func);
+	if(index >= 0) resizeCallbacks.splice(index, 1);
 }
 
 export function triggerResize() {
