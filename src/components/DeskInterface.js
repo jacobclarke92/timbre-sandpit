@@ -9,21 +9,14 @@ import { clamp, inBounds } from '../utils/mathUtils'
 
 import * as UiViews from '../constants/uiViews'
 import * as ActionTypes from '../constants/actionTypes'
-import * as DeskItemTypes from '../constants/deskItemTypes'
 
 import DeskInterfaceRenderer from './pixi/DeskInterfaceRenderer'
 import InterfaceStage from './pixi/InterfaceStage'
 import Container from './pixi/Container'
-import DeskMaster from './pixi/DeskMaster'
+import DeskItem from './pixi/DeskItem'
 
 const mouseMoveThrottle = 1000/50; // 50fps
 const scrollwheelThrottle = 1000/50; // 50fps
-
-const deskItemComponents = {
-	[DeskItemTypes.MASTER]: DeskMaster,
-	[DeskItemTypes.SYNTH]: null,
-	[DeskItemTypes.FX]: null,
-};
 
 class DeskInterface extends Component {
 
@@ -51,6 +44,9 @@ class DeskInterface extends Component {
 			mouseDownPosition: new Point(0,0),
 			mouseDown: false,
 			mouseMoved: false,
+			overIO: false,
+			ioFrom: null,
+			ioTo: null,
 			dragTarget: null,
 			activeTarget: null,
 		};
@@ -107,7 +103,13 @@ class DeskInterface extends Component {
 
 	handlePointerUp(event) {
 		if(this.props.gui.view != UiViews.DESK) return;
+		const { mouseMoved, dragTarget } = this.state;
 		console.log('mouseup');
+
+		if(mouseMoved && dragTarget) {
+			this.props.dispatch({type: ActionTypes.DESK_ITEM_MOVE, id: dragTarget.id, position: dragTarget.position});
+		}
+
 		this.setState({
 			mouseDown: false,
 			dragTarget: null,
@@ -133,7 +135,7 @@ class DeskInterface extends Component {
 		});
 		
 		
-		const { mouseDown, mouseMoved, mouseDownPosition, dragTarget } = this.state;
+		const { mouseDown, mouseMoved, mouseDownPosition, dragTarget, overIO } = this.state;
 		// enforce a minimum distance before allowing panning
 		if(mouseDown && !mouseMoved && pointer.distance(mouseDownPosition) < 10) return true;
 
@@ -143,12 +145,35 @@ class DeskInterface extends Component {
 
 		if(mouseDown) {
 			if(dragTarget) {
-				// reposition node if dragging
-				dragTarget.position.x = snapping ? placementPosition.x : stagePointer.x;
-				dragTarget.position.y = snapping ? placementPosition.y : stagePointer.y;
-				// this.handleNodeMove();
+				if(overIO) {
+					console.log('mousemove IO');
+				}else{
+					// reposition node if dragging
+					dragTarget.position.x = (snapping ? placementPosition.x : stagePointer.x) - 100;
+					dragTarget.position.y = (snapping ? placementPosition.y : stagePointer.y) - 100;
+					// this.handleNodeMove();
+				}
 			}
 		}
+	}
+
+	handleItemPointerDown(event, deskItem) {
+		event.stopPropagation();
+		console.log('pointer down for ', deskItem);
+		this.setState({
+			mouseMoved: false,
+			mouseDown: true,
+			dragTarget: event.target,
+		});
+	}
+
+	handlePointerDownIO(event, deskItem) {
+		event.stopPropagation();
+		this.setState({
+			mouseMoved: false,
+			mouseDown: true,
+			ioFrom: event.target,
+		})
 	}
 
 	handleRename(deskItem) {
@@ -156,8 +181,12 @@ class DeskInterface extends Component {
 		if(name) this.props.dispatch({type: ActionTypes.DESK_ITEM_RENAME, id: deskItem.id, name});
 	}
 
+	handleOverIO(deskItem, type) {
+		this.setState({overIO: type});
+	}
+
 	render() {
-		const { width, height, aimScale, pointer, stagePointer, stagePosition, dragTarget, mouseDown } = this.state;
+		const { width, height, aimScale, pointer, stagePointer, stagePosition, dragTarget, mouseDown, ioFrom, ioTo } = this.state;
 		const { fx, synths, desk } = this.props;
 		return (
 			<DeskInterfaceRenderer 
@@ -172,16 +201,21 @@ class DeskInterface extends Component {
 					pointer={pointer}
 					stagePointer={stagePointer}
 					position={stagePosition}
-					panning={!dragTarget && mouseDown}
+					panning={!dragTarget && !ioFrom && mouseDown}
 					onMouseMove={this.handlePointerMove} 
 					onPointerDown={this.handlePointerDown} 
 					onPointerUp={this.handlePointerUp}>
 
-					{desk.map((deskItem, i) => {
-						const DeskItemComponent = deskItemComponents[deskItem.type];
-						if(!DeskItemComponent) return null;
-						return <DeskItemComponent key={i} {...deskItem} onRename={() => this.handleRename(deskItem)} />
-					})}
+					{desk.map((deskItem, i) => 
+						<DeskItem 
+							key={i} 
+							{...deskItem} 
+							onRename={() => this.handleRename(deskItem)}
+							onOverIO={type => this.handleOverIO(deskItem, type)} 
+							onPointerDown={event => this.handleItemPointerDown(event, deskItem)}
+							onPointerUp={event => null/*this.handleItemPointerUp(deskItem)*/}
+							onPointerDownIO={event => this.handlePointerDownIO(event, deskItem)} />
+					)}
 
 				</InterfaceStage>
 
