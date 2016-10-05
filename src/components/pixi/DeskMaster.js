@@ -19,10 +19,19 @@ export default class PointNode extends Component {
 		this.node = new Container();
 		const graphic = new Graphics();
 		const icon = new Graphics();
-		const label = new Text('Master', {font: '24px Orbitron', fontWeight: '500', fill: '#222222'});
+		const label = new Text('', {
+			font: '20px Orbitron', 
+			fontWeight: '500', 
+			align: 'center',
+			fill: '#222222',
+			wordWrap: true,
+			wordWrapWidth: 190,
+		});
 		label.scale.set(1/getPixelDensity());
 		label.anchor.set(0.5);
 		label.position = {x: 100, y: 170};
+		label.interactive = true;
+		label.buttonMode = true;
 		icon.position = {x: 20, y: 5};
 
 		this.node.icon = icon;
@@ -42,6 +51,7 @@ export default class PointNode extends Component {
 		// this.node.on('touchstart', props.onPointerDown);
 		// this.node.on('mouseup', props.onPointerUp);
 		// this.node.on('touchend', props.onPointerUp);
+		label.on('mousedown', event => { props.onRename(); event.stopPropagation(); });
 	}
 
 	drawDeskMaster(props = this.props) {
@@ -56,6 +66,12 @@ export default class PointNode extends Component {
 		this.node.icon.scale.set(6);
 		SVGGraphics.drawSVG(this.node.icon, this.$icon[0]);
 		// this.node.icon.cacheAsBitmap = true;
+		
+		this.node.label.text = props.name || 'Master';
+	}
+
+	componentWillReceiveProps(nextProps) {
+		if(nextProps.name != this.props.name) this.drawDeskMaster(nextProps);
 	}
 
 	render() {

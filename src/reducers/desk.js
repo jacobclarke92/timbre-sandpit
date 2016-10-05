@@ -6,6 +6,8 @@ import * as DeskItemTypes from '../constants/deskItemTypes'
 
 const initialState = [
 	{
+		id: newId(),
+		name: 'Master',
 		owner_id: 'master',
 		type: DeskItemTypes.MASTER,
 		position: {
@@ -14,6 +16,8 @@ const initialState = [
 		}
 	},
 	{
+		id: newId(),
+		name: 'Example Synth',
 		owner_id: 'init_synth',
 		output_id: 'init_fx',
 		type: DeskItemTypes.SYNTH,
@@ -23,6 +27,8 @@ const initialState = [
 		},
 	},
 	{
+		id: newId(),
+		name: 'Example FX',
 		owner_id: 'init_fx',
 		output_id: 'master',
 		type: DeskItemTypes.FX,
@@ -35,7 +41,9 @@ const initialState = [
 
 export default function(state = localStore.get('desk') || initialState, action) {
 	switch(action.type) {
-
+		case ActionTypes.DESK_ITEM_RENAME:
+			return state.map(item => item.id == action.id ? {...item, name: action.name} : item);
+			break;
 	}
 	return state;
 }

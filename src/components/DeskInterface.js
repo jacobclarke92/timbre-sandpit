@@ -8,6 +8,7 @@ import { addResizeCallback, removeResizeCallback, getScreenWidth, getScreenHeigh
 import { clamp, inBounds } from '../utils/mathUtils'
 
 import * as UiViews from '../constants/uiViews'
+import * as ActionTypes from '../constants/actionTypes'
 import * as DeskItemTypes from '../constants/deskItemTypes'
 
 import DeskInterfaceRenderer from './pixi/DeskInterfaceRenderer'
@@ -150,6 +151,11 @@ class DeskInterface extends Component {
 		}
 	}
 
+	handleRename(deskItem) {
+		const name = prompt('Enter new name for "'+deskItem.name+'"');
+		if(name) this.props.dispatch({type: ActionTypes.DESK_ITEM_RENAME, id: deskItem.id, name});
+	}
+
 	render() {
 		const { width, height, aimScale, pointer, stagePointer, stagePosition, dragTarget, mouseDown } = this.state;
 		const { fx, synths, desk } = this.props;
@@ -174,7 +180,7 @@ class DeskInterface extends Component {
 					{desk.map((deskItem, i) => {
 						const DeskItemComponent = deskItemComponents[deskItem.type];
 						if(!DeskItemComponent) return null;
-						return <DeskItemComponent key={i} {...deskItem} />
+						return <DeskItemComponent key={i} {...deskItem} onRename={() => this.handleRename(deskItem)} />
 					})}
 
 				</InterfaceStage>
