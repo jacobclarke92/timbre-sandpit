@@ -6,7 +6,7 @@ import * as ActionTypes from '../constants/actionTypes'
 import * as WaveTypes from '../constants/waveTypes'
 
 const initialState = [{
-	id: newId(),
+	id: 'init_synth',
 	waveform: WaveTypes.SINE,
 	envelope: {
 		attack: 0.1,
@@ -14,10 +14,6 @@ const initialState = [{
 		sustain: 0,
 		release: 1,
 	},
-	position: {
-		x: 0,
-		y: 0,
-	}
 }];
 
 export default function(state = localStore.get('synths') || initialState, action) {

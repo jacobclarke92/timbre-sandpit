@@ -40,7 +40,7 @@ export default class InterfaceStage extends Component {
 	render() {
 		let usedIds = [];
 		Children.forEach(this.props.children, child => {
-			if(!child.key) return;
+			if(!child || !child.key) return;
 			usedIds.push(child.key);
 			const instance = this.instances[child.key];
 			if (!instance) {

@@ -129,7 +129,7 @@ class TopUI extends Component {
 				{this.props.showIcons && 
 					<div className="ui-icons">
 						{Object.keys(icons).map((icon, i) =>
-							<span key={i} data-label={icon}><Icon name={icon} size={18} /></span>
+							<span key={i} data-label={icon}><Icon name={icon} size="small" /></span>
 						)}
 					</div>
 				}

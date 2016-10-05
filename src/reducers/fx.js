@@ -7,13 +7,9 @@ import FX from '../constants/fx'
 const fxKeys = Object.keys(FX);
 
 const initialState = [{
-	id: newId(),
+	id: 'init_fx',
 	type: 'Freeverb',
 	params: FX.Freeverb.params.reduce((current, param) => ({...current, [param.key]: param.defaultValue}), {}),
-	position: {
-		x: 0,
-		y: 0,
-	},
 }];
 
 export default function(state = localStore.get('fx') || initialState, action) {

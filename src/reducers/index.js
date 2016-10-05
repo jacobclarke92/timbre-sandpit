@@ -6,6 +6,7 @@ import stage from './stage'
 import oscillators from './oscillators'
 import synths from './synths'
 import fx from './fx'
+import desk from './desk'
 
 const reducers = combineReducers({
 	transport,
@@ -15,6 +16,7 @@ const reducers = combineReducers({
 	oscillators,
 	synths,
 	fx,
+	desk,
 });
 
 export default reducers

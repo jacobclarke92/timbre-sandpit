@@ -8,15 +8,28 @@ import { addResizeCallback, removeResizeCallback, getScreenWidth, getScreenHeigh
 import { clamp, inBounds } from '../utils/mathUtils'
 
 import * as UiViews from '../constants/uiViews'
+import * as DeskItemTypes from '../constants/deskItemTypes'
 
 import DeskInterfaceRenderer from './pixi/DeskInterfaceRenderer'
 import InterfaceStage from './pixi/InterfaceStage'
 import Container from './pixi/Container'
+import DeskMaster from './pixi/DeskMaster'
 
 const mouseMoveThrottle = 1000/50; // 50fps
 const scrollwheelThrottle = 1000/50; // 50fps
 
+const deskItemComponents = {
+	[DeskItemTypes.MASTER]: DeskMaster,
+	[DeskItemTypes.SYNTH]: null,
+	[DeskItemTypes.FX]: null,
+};
+
 class DeskInterface extends Component {
+
+	static defaultProps = {
+		maxZoom: 2,
+		minZoom: 0.2,
+	};
 
 	constructor(props) {
 		super(props);
@@ -68,7 +81,7 @@ class DeskInterface extends Component {
 	}
 
 	handleMousewheel(event) {
-		if(this.props.gui.view != UiViews.FX) return;
+		if(this.props.gui.view != UiViews.DESK) return;
 		const { mouseDown, pointer, width, height } = this.state;
 		// disable scroll zoom while dragging / clicking
 		if(!mouseDown && inBounds(pointer, 0, 0, width, height)) {
@@ -81,7 +94,7 @@ class DeskInterface extends Component {
 	}
 
 	handlePointerDown(event) {
-		if(this.props.gui.view != UiViews.FX) return;
+		if(this.props.gui.view != UiViews.DESK) return;
 		console.log('mousedown');
 		this.setState({
 			mouseDown: true,
@@ -92,7 +105,7 @@ class DeskInterface extends Component {
 	}
 
 	handlePointerUp(event) {
-		if(this.props.gui.view != UiViews.FX) return;
+		if(this.props.gui.view != UiViews.DESK) return;
 		console.log('mouseup');
 		this.setState({
 			mouseDown: false,
@@ -101,7 +114,7 @@ class DeskInterface extends Component {
 	}
 
 	handlePointerMove(event) {
-		if(this.props.gui.view != UiViews.FX) return;
+		if(this.props.gui.view != UiViews.DESK) return;
 		const { snapping } = this.props.gui;
 
 		// update mouse position vars
@@ -139,7 +152,7 @@ class DeskInterface extends Component {
 
 	render() {
 		const { width, height, aimScale, pointer, stagePointer, stagePosition, dragTarget, mouseDown } = this.state;
-		const { fx, synths } = this.props;
+		const { fx, synths, desk } = this.props;
 		return (
 			<DeskInterfaceRenderer 
 				ref="renderer" 
@@ -158,7 +171,11 @@ class DeskInterface extends Component {
 					onPointerDown={this.handlePointerDown} 
 					onPointerUp={this.handlePointerUp}>
 
-
+					{desk.map((deskItem, i) => {
+						const DeskItemComponent = deskItemComponents[deskItem.type];
+						if(!DeskItemComponent) return null;
+						return <DeskItemComponent key={i} {...deskItem} />
+					})}
 
 				</InterfaceStage>
 
@@ -167,4 +184,4 @@ class DeskInterface extends Component {
 	}
 }
 
-export default connect(({gui, synths, fx}) => ({gui, synths, fx}))(DeskInterface)
+export default connect(({gui, desk, synths, fx}) => ({gui, desk, synths, fx}))(DeskInterface)
