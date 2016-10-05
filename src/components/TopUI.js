@@ -26,7 +26,7 @@ const views = [
 	{type: UiViews.CHORDS, icon: 'piano', label: 'Chords'},
 	{type: UiViews.OSCILLATORS, icon: 'waveform', label: 'Oscillators'},
 	{type: UiViews.MAPPINGS, icon: 'list', label: 'Mappings'},
-	{type: UiViews.FX, icon: 'note', label: 'FX'},
+	{type: UiViews.DESK, icon: 'note', label: 'Desk'},
 ];
 
 const tools = {
@@ -36,7 +36,7 @@ const tools = {
 		{type: NodeTypes.POINT_NODE, icon: 'action-add', label: 'Point Node'},
 		{type: NodeTypes.ARC_NODE, icon: 'arc', label: 'Arc Node'},
 	],
-	[UiViews.FX]: Object.keys(FX).map(key => ({type: key, icon: FX[key].icon, label: FX[key].title})),
+	[UiViews.DESK]: Object.keys(FX).map(key => ({type: key, icon: FX[key].icon, label: FX[key].title})),
 };
 
 class TopUI extends Component {

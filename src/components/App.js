@@ -4,7 +4,7 @@ import $ from 'jquery'
 
 import { changeView, changeTool } from '../reducers/gui'
 import { addKeyListener, isCommandKeyPressed } from '../utils/keyUtils'
-import { STAGE, CHORDS, OSCILLATORS, MAPPINGS, FX } from '../constants/uiViews'
+import { STAGE, CHORDS, OSCILLATORS, MAPPINGS, DESK } from '../constants/uiViews'
 import { ORIGIN_RING_NODE, ORIGIN_RADAR_NODE, POINT_NODE, ARC_NODE } from '../constants/nodeTypes'
 
 import TopUI from './TopUI'
@@ -14,7 +14,7 @@ import PrimaryInterface from './PrimaryInterface'
 import ChordsInterface from './ChordsInterface'
 import OscillatorsInterface from './OscillatorsInterface'
 import MappingsInterface from './MappingsInterface'
-import FxInterface from './FxInterface'
+import DeskInterface from './DeskInterface'
 
 class App extends Component {
 
@@ -23,7 +23,7 @@ class App extends Component {
 		addKeyListener('w', () => { if(!isCommandKeyPressed()) this.props.dispatch(changeView(CHORDS)) });
 		addKeyListener('e', () => { if(!isCommandKeyPressed()) this.props.dispatch(changeView(OSCILLATORS)) });
 		addKeyListener('r', () => { if(!isCommandKeyPressed()) this.props.dispatch(changeView(MAPPINGS)) });
-		addKeyListener('t', () => { if(!isCommandKeyPressed()) this.props.dispatch(changeView(FX)) });
+		addKeyListener('t', () => { if(!isCommandKeyPressed()) this.props.dispatch(changeView(DESK)) });
 
 		addKeyListener('a', () => { if(!isCommandKeyPressed()) this.props.dispatch(changeTool(ORIGIN_RING_NODE)) });
 		addKeyListener('s', () => { if(!isCommandKeyPressed()) this.props.dispatch(changeTool(ORIGIN_RADAR_NODE)) });
@@ -42,7 +42,7 @@ class App extends Component {
 					{view == CHORDS && <ChordsInterface />}
 					{view == OSCILLATORS && <OscillatorsInterface />}
 					{view == MAPPINGS && <MappingsInterface />}
-					{view == FX && <FxInterface />}
+					{view == DESK && <DeskInterface />}
 				</div>
 				<BottomUI />
 			</main>

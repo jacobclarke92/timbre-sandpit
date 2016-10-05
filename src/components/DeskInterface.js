@@ -9,14 +9,14 @@ import { clamp, inBounds } from '../utils/mathUtils'
 
 import * as UiViews from '../constants/uiViews'
 
-import FxInterfaceRenderer from './pixi/FxInterfaceRenderer'
+import DeskInterfaceRenderer from './pixi/DeskInterfaceRenderer'
 import InterfaceStage from './pixi/InterfaceStage'
 import Container from './pixi/Container'
 
 const mouseMoveThrottle = 1000/50; // 50fps
 const scrollwheelThrottle = 1000/50; // 50fps
 
-class FxInterface extends Component {
+class DeskInterface extends Component {
 
 	constructor(props) {
 		super(props);
@@ -141,7 +141,7 @@ class FxInterface extends Component {
 		const { width, height, aimScale, pointer, stagePointer, stagePosition, dragTarget, mouseDown } = this.state;
 		const { fx, synths } = this.props;
 		return (
-			<FxInterfaceRenderer 
+			<DeskInterfaceRenderer 
 				ref="renderer" 
 				backgroundColor={0x222222}
 				width={width} 
@@ -162,9 +162,9 @@ class FxInterface extends Component {
 
 				</InterfaceStage>
 
-			</FxInterfaceRenderer>
+			</DeskInterfaceRenderer>
 		)
 	}
 }
 
-export default connect(({gui, synths, fx}) => ({gui, synths, fx}))(FxInterface)
+export default connect(({gui, synths, fx}) => ({gui, synths, fx}))(DeskInterface)

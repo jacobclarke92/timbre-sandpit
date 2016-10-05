@@ -7,7 +7,7 @@ import { getPixelDensity } from '../../utils/screenUtils'
 
 let raf = null;
 
-export default class FxInterfaceRenderer extends Component {
+export default class DeskInterfaceRenderer extends Component {
 
 	static defaultProps = {
 		playing: true,
