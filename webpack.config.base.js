@@ -32,9 +32,14 @@ var options = {
 				loader: 'transform?brfs',
 			},
 			{
-				test: /\.less$/,
+				test: /index\.less$/,
 				include: path.join(__dirname, 'styles'),
 				loader: ExtractTextPlugin.extract('style-loader', 'css-loader!postcss-loader!less-loader'),
+			},
+			{
+				test: /definitions\.less$/,
+				include: path.join(__dirname, 'styles'),
+				loader: 'less-vars',
 			},
 			{
 				test: /\.json$/,
