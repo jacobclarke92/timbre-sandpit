@@ -9,9 +9,10 @@ import { getPixelDensity } from '../../utils/screenUtils'
 import * as DeskItemTypes from '../../constants/deskItemTypes'
 
 const icons = {
+	[DeskItemTypes.OSCILLATOR]: 'waveform',
 	[DeskItemTypes.MASTER]: 'volume-mute',
 	[DeskItemTypes.SYNTH]: 'piano',
-	[DeskItemTypes.FX]: 'waveform',
+	[DeskItemTypes.FX]: 'sliders',
 };
 
 export default class DeskItem extends Component {

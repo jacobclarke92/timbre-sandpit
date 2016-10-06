@@ -44,6 +44,21 @@ const initialState = [
 		},
 	},
 ];
+for(let i=1; i<5; i++) {
+	initialState.push({
+		id: newId(),
+		name: 'Example OSC '+i,
+		owner_id: 'init_osc'+i,
+		type: DeskItemTypes.OSCILLATOR,
+		input: false,
+		output: true,
+		output_ids: [],
+		position: {
+			x: 250*(i-1),
+			y: 300,
+		}
+	});
+}
 
 export default function(state = localStore.get('desk') || initialState, action) {
 	switch(action.type) {

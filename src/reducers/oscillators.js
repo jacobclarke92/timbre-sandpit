@@ -4,10 +4,10 @@ import * as WaveTypes from '../constants/waveTypes'
 import newId from '../utils/newId'
 
 const initialState = [
-	{id: newId(), frequency: 1, amplitude: 1, freqNote: null, waveform: WaveTypes.SINE},
-	{id: newId(), frequency: 1, amplitude: 1, freqNote: null, waveform: WaveTypes.TRIANGLE},
-	{id: newId(), frequency: 1, amplitude: 1, freqNote: null, waveform: WaveTypes.SAWTOOTH},
-	{id: newId(), frequency: 1, amplitude: 1, freqNote: null, waveform: WaveTypes.SQUARE},
+	{id: 'init_osc1', frequency: 1, amplitude: 1, freqNote: null, waveform: WaveTypes.SINE},
+	{id: 'init_osc2', frequency: 1, amplitude: 1, freqNote: null, waveform: WaveTypes.TRIANGLE},
+	{id: 'init_osc3', frequency: 1, amplitude: 1, freqNote: null, waveform: WaveTypes.SAWTOOTH},
+	{id: 'init_osc4', frequency: 1, amplitude: 1, freqNote: null, waveform: WaveTypes.SQUARE},
 ];
 
 export default function (state = localStore.get('oscillators') || initialState, action) {
