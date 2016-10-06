@@ -1,6 +1,13 @@
 import * as WaveTypes from './waveTypes'
 
-export default {
+export const defaultFxParam = {
+	min: 0,
+	max: 1,
+	defaultValue: 0.5,
+	step: 0.05,
+}
+
+const FX = {
 	AutoFilter: {
 		title: 'Auto Filter',
 		icon: 'ring',
@@ -28,8 +35,6 @@ export default {
 				title: 'Depth',
 				description: 'The amount of panning between left and right.',
 				defaultValue: 1,
-				min: 0,
-				max: 1,
 			}/*,{
 				key: 'wet',
 				title: 'Wet/Dry Mix',
@@ -190,9 +195,6 @@ export default {
 				key: 'width',
 				title: 'Width',
 				description: '0 = 100% mid. 1 = 100% side. 0.5 = no change.',
-				defaultValue: 0.5,
-				min: 0,
-				max: 1,
 			}
 		]
 	},
@@ -220,3 +222,8 @@ export default {
 		]
 	},
 }
+
+// object assign all params with defaultFxParam
+Object.keys(FX).forEach(key => FX[key].params = FX[key].params.map(param => ({...defaultFxParam, ...param})))
+
+export default FX
