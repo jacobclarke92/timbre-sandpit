@@ -186,13 +186,21 @@ class DeskInterface extends Component {
 	}
 
 	handleOverIO(event, deskItem, wireType, ioType) {
-		this.setState({overIO: !!wireType});
+		this.setState({overIO: true});
 		if(this.state.wireFrom) {
 			this.setState({
-				wireTo: !wireType ? null : event.target,
+				wireTo: event.target,
 				wireToValid: (this.state.wireType == wireType && this.state.ioType != ioType),
 			});
 		}
+	}
+
+	handleOutIO(event) {
+		this.setState({
+			overIO: false,
+			wireTo: null,
+			wireToValid: null,
+		})
 	}
 
 	handlePointerDownIO(event, deskItem, wireType, ioType) {
@@ -235,6 +243,7 @@ class DeskInterface extends Component {
 					{wireFrom && 
 						<DeskWire 
 							key="active_wire" 
+							valid={wireToValid}
 							from={{x: wireFrom.parent.position.x + wireFrom.position.x, y: wireFrom.parent.position.y + wireFrom.position.y}} 
 							to={(wireTo && wireToValid) ? {x: wireTo.parent.position.x + wireTo.position.x, y: wireTo.parent.position.y + wireTo.position.y} : stagePointer} 
 							desk={desk} />
@@ -256,6 +265,7 @@ class DeskInterface extends Component {
 								onRename={() => this.handleRename(deskItem)}
 								onPointerDown={event => this.handleItemPointerDown(event, deskItem)}
 								onPointerUp={event => null/*this.handleItemPointerUp(deskItem)*/}
+								onOutIO={event => this.handleOutIO(event)}
 								onOverIO={(event, wireType, ioType) => this.handleOverIO(event, deskItem, wireType, ioType)} 
 								onPointerDownIO={(event, wireType, ioType) => this.handlePointerDownIO(event, deskItem, wireType, ioType)} />
 						)

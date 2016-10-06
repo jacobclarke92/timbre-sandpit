@@ -9,7 +9,7 @@ import Style from '../../constants/style'
 import * as DeskItemTypes from '../../constants/deskItemTypes'
 
 import { getPixelDensity } from '../../utils/screenUtils'
-import { hexToDec } from '../../utils/stringUtils'
+import { hexToDec } from '../../utils/colorUtils'
 
 const icons = {
 	[DeskItemTypes.OSCILLATOR]: 'waveform',
@@ -129,7 +129,7 @@ export default class DeskItem extends Component {
 		ioNode.io = io;
 		ioNode.type = type;
 		ioNode.on('mouseover', event => { ioNode.alpha = 0.9; this.props.onOverIO(event, type, io) });
-		ioNode.on('mouseout', event => { ioNode.alpha = 1; this.props.onOverIO(event, null) });
+		ioNode.on('mouseout', event => { ioNode.alpha = 1; this.props.onOutIO(event) });
 		ioNode.on('mousedown', event => this.props.onPointerDownIO(event, type, io));
 		ioNode.on('touchstart', event => this.props.onPointerDownIO(event, type, io));
 		return ioNode;

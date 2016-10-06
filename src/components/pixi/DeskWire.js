@@ -2,7 +2,14 @@ import React, { Component } from 'react'
 import PIXI, { Container, Graphics } from 'pixi.js'
 import deepEqual from 'deep-equal'
 
+import Style from '../../constants/style'
+import { hexToDec } from '../../utils/colorUtils'
+
 export default class DeskWire extends Component {
+
+	static defaultProps = {
+		valid: null,
+	};
 
 	constructor(props) {
 		super(props);
@@ -16,14 +23,14 @@ export default class DeskWire extends Component {
 	drawWire(props = this.props) {
 		this.node.graphic.cacheAsBitmap = false;
 		this.node.graphic.clear();
-		this.node.graphic.lineStyle(8, 0xCCCCCC, 1);
+		this.node.graphic.lineStyle(8, hexToDec(props.valid === true ? Style.primary : (props.valid === false ? Style.error : Style.lightGrey)), 1);
 		this.node.graphic.moveTo(props.from.x, props.from.y);
 		this.node.graphic.lineTo(props.to.x, props.to.y);
 		this.node.graphic.cacheAsBitmap = true;
 	}
 
 	componentWillReceiveProps(nextProps) {
-		if(!deepEqual(nextProps.from, this.props.from) || !deepEqual(nextProps.to, this.props.to)) {
+		if(!deepEqual(nextProps.from, this.props.from) || !deepEqual(nextProps.to, this.props.to) || nextProps.valid != this.props.valid) {
 			this.drawWire(nextProps);
 		}
 	}
