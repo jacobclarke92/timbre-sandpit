@@ -56,7 +56,7 @@ export default class DeskItem extends Component {
 		icon.position = {x: 20, y: 5};
 
 		this.node.id = props.id;
-		this.node.owner_id = props.owner_id;
+		this.node.ownerId = props.ownerId;
 		this.node.icon = icon;
 		this.node.graphic = graphic;
 		this.node.label = label;
@@ -65,29 +65,37 @@ export default class DeskItem extends Component {
 		this.node.addChild(icon);
 		this.node.addChild(label);
 
-		if(props.input) {
-			this.node.inputNode = this.createNodeIO('audio', 'input', 0, props.height/2);
-			this.node.addChild(this.node.inputNode);
+		if(props.audioInput) {
+			this.node.audioInputNode = this.createNodeIO('audio', 'input', 0, props.height/2);
+			this.node.addChild(this.node.audioInputNode);
 		}
 
-		if(props.output) {
-			if(props.type == DeskItemTypes.OSCILLATOR) this.node.outputNode = this.createNodeIO('data', 'output', props.width/2, 0);
-			else this.node.outputNode = this.createNodeIO('audio', 'output', props.width, props.height/2);
-			this.node.addChild(this.node.outputNode);
+		if(props.audioOutput) {
+			this.node.audioOutputNode = this.createNodeIO('audio', 'output', props.width, props.height/2);
+			this.node.addChild(this.node.audioOutputNode);
 		}
 
-		this.node.paramNodes = [];
-		const xPart = (props.width - props.padding*2)/(props.params.length-1);
-		for(let i = 0; i < props.params.length; i ++) {
-			const x = props.padding + (i * xPart);
-			let io = null;
-			switch(props.type) {
-				case DeskItemTypes.FX: io = 'input'; break;
-				case DeskItemTypes.OSCILLATOR: io = 'output'; break;
+		if(props.dataInput) {
+			this.node.dataInputNodes = [];
+			const xPart = (props.width - props.padding*2)/(props.params.length-1);
+			for(let i = 0; i < props.params.length; i ++) {
+				const x = props.padding + (i * xPart);
+				let io = null;
+				switch(props.type) {
+					case DeskItemTypes.FX: io = 'input'; break;
+					case DeskItemTypes.OSCILLATOR: io = 'output'; break;
+				}
+				const dataInputNode = this.createNodeIO('data', io, x, props.height);
+				this.node.addChild(dataInputNode);
+				this.node.dataInputNodes.push(dataInputNode);
 			}
-			const paramNode = this.createNodeIO('data', io, x, props.height);
-			this.node.addChild(paramNode);
-			this.node.paramNodes.push(paramNode);
+		}
+
+		if(props.dataOutput) {
+			this.node.dataOutputNodes = [];
+			const dataOutputNode = this.createNodeIO('data', 'output', props.width/2, 0);
+			this.node.addChild(dataOutputNode);
+			this.node.dataOutputNodes.push(dataOutputNode);
 		}
 
 		this.node.inited = false;

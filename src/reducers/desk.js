@@ -4,14 +4,49 @@ import newId from '../utils/newId'
 import * as ActionTypes from '../constants/actionTypes'
 import * as DeskItemTypes from '../constants/deskItemTypes'
 
-const initialState = [
+const defaultDeskItems = {
+	[DeskItemTypes.MASTER]: {
+		audioInput: true,
+		audioOutput: false,
+		dataInput: false,
+		dataOutput: false,
+	},
+	[DeskItemTypes.BUS]: {
+		audioInput: true,
+		audioOutput: true,
+		audioOutputIds: [],
+		dataInput: false,
+		dataOutput: false,
+	},
+	[DeskItemTypes.SYNTH]: {
+		audioInput: false,
+		audioOutput: true,
+		audioOutputIds: [],
+		dataInput: true,
+		dataOutput: false,
+	},
+	[DeskItemTypes.FX]: {
+		audioInput: true,
+		audioOutput: true,
+		audioOutputIds: [],
+		dataInput: true,
+		dataOutput: false,
+	},
+	[DeskItemTypes.OSCILLATOR]: {
+		audioInput: false,
+		audioOutput: false,
+		dataInput: false,
+		dataOutput: true,
+		dataOutputIds: [],
+	},
+}
+
+let initialState = [
 	{
 		id: newId(),
 		name: 'Master',
-		owner_id: 'master',
+		ownerId: 'master',
 		type: DeskItemTypes.MASTER,
-		input: true,
-		output: false,
 		position: {
 			x: 500,
 			y: 0,
@@ -20,11 +55,9 @@ const initialState = [
 	{
 		id: newId(),
 		name: 'Example Synth',
-		owner_id: 'init_synth',
+		ownerId: 'init_synth',
 		type: DeskItemTypes.SYNTH,
-		input: false,
-		output: true,
-		output_ids: ['init_fx'],
+		audioOutputIds: ['init_fx'],
 		position: {
 			x: 0,
 			y: 0,
@@ -33,11 +66,9 @@ const initialState = [
 	{
 		id: newId(),
 		name: 'Example FX',
-		owner_id: 'init_fx',
+		ownerId: 'init_fx',
 		type: DeskItemTypes.FX,
-		input: true,
-		output: true,
-		output_ids: ['master'],
+		audioOutputIds: ['master'],
 		position: {
 			x: 250,
 			y: 0,
@@ -48,17 +79,17 @@ for(let i=1; i<5; i++) {
 	initialState.push({
 		id: newId(),
 		name: 'Example OSC '+i,
-		owner_id: 'init_osc'+i,
+		ownerId: 'init_osc'+i,
 		type: DeskItemTypes.OSCILLATOR,
-		input: false,
-		output: true,
-		output_ids: [],
 		position: {
 			x: 250*(i-1),
 			y: 300,
 		}
 	});
 }
+
+// object assign default desk item (lookup by type) to initial state desk items
+initialState = initialState.map(item => ({...defaultDeskItems[item.type], ...item}));
 
 export default function(state = localStore.get('desk') || initialState, action) {
 	switch(action.type) {

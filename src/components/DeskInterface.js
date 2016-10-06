@@ -238,7 +238,7 @@ class DeskInterface extends Component {
 						let params = [];
 						let owner = null;
 						if(deskItem.type == DeskItemTypes.FX) {
-							owner = getByKey(fx, deskItem.owner_id);
+							owner = getByKey(fx, deskItem.ownerId);
 							params = FX[owner.type].params || [];
 						}
 						return (
