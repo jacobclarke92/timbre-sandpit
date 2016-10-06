@@ -100,6 +100,14 @@ export default function(state = localStore.get('desk') || initialState, action) 
 		case ActionTypes.DESK_ITEM_MOVE:
 			return state.map(item => item.id == action.id ? {...item, position: action.position} : item);
 			break;
+
+		case ActionTypes.DESK_CONNECT_WIRE:
+			console.log(action);
+			break;
 	}
 	return state;
+}
+
+export function connectWire(output, input, wireType) {
+	return {type: ActionTypes.DESK_CONNECT_WIRE, output, input, wireType};
 }

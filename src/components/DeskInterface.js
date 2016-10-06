@@ -12,6 +12,7 @@ import FX from '../constants/fx'
 import * as UiViews from '../constants/uiViews'
 import * as ActionTypes from '../constants/actionTypes'
 import * as DeskItemTypes from '../constants/deskItemTypes'
+import { connectWire } from '../reducers/desk'
 
 import DeskInterfaceRenderer from './pixi/DeskInterfaceRenderer'
 import InterfaceStage from './pixi/InterfaceStage'
@@ -40,7 +41,7 @@ class DeskInterface extends Component {
 			width: 800,
 			height: 450,
 			offsetY: 136,
-			aimScale: 1/getPixelDensity(),
+			aimScale: 0.5,
 			pointer: new Point(0,0),
 			stagePointer: new Point(0,0),
 			stagePosition: new Point(0,0),
@@ -110,11 +111,16 @@ class DeskInterface extends Component {
 
 	handlePointerUp(event) {
 		if(this.props.gui.view != UiViews.DESK) return;
-		const { mouseMoved, dragTarget } = this.state;
+		const { desk } = this.props;
+		const { mouseMoved, dragTarget, wireFrom, wireTo, wireToValid, wireType, ioType } = this.state;
 		console.log('mouseup');
 
 		if(mouseMoved && dragTarget) {
 			this.props.dispatch({type: ActionTypes.DESK_ITEM_MOVE, id: dragTarget.id, position: dragTarget.position});
+		}else if(wireFrom && wireTo && wireToValid) {
+			const output = getByKey(desk, ioType == 'output' ? wireFrom.parent.id : wireTo.parent.id);
+			const input = getByKey(desk, ioType == 'output' ? wireTo.parent.id : wireFrom.parent.id);
+			this.props.dispatch(connectWire(output, input, wireType));
 		}
 
 		this.setState({

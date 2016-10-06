@@ -66,12 +66,12 @@ export default class DeskItem extends Component {
 		this.node.addChild(label);
 
 		if(props.audioInput) {
-			this.node.audioInputNode = this.createNodeIO('audio', 'input', 0, props.height/2);
+			this.node.audioInputNode = this.createNodeIO('Audio Input', 'audio', 'input', 0, props.height/2);
 			this.node.addChild(this.node.audioInputNode);
 		}
 
 		if(props.audioOutput) {
-			this.node.audioOutputNode = this.createNodeIO('audio', 'output', props.width, props.height/2);
+			this.node.audioOutputNode = this.createNodeIO('Audio Output', 'audio', 'output', props.width, props.height/2);
 			this.node.addChild(this.node.audioOutputNode);
 		}
 
@@ -79,13 +79,14 @@ export default class DeskItem extends Component {
 			this.node.dataInputNodes = [];
 			const xPart = (props.width - props.padding*2)/(props.params.length-1);
 			for(let i = 0; i < props.params.length; i ++) {
+				const param = props.params[i];
 				const x = props.padding + (i * xPart);
 				let io = null;
 				switch(props.type) {
 					case DeskItemTypes.FX: io = 'input'; break;
 					case DeskItemTypes.OSCILLATOR: io = 'output'; break;
 				}
-				const dataInputNode = this.createNodeIO('data', io, x, props.height);
+				const dataInputNode = this.createNodeIO(param.label, 'data', io, x, props.height);
 				this.node.addChild(dataInputNode);
 				this.node.dataInputNodes.push(dataInputNode);
 			}
@@ -93,7 +94,7 @@ export default class DeskItem extends Component {
 
 		if(props.dataOutput) {
 			this.node.dataOutputNodes = [];
-			const dataOutputNode = this.createNodeIO('data', 'output', props.width/2, 0);
+			const dataOutputNode = this.createNodeIO('[Data Output]', 'data', 'output', props.width/2, 0);
 			this.node.addChild(dataOutputNode);
 			this.node.dataOutputNodes.push(dataOutputNode);
 		}
@@ -110,7 +111,7 @@ export default class DeskItem extends Component {
 		label.on('mousedown', event => { props.onRename(); event.stopPropagation(); });
 	}
 
-	createNodeIO(type, io, x, y) {
+	createNodeIO(label, type, io, x, y) {
 		let color = '#ffffff';
 		switch(type) {
 			case 'audio': color = (io == 'input' ? Style.primary : Style.primaryLight); break;
