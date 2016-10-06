@@ -1,4 +1,5 @@
 export const FX = 'FX'
+export const BUS = 'BUS'
 export const SYNTH = 'SYNTH'
 export const MASTER = 'MASTER'
 export const OSCILLATOR = 'OSCILLATOR'

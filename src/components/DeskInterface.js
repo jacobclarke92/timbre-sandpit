@@ -6,9 +6,12 @@ import $ from 'jquery'
 import Point from '../Point'
 import { addResizeCallback, removeResizeCallback, getScreenWidth, getScreenHeight, getPixelDensity } from '../utils/screenUtils'
 import { clamp, inBounds } from '../utils/mathUtils'
+import { getByKey } from '../utils/arrayUtils'
 
+import FX from '../constants/fx'
 import * as UiViews from '../constants/uiViews'
 import * as ActionTypes from '../constants/actionTypes'
+import * as DeskItemTypes from '../constants/deskItemTypes'
 
 import DeskInterfaceRenderer from './pixi/DeskInterfaceRenderer'
 import InterfaceStage from './pixi/InterfaceStage'
@@ -46,8 +49,11 @@ class DeskInterface extends Component {
 			mouseDown: false,
 			mouseMoved: false,
 			overIO: false,
-			ioFrom: null,
-			ioTo: null,
+			wireFrom: null,
+			wireTo: null,
+			wireToValid: false,
+			ioType: null,
+			wireType: null,
 			dragTarget: null,
 			activeTarget: null,
 		};
@@ -114,8 +120,11 @@ class DeskInterface extends Component {
 		this.setState({
 			mouseDown: false,
 			dragTarget: null,
-			ioFrom: null,
-			ioTo: null,
+			wireFrom: null,
+			wireTo: null,
+			wireToValid: false,
+			ioType: null,
+			wireType: null,
 		});
 	}
 
@@ -170,13 +179,25 @@ class DeskInterface extends Component {
 		});
 	}
 
-	handlePointerDownIO(event, deskItem) {
+	handleOverIO(event, deskItem, wireType, ioType) {
+		this.setState({overIO: !!wireType});
+		if(this.state.wireFrom) {
+			this.setState({
+				wireTo: !wireType ? null : event.target,
+				wireToValid: (this.state.wireType == wireType && this.state.ioType != ioType),
+			});
+		}
+	}
+
+	handlePointerDownIO(event, deskItem, wireType, ioType) {
 		event.stopPropagation();
 		this.setState({
 			mouseMoved: false,
 			mouseDown: true,
-			ioFrom: event.target,
-		})
+			wireFrom: event.target,
+			wireType,
+			ioType,
+		});
 	}
 
 	handleRename(deskItem) {
@@ -184,13 +205,8 @@ class DeskInterface extends Component {
 		if(name) this.props.dispatch({type: ActionTypes.DESK_ITEM_RENAME, id: deskItem.id, name});
 	}
 
-	handleOverIO(event, deskItem, type) {
-		this.setState({overIO: type});
-		if(this.state.ioFrom) this.setState({ioTo: !type ? null : event.target});
-	}
-
 	render() {
-		const { width, height, aimScale, pointer, stagePointer, stagePosition, dragTarget, mouseDown, ioFrom, ioTo } = this.state;
+		const { width, height, aimScale, pointer, stagePointer, stagePosition, dragTarget, mouseDown, wireFrom, wireTo, wireToValid } = this.state;
 		const { fx, synths, desk } = this.props;
 		return (
 			<DeskInterfaceRenderer 
@@ -205,29 +221,39 @@ class DeskInterface extends Component {
 					pointer={pointer}
 					stagePointer={stagePointer}
 					position={stagePosition}
-					panning={!dragTarget && !ioFrom && mouseDown}
+					panning={!dragTarget && !wireFrom && mouseDown}
 					onMouseMove={this.handlePointerMove} 
 					onPointerDown={this.handlePointerDown} 
 					onPointerUp={this.handlePointerUp}>
 
-					{ioFrom && 
+					{wireFrom && 
 						<DeskWire 
 							key="active_wire" 
-							from={{x: ioFrom.parent.position.x + (ioFrom.type == 'output' ? 200 : 0), y: ioFrom.parent.position.y + 100}} 
-							to={ioTo ? {x: ioTo.parent.position.x + (ioTo.type == 'output' ? 200 : 0), y: ioTo.parent.position.y + 100} : stagePointer} 
+							from={{x: wireFrom.parent.position.x + wireFrom.position.x, y: wireFrom.parent.position.y + wireFrom.position.y}} 
+							to={(wireTo && wireToValid) ? {x: wireTo.parent.position.x + wireTo.position.x, y: wireTo.parent.position.y + wireTo.position.y} : stagePointer} 
 							desk={desk} />
 					}
 
-					{desk.map((deskItem, i) => 
-						<DeskItem 
-							key={i} 
-							{...deskItem} 
-							onRename={() => this.handleRename(deskItem)}
-							onOverIO={(event, type) => this.handleOverIO(event, deskItem, type)} 
-							onPointerDown={event => this.handleItemPointerDown(event, deskItem)}
-							onPointerUp={event => null/*this.handleItemPointerUp(deskItem)*/}
-							onPointerDownIO={event => this.handlePointerDownIO(event, deskItem)} />
-					)}
+					{desk.map((deskItem, i) => {
+						let params = [];
+						let owner = null;
+						if(deskItem.type == DeskItemTypes.FX) {
+							owner = getByKey(fx, deskItem.owner_id);
+							params = FX[owner.type].params || [];
+						}
+						return (
+							<DeskItem 
+								key={i} 
+								{...deskItem}
+								owner={owner}
+								params={params}
+								onRename={() => this.handleRename(deskItem)}
+								onPointerDown={event => this.handleItemPointerDown(event, deskItem)}
+								onPointerUp={event => null/*this.handleItemPointerUp(deskItem)*/}
+								onOverIO={(event, wireType, ioType) => this.handleOverIO(event, deskItem, wireType, ioType)} 
+								onPointerDownIO={(event, wireType, ioType) => this.handlePointerDownIO(event, deskItem, wireType, ioType)} />
+						)
+					})}
 
 				</InterfaceStage>
 

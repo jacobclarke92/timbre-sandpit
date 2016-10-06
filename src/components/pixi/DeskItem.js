@@ -5,8 +5,11 @@ import SVGGraphics from 'pixi-svg-graphics'
 import $ from 'jquery'
 
 import Icons from '../../constants/icons'
-import { getPixelDensity } from '../../utils/screenUtils'
+import Style from '../../constants/style'
 import * as DeskItemTypes from '../../constants/deskItemTypes'
+
+import { getPixelDensity } from '../../utils/screenUtils'
+import { hexToDec } from '../../utils/stringUtils'
 
 const icons = {
 	[DeskItemTypes.OSCILLATOR]: 'waveform',
@@ -21,6 +24,10 @@ export default class DeskItem extends Component {
 		color: '#222222',
 		backgroundColor: '#eeeeee',
 		borderRadius: 10,
+		params: [],
+		width: 200,
+		height: 200,
+		padding: 30,
 	};
 
 	constructor(props) {
@@ -39,16 +46,17 @@ export default class DeskItem extends Component {
 			align: 'center',
 			fill: props.color,
 			wordWrap: true,
-			wordWrapWidth: 190,
+			wordWrapWidth: props.width-10,
 		});
 		label.scale.set(1/getPixelDensity());
 		label.anchor.set(0.5);
-		label.position = {x: 100, y: 170};
+		label.position = {x: props.width*0.5, y: props.height*0.85};
 		label.interactive = true;
 		label.buttonMode = true;
 		icon.position = {x: 20, y: 5};
 
 		this.node.id = props.id;
+		this.node.owner_id = props.owner_id;
 		this.node.icon = icon;
 		this.node.graphic = graphic;
 		this.node.label = label;
@@ -58,13 +66,28 @@ export default class DeskItem extends Component {
 		this.node.addChild(label);
 
 		if(props.input) {
-			this.node.inputNode = this.createNodeIO('input');
+			this.node.inputNode = this.createNodeIO('audio', 'input', 0, props.height/2);
 			this.node.addChild(this.node.inputNode);
 		}
 
 		if(props.output) {
-			this.node.outputNode = this.createNodeIO('output');
+			if(props.type == DeskItemTypes.OSCILLATOR) this.node.outputNode = this.createNodeIO('data', 'output', props.width/2, 0);
+			else this.node.outputNode = this.createNodeIO('audio', 'output', props.width, props.height/2);
 			this.node.addChild(this.node.outputNode);
+		}
+
+		this.node.paramNodes = [];
+		const xPart = (props.width - props.padding*2)/(props.params.length-1);
+		for(let i = 0; i < props.params.length; i ++) {
+			const x = props.padding + (i * xPart);
+			let io = null;
+			switch(props.type) {
+				case DeskItemTypes.FX: io = 'input'; break;
+				case DeskItemTypes.OSCILLATOR: io = 'output'; break;
+			}
+			const paramNode = this.createNodeIO('data', io, x, props.height);
+			this.node.addChild(paramNode);
+			this.node.paramNodes.push(paramNode);
 		}
 
 		this.node.inited = false;
@@ -79,19 +102,27 @@ export default class DeskItem extends Component {
 		label.on('mousedown', event => { props.onRename(); event.stopPropagation(); });
 	}
 
-	createNodeIO(type) {
+	createNodeIO(type, io, x, y) {
+		let color = '#ffffff';
+		switch(type) {
+			case 'audio': color = (io == 'input' ? Style.primary : Style.primaryLight); break;
+			case 'data': color = (io == 'input' ? Style.secondary : Style.secondaryLight); break;
+		}
+		color = hexToDec(color);
 		const ioNode = new Graphics();
-		ioNode.beginFill(type == 'output' ? 0xC0FDFB : 0xFEE9E1);
-		ioNode.drawCircle(type == 'output' ? 200 : 0, 100, 15);
+		ioNode.position = {x, y};
+		ioNode.beginFill(color);
+		ioNode.drawCircle(0, 0, 15);
 		ioNode.cacheAsBitmap = true;
 		ioNode.interactive = true;
 		ioNode.buttonMode = true;
 		ioNode.pivot.set(0.5);
+		ioNode.io = io;
 		ioNode.type = type;
-		ioNode.on('mouseover', event => { ioNode.alpha = 0.9; this.props.onOverIO(event, type) });
+		ioNode.on('mouseover', event => { ioNode.alpha = 0.9; this.props.onOverIO(event, type, io) });
 		ioNode.on('mouseout', event => { ioNode.alpha = 1; this.props.onOverIO(event, null) });
-		ioNode.on('mousedown', this.props.onPointerDownIO);
-		ioNode.on('touchstart', this.props.onPointerDownIO);
+		ioNode.on('mousedown', event => this.props.onPointerDownIO(event, type, io));
+		ioNode.on('touchstart', event => this.props.onPointerDownIO(event, type, io));
 		return ioNode;
 	}
 
@@ -100,17 +131,14 @@ export default class DeskItem extends Component {
 		this.node.graphic.cacheAsBitmap = false;
 		this.node.graphic.clear();
 		this.node.graphic.beginFill(eval(props.backgroundColor.replace('#', '0x')));
-		this.node.graphic.drawRoundedRect(0, 0, 200, 200, props.borderRadius);
+		this.node.graphic.drawRoundedRect(0, 0, props.width, props.height, props.borderRadius);
 		this.node.graphic.cacheAsBitmap = true;
 
-		// this.node.icon.cacheAsBitmap = false;
 		this.node.icon.scale.set(6);
 		SVGGraphics.drawSVG(this.node.icon, this.$icon[0]);
 		const iconBounds = this.node.icon.getBounds();
-		this.node.icon.scale.set(100/iconBounds.height);//, 100/iconBounds.height);
+		this.node.icon.scale.set(100/iconBounds.height);
 		this.node.icon.position.x = 50;
-		// this.node.icon.cacheAsBitmap = true;
-		
 
 		this.node.label.text = props.name || 'Master';
 	}
