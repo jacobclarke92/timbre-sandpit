@@ -99,43 +99,6 @@ class DeskInterface extends Component {
 		}
 	}
 
-	handlePointerDown(event) {
-		if(this.props.gui.view != UiViews.DESK) return;
-		console.log('mousedown');
-		this.setState({
-			mouseDown: true,
-			mouseMoved: false,
-			dragTarget: null,
-			mouseDownPosition: new Point(event.data.originalEvent.clientX, event.data.originalEvent.clientY - this.state.offsetY),
-		});
-	}
-
-	handlePointerUp(event) {
-		if(this.props.gui.view != UiViews.DESK) return;
-		const { desk } = this.props;
-		const { mouseMoved, dragTarget, wireFrom, wireTo, wireToValid, wireType, ioType } = this.state;
-		console.log('mouseup');
-
-		if(mouseMoved && dragTarget) {
-			this.props.dispatch({type: ActionTypes.DESK_ITEM_MOVE, id: dragTarget.id, position: dragTarget.position});
-		}else if(wireFrom && wireTo && wireToValid) {
-			const output = getByKey(desk, ioType == 'output' ? wireFrom.parent.id : wireTo.parent.id);
-			const input = getByKey(desk, ioType == 'output' ? wireTo.parent.id : wireFrom.parent.id);
-			this.props.dispatch(connectWire(wireType, output, input));
-		}
-
-		this.setState({
-			mouseDown: false,
-			dragTarget: null,
-			wireFrom: null,
-			wireTo: null,
-			wireToValid: false,
-			ioType: null,
-			wireType: null,
-			selectedWire: null,
-		});
-	}
-
 	handlePointerMove(event) {
 		if(this.props.gui.view != UiViews.DESK) return;
 		const { snapping } = this.props.gui;
@@ -175,6 +138,45 @@ class DeskInterface extends Component {
 				}
 			}
 		}
+	}
+
+	handlePointerDown(event) {
+		if(this.props.gui.view != UiViews.DESK) return;
+		console.log('mousedown');
+		this.setState({
+			mouseDown: true,
+			mouseMoved: false,
+			dragTarget: null,
+			mouseDownPosition: new Point(event.data.originalEvent.clientX, event.data.originalEvent.clientY - this.state.offsetY),
+		});
+	}
+
+	handlePointerUp(event) {
+		if(this.props.gui.view != UiViews.DESK) return;
+		const { desk } = this.props;
+		const { mouseMoved, dragTarget, wireFrom, wireTo, wireToValid, wireType, ioType } = this.state;
+		console.log('mouseup');
+
+		if(mouseMoved && dragTarget) {
+			this.props.dispatch({type: ActionTypes.DESK_ITEM_MOVE, id: dragTarget.id, position: dragTarget.position});
+		}else if(wireFrom && wireTo && wireToValid) {
+			const outputNode = ioType == 'output' ? wireFrom : wireTo;
+			const inputNode = ioType == 'output' ? wireTo : wireFrom;
+			const output = getByKey(desk, outputNode.parent.id);
+			const input = getByKey(desk, inputNode.parent.id);
+			this.props.dispatch(connectWire(wireType, output, input, outputNode, inputNode));
+		}
+
+		this.setState({
+			mouseDown: false,
+			dragTarget: null,
+			wireFrom: null,
+			wireTo: null,
+			wireToValid: false,
+			ioType: null,
+			wireType: null,
+			selectedWire: null,
+		});
 	}
 
 	handleItemPointerDown(event, deskItem) {
@@ -225,22 +227,24 @@ class DeskInterface extends Component {
 		const { desk } = this.props;
 		const connections = [];
 		for(let fromItem of desk) {
-			if(fromItem.audioOutput) fromItem.audioOutputIds.forEach(outputId => {
+			if(fromItem.audioOutput) Object.keys(fromItem.audioOutputs).forEach(outputId => {
+				const wire = fromItem.audioOutputs[outputId];
 				const toItem = getByKey(desk, outputId, 'ownerId');
 				if(toItem) connections.push({
 					type: 'audio',
 					id: fromItem.ownerId+'___'+toItem.ownerId,
-					from: {x: fromItem.position.x + 200, y: fromItem.position.y + 100},
-					to: {x: toItem.position.x, y: toItem.position.y + 100},
+					from: {x: fromItem.position.x + wire.outputPosition.x, y: fromItem.position.y + wire.outputPosition.y},
+					to: {x: toItem.position.x + wire.inputPosition.x, y: toItem.position.y + wire.inputPosition.y},
 				});
 			});
-			if(fromItem.dataOutput) fromItem.dataOutputIds.forEach(outputId => {
+			if(fromItem.dataOutput) Object.keys(fromItem.dataOutputs).forEach(outputId => {
+				const wire = fromItem.dataOutputs[outputId];
 				const toItem = getByKey(desk, outputId, 'ownerId');
 				if(toItem) connections.push({
 					type: 'data',
 					id: fromItem.ownerId+'___'+toItem.ownerId,
-					from: {x: fromItem.position.x + 200, y: fromItem.position.y + 100},
-					to: {x: toItem.position.x, y: toItem.position.y + 100},
+					from: {x: fromItem.position.x + wire.outputPosition.x, y: fromItem.position.y + wire.outputPosition.y},
+					to: {x: toItem.position.x + wire.inputPosition.x, y: toItem.position.y + wire.inputPosition.y},
 				});
 			});
 		}

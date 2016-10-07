@@ -14,21 +14,21 @@ const defaultDeskItems = {
 	[DeskItemTypes.BUS]: {
 		audioInput: true,
 		audioOutput: true,
-		audioOutputIds: [],
+		audioOutputs: {},
 		dataInput: false,
 		dataOutput: false,
 	},
 	[DeskItemTypes.SYNTH]: {
 		audioInput: false,
 		audioOutput: true,
-		audioOutputIds: [],
+		audioOutputs: {},
 		dataInput: true,
 		dataOutput: false,
 	},
 	[DeskItemTypes.FX]: {
 		audioInput: true,
 		audioOutput: true,
-		audioOutputIds: [],
+		audioOutputs: {},
 		dataInput: true,
 		dataOutput: false,
 	},
@@ -37,7 +37,7 @@ const defaultDeskItems = {
 		audioOutput: false,
 		dataInput: false,
 		dataOutput: true,
-		dataOutputIds: [],
+		dataOutputs: {},
 	},
 }
 
@@ -57,7 +57,7 @@ let initialState = [
 		name: 'Example Synth',
 		ownerId: 'init_synth',
 		type: DeskItemTypes.SYNTH,
-		audioOutputIds: ['init_fx'],
+		audioOutputs: {init_fx: {outputPosition: {x: 200, y: 100}, inputPosition: {x: 0, y: 100}}},
 		position: {
 			x: 0,
 			y: 0,
@@ -68,7 +68,7 @@ let initialState = [
 		name: 'Example FX',
 		ownerId: 'init_fx',
 		type: DeskItemTypes.FX,
-		audioOutputIds: ['master'],
+		audioOutputs: {master: {outputPosition: {x: 200, y: 100}, inputPosition: {x: 0, y: 100}}},
 		position: {
 			x: 250,
 			y: 0,
@@ -102,10 +102,23 @@ export default function(state = localStore.get('desk') || initialState, action) 
 			break;
 
 		case ActionTypes.DESK_CONNECT_WIRE:
+			console.log(action);
 			return state.map(item => {
-				if(item.id === action.output.id) {
-					if(item[action.wireType+'OutputIds'].indexOf(action.input.ownerId) < 0) {
-						item[action.wireType+'OutputIds'].push(action.input.ownerId);
+				if(item.ownerId === action.output.ownerId) {
+					const outputs = item[action.wireType+'Outputs'];
+					if(Object.keys(outputs).indexOf(action.input.ownerId) < 0) {
+						// there was some issue with mutability so i just return a new object
+						return {
+							...item, 
+							[action.wireType+'Outputs']: {
+								...outputs, 
+								[action.input.ownerId]: {
+									inputParam: action.inputParam,
+									outputPosition: action.outputPosition, 
+									inputPosition: action.inputPosition
+								}
+							}
+						}
 					}
 				}
 				return item;
@@ -115,6 +128,14 @@ export default function(state = localStore.get('desk') || initialState, action) 
 	return state;
 }
 
-export function connectWire(wireType, output, input) {
-	return {type: ActionTypes.DESK_CONNECT_WIRE, output, input, wireType};
+export function connectWire(wireType, output, input, outputNode, inputNode) {
+	return {
+		type: ActionTypes.DESK_CONNECT_WIRE, 
+		output, 
+		input, 
+		wireType,
+		outputPosition: outputNode.position,
+		inputPosition: inputNode.position,
+		inputParam: inputNode.param || null,
+	}
 }

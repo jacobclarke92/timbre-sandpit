@@ -87,6 +87,7 @@ export default class DeskItem extends Component {
 					case DeskItemTypes.OSCILLATOR: io = 'output'; break;
 				}
 				const dataInputNode = this.createNodeIO(param.label, 'data', io, x, props.height);
+				dataInputNode.param = param;
 				this.node.addChild(dataInputNode);
 				this.node.dataInputNodes.push(dataInputNode);
 			}
