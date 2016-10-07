@@ -55,6 +55,7 @@ class DeskInterface extends Component {
 			wireToValid: false,
 			ioType: null,
 			wireType: null,
+			selectedWire: null,
 			dragTarget: null,
 			activeTarget: null,
 		};
@@ -120,7 +121,7 @@ class DeskInterface extends Component {
 		}else if(wireFrom && wireTo && wireToValid) {
 			const output = getByKey(desk, ioType == 'output' ? wireFrom.parent.id : wireTo.parent.id);
 			const input = getByKey(desk, ioType == 'output' ? wireTo.parent.id : wireFrom.parent.id);
-			this.props.dispatch(connectWire(output, input, wireType));
+			this.props.dispatch(connectWire(wireType, output, input));
 		}
 
 		this.setState({
@@ -131,6 +132,7 @@ class DeskInterface extends Component {
 			wireToValid: false,
 			ioType: null,
 			wireType: null,
+			selectedWire: null,
 		});
 	}
 
@@ -219,9 +221,38 @@ class DeskInterface extends Component {
 		if(name) this.props.dispatch({type: ActionTypes.DESK_ITEM_RENAME, id: deskItem.id, name});
 	}
 
+	getDeskConnections() {
+		const { desk } = this.props;
+		const connections = [];
+		for(let fromItem of desk) {
+			if(fromItem.audioOutput) fromItem.audioOutputIds.forEach(outputId => {
+				const toItem = getByKey(desk, outputId, 'ownerId');
+				if(toItem) connections.push({
+					type: 'audio',
+					id: fromItem.ownerId+'___'+toItem.ownerId,
+					from: {x: fromItem.position.x + 200, y: fromItem.position.y + 100},
+					to: {x: toItem.position.x, y: toItem.position.y + 100},
+				});
+			});
+			if(fromItem.dataOutput) fromItem.dataOutputIds.forEach(outputId => {
+				const toItem = getByKey(desk, outputId, 'ownerId');
+				if(toItem) connections.push({
+					type: 'data',
+					id: fromItem.ownerId+'___'+toItem.ownerId,
+					from: {x: fromItem.position.x + 200, y: fromItem.position.y + 100},
+					to: {x: toItem.position.x, y: toItem.position.y + 100},
+				});
+			});
+		}
+		return connections;
+	}
+
 	render() {
-		const { width, height, aimScale, pointer, stagePointer, stagePosition, dragTarget, mouseDown, wireFrom, wireTo, wireToValid } = this.state;
+		const { width, height, aimScale, pointer, stagePointer, stagePosition, dragTarget, mouseDown, wireFrom, wireTo, wireToValid, selectedWire } = this.state;
 		const { fx, synths, desk } = this.props;
+
+		const connections = this.getDeskConnections(); // todo only update on desk updates
+
 		return (
 			<DeskInterfaceRenderer 
 				ref="renderer" 
@@ -240,13 +271,23 @@ class DeskInterface extends Component {
 					onPointerDown={this.handlePointerDown} 
 					onPointerUp={this.handlePointerUp}>
 
+					{connections.map(wire => 
+						<DeskWire
+							key={wire.id}
+							from={wire.from}
+							to={wire.to}
+							selected={selectedWire == wire.id}
+							onSelect={event => this.setState({selectedWire: wire.id})} />
+					)}
+
 					{wireFrom && 
 						<DeskWire 
-							key="active_wire" 
+							key="active_wire"
+							isLive={true}
 							valid={wireToValid}
 							from={{x: wireFrom.parent.position.x + wireFrom.position.x, y: wireFrom.parent.position.y + wireFrom.position.y}} 
 							to={(wireTo && wireToValid) ? {x: wireTo.parent.position.x + wireTo.position.x, y: wireTo.parent.position.y + wireTo.position.y} : stagePointer} 
-							desk={desk} />
+							/>
 					}
 
 					{desk.map((deskItem, i) => {

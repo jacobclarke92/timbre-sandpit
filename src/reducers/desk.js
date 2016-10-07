@@ -102,12 +102,19 @@ export default function(state = localStore.get('desk') || initialState, action) 
 			break;
 
 		case ActionTypes.DESK_CONNECT_WIRE:
-			console.log(action);
+			return state.map(item => {
+				if(item.id === action.output.id) {
+					if(item[action.wireType+'OutputIds'].indexOf(action.input.ownerId) < 0) {
+						item[action.wireType+'OutputIds'].push(action.input.ownerId);
+					}
+				}
+				return item;
+			});
 			break;
 	}
 	return state;
 }
 
-export function connectWire(output, input, wireType) {
+export function connectWire(wireType, output, input) {
 	return {type: ActionTypes.DESK_CONNECT_WIRE, output, input, wireType};
 }
