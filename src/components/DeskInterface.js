@@ -8,6 +8,7 @@ import { addResizeCallback, removeResizeCallback, getScreenWidth, getScreenHeigh
 import { addKeyListener, removeKeyListener } from '../utils/keyUtils'
 import { clamp, inBounds } from '../utils/mathUtils'
 import { getByKey } from '../utils/arrayUtils'
+import newId from '../utils/newId'
 
 import FX from '../constants/fx'
 import * as UiViews from '../constants/uiViews'
@@ -165,8 +166,8 @@ class DeskInterface extends Component {
 
 	handlePointerUp(event) {
 		if(this.props.gui.view != UiViews.DESK) return;
-		const { desk } = this.props;
-		const { mouseMoved, dragTarget, wireFrom, wireTo, wireToValid, wireType, ioType } = this.state;
+		const { gui, desk } = this.props;
+		const { mouseMoved, dragTarget, wireFrom, wireTo, wireToValid, wireType, ioType, stagePointer } = this.state;
 		console.log('mouseup');
 
 		if(mouseMoved && dragTarget) {
@@ -177,6 +178,13 @@ class DeskInterface extends Component {
 			const output = getByKey(desk, outputNode.parent.id);
 			const input = getByKey(desk, inputNode.parent.id);
 			this.props.dispatch(connectWire(wireType, output, input, outputNode, inputNode));
+		}else if(!mouseMoved && gui.tool == ToolTypes.DESK_FX_EDIT && gui.toolSettings.fxType) {
+			this.props.dispatch({
+				id: gui.toolSettings.fxType+'_'+newId(),
+				type: ActionTypes.ADD_FX, 
+				fxType: gui.toolSettings.fxType, 
+				position: stagePointer,
+			});
 		}
 
 		this.setState({

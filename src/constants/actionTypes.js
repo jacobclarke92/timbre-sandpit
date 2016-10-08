@@ -47,7 +47,10 @@ export const UPDATE_OSCILLATOR = 'UPDATE_OSCILLATOR'
 export const ADD_SYNTH = 'ADD_SYNTH'
 export const REMOVE_SYNTH = 'REMOVE_SYNTH'
 export const UPDATE_SYNTH = 'UPDATE_SYNTH'
-export const REPOSITION_SYNTH = 'REPOSITION_SYNTH'
+
+export const ADD_FX = 'ADD_FX'
+export const REMOVE_FX = 'REMOVE_FX'
+export const UPDATE_FX = 'UPDATE_FX'
 
 export const SET_ACTIVE_NODE = 'SET_ACTIVE_NODE'
 export const CLEAR_ACTIVE_NODE = 'CLEAR_ACTIVE_NODE'

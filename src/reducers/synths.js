@@ -27,10 +27,6 @@ export default function(state = localStore.get('synths') || initialState, action
 			return state.map(synth => synth.id == action.synth.id ? action.synth : synth);
 			break;
 
-		case ActionTypes.REPOSITION_SYNTH:
-			return state.map(synth => synth.id == action.synthId ? {...synth, position: action.position} : synth);
-			break;
-
 	}
 	return state;
 }

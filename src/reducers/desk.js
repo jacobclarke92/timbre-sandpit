@@ -137,6 +137,21 @@ export default function(state = localStore.get('desk') || initialState, action) 
 				return item;
 			})
 			break;
+
+		case ActionTypes.ADD_FX:
+			return [...state, {
+				id: newId(),
+				name: action.fxType,
+				ownerId: action.id,
+				type: DeskItemTypes.FX,
+				position: action.position,
+				...defaultDeskItems[DeskItemTypes.FX],
+			}]
+			break;
+
+		case ActionTypes.REMOVE_FX:
+			return state.filter(item => item.ownerId != action.id);
+			break;
 	}
 	return state;
 }
