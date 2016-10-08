@@ -11,6 +11,7 @@ import { getByKey } from '../utils/arrayUtils'
 
 import FX from '../constants/fx'
 import * as UiViews from '../constants/uiViews'
+import * as ToolTypes from '../constants/toolTypes'
 import * as ActionTypes from '../constants/actionTypes'
 import * as DeskItemTypes from '../constants/deskItemTypes'
 import { connectWire } from '../reducers/desk'
@@ -20,6 +21,7 @@ import InterfaceStage from './pixi/InterfaceStage'
 import Container from './pixi/Container'
 import DeskItem from './pixi/DeskItem'
 import DeskWire from './pixi/DeskWire'
+import DeskItemOutline from './pixi/DeskItemOutline'
 
 const mouseMoveThrottle = 1000/50; // 50fps
 const scrollwheelThrottle = 1000/50; // 50fps
@@ -286,7 +288,7 @@ class DeskInterface extends Component {
 
 	render() {
 		const { width, height, aimScale, pointer, stagePointer, stagePosition, dragTarget, mouseDown, wireFrom, wireTo, wireToValid, selectedWire } = this.state;
-		const { fx, synths, desk } = this.props;
+		const { gui, fx, synths, desk } = this.props;
 
 		const connections = this.getDeskConnections(); // todo only update on desk updates
 
@@ -325,6 +327,10 @@ class DeskInterface extends Component {
 							from={{x: wireFrom.parent.position.x + wireFrom.position.x, y: wireFrom.parent.position.y + wireFrom.position.y}} 
 							to={(wireTo && wireToValid) ? {x: wireTo.parent.position.x + wireTo.position.x, y: wireTo.parent.position.y + wireTo.position.y} : stagePointer} 
 							/>
+					}
+
+					{gui.tool == ToolTypes.DESK_FX_EDIT && 
+						<DeskItemOutline key="fx_outline" position={stagePointer} lineWidth={aimScale} />
 					}
 
 					{desk.map((deskItem, i) => {

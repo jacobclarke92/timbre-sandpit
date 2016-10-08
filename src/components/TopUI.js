@@ -2,13 +2,13 @@ import React, { Component } from 'react'
 import { connect } from 'react-redux'
 import Select from 'react-select'
 
-import FX from '../constants/fx'
 import icons from '../constants/icons'
 import modes from '../constants/modes'
 import noteStrings from '../constants/noteStrings'
 import { modePrefixes } from '../constants/hookTheory'
 import * as ActionTypes from '../constants/actionTypes'
 import * as NodeTypes from '../constants/nodeTypes'
+import * as ToolTypes from '../constants/toolTypes'
 import * as UiViews from '../constants/uiViews'
 import { changeView, changeTool } from '../reducers/gui'
 
@@ -24,8 +24,8 @@ const hookTheoryModes = Object.keys(modePrefixes);
 const views = [
 	{type: UiViews.STAGE, icon: 'stage', label: 'Stage'},
 	{type: UiViews.CHORDS, icon: 'piano', label: 'Chords'},
-	{type: UiViews.OSCILLATORS, icon: 'waveform', label: 'Oscillators'},
-	{type: UiViews.MAPPINGS, icon: 'list', label: 'Mappings'},
+	{type: UiViews.OSCILLATORS, icon: 'waveform', label: 'Oscs'},
+	// {type: UiViews.MAPPINGS, icon: 'list', label: 'Mappings'},
 	{type: UiViews.DESK, icon: 'note', label: 'Desk'},
 ];
 
@@ -36,7 +36,10 @@ const tools = {
 		{type: NodeTypes.POINT_NODE, icon: 'action-add', label: 'Point Node'},
 		{type: NodeTypes.ARC_NODE, icon: 'arc', label: 'Arc Node'},
 	],
-	[UiViews.DESK]: Object.keys(FX).map(key => ({type: key, icon: FX[key].icon, label: FX[key].title})),
+	[UiViews.DESK]: [
+		{type: ToolTypes.DESK_EDIT, icon: 'stage', label: 'Desk Edit'},
+		{type: ToolTypes.DESK_FX_EDIT, icon: 'waveform', label: 'Effects'},
+	],
 };
 
 class TopUI extends Component {
@@ -101,7 +104,7 @@ class TopUI extends Component {
 						</label>
 						<label>
 							Mode: 
-							<Select value={modeString} onChange={({value}) => this.handleModeChange(value)} clearable={false} options={this.getModeOptions()} style={{width: 160}} />
+							<Select value={modeString} onChange={({value}) => this.handleModeChange(value)} clearable={false} options={this.getModeOptions()} style={{width: 140}} />
 						</label>
 						<label>
 							Scale: 

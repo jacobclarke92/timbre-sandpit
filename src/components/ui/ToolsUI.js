@@ -2,15 +2,19 @@ import React, { Component } from 'react'
 import { connect } from 'react-redux'
 import classname from 'classname'
 
+import FX from '../../constants/fx'
 import noteColors from '../../constants/noteColors'
 import noteStrings from '../../constants/noteStrings'
 import * as UiViews from '../../constants/uiViews'
 import * as NodeTypes from '../../constants/nodeTypes'
+import * as ToolTypes from '../../constants/toolTypes'
 import { RANDOM, UP, DOWN, NOTE } from '../../constants/noteTypes'
 import { changeToolSetting, changeToolSettings } from '../../reducers/gui'
 import { addKeyListener, removeKeyListener } from '../../utils/keyUtils'
 
 import ButtonIcon from './ButtonIcon'
+
+const fxKeys = Object.keys(FX);
 
 class PointNodeTools extends Component {
 
@@ -82,8 +86,30 @@ class PointNodeTools extends Component {
 	}
 }
 
+class DeskFxTools extends Component {
+	render() {
+		const { dispatch } = this.props;
+		const { fxType } = this.props.gui.toolSettings || {};
+		return (
+			<div>
+				{fxKeys.map(key => 
+					<ButtonIcon 
+						key={key} 
+						icon={FX[key].icon} 
+						selected={fxType == key} 
+						data-label={FX[key].title} 
+						onClick={() => dispatch(changeToolSetting('fxType', key))} />
+				)}
+			</div>
+		)
+	}
+}
+
 export default {
 	[UiViews.STAGE]: {
 		[NodeTypes.POINT_NODE]: connect(({gui, musicality}) => ({gui, musicality}))(PointNodeTools),
 	},
+	[UiViews.DESK]: {
+		[ToolTypes.DESK_FX_EDIT]: connect(({gui, fx}) => ({gui, fx}))(DeskFxTools),
+	}
 }
