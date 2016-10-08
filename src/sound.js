@@ -58,6 +58,14 @@ function receivedState() {
 	}
 	// todo: clean up old synth instances -- e.g. if deleted
 	
+	// init any new effects
+	for(let effect of fx) {
+		if(!FXs[effect.id] && effect.type in Tone) {
+			const deskEffect = getByKey(desk, effect.id, 'ownerId');
+			FXs[effect.id] = new Tone[effect.type](effect.params);
+			connectAudioWires(FXs[effect.id], effect.id);
+		}
+	}
 
 	// checks all connections and rewires if needed
 	for(let deskItem of desk) {
@@ -69,7 +77,7 @@ function receivedState() {
 					connectAudioWires(FXs[deskItem.ownerId], deskItem.ownerId, true);	
 				}else if(deskItem.type == DeskItemTypes.SYNTH) {
 					console.log('Updating synth '+deskItem.ownerId+' output connections');
-					Synths[deskItem.ownerId].forEach(synth => connectAudioWires(synth, deskItem.ownerId));
+					Synths[deskItem.ownerId].forEach(synth => connectAudioWires(synth, deskItem.ownerId, true));
 				}
 				
 			}
@@ -99,6 +107,7 @@ export function connectAllWires() {
 }
 
 export function connectAudioWires(source, id, disconnectFirst = false) {
+	if(!source) console.warn('no source to connect from', source, id, FXs);
 	if(!source || !id) return;
 	
 	const { desk } = store.getState();

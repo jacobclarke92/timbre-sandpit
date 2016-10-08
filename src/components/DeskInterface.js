@@ -62,6 +62,7 @@ class DeskInterface extends Component {
 			ioType: null,
 			wireType: null,
 			selectedWire: null,
+			selectedDeskItem: null,
 			dragTarget: null,
 		};
 	}
@@ -167,7 +168,7 @@ class DeskInterface extends Component {
 	handlePointerUp(event) {
 		if(this.props.gui.view != UiViews.DESK) return;
 		const { gui, desk } = this.props;
-		const { mouseMoved, dragTarget, wireFrom, wireTo, wireToValid, wireType, ioType, stagePointer } = this.state;
+		const { mouseMoved, dragTarget, wireFrom, wireTo, wireToValid, wireType, ioType, stagePointer, selectedDeskItem } = this.state;
 		console.log('mouseup');
 
 		if(mouseMoved && dragTarget) {
@@ -196,6 +197,7 @@ class DeskInterface extends Component {
 			ioType: null,
 			wireType: null,
 			selectedWire: null,
+			selectedDeskItem: null,
 		});
 	}
 
@@ -207,6 +209,18 @@ class DeskInterface extends Component {
 			mouseDown: true,
 			dragTarget: event.target,
 		});
+	}
+
+	handleItemPointerUp(event, deskItem) {
+		if(!this.state.mouseMoved) {
+			event.stopPropagation();
+			this.setState({
+				selectedDeskItem: deskItem,
+				mouseDown: false,
+				dragTarget: null,
+				selectedWire: null,
+			});
+		}
 	}
 
 	handleOverIO(event, deskItem, wireType, ioType) {
@@ -253,7 +267,7 @@ class DeskInterface extends Component {
 	}
 
 	removeActiveItem() {
-		const { selectedWire } = this.state;
+		const { selectedWire, selectedDeskItem } = this.state;
 		if(selectedWire) {
 			const connectionParts = selectedWire.id.split('___'); // not sure about this
 			console.log('Will delete wire', selectedWire);
@@ -263,6 +277,12 @@ class DeskInterface extends Component {
 				id: connectionParts[0], 
 				outputId: connectionParts[1]
 			});
+		}else if(selectedDeskItem) {
+			let type = null;
+			if(selectedDeskItem.type == DeskItemTypes.FX) type = ActionTypes.REMOVE_FX;
+			if(selectedDeskItem.type == DeskItemTypes.SYNTH) type = ActionTypes.REMOVE_SYNTH;
+			if(selectedDeskItem.type == DeskItemTypes.OSCILLATOR) type = ActionTypes.REMOVE_OSCILLATOR;
+			this.props.dispatch({type, id: selectedDeskItem.ownerId});
 		}
 	}
 
@@ -295,7 +315,7 @@ class DeskInterface extends Component {
 	}
 
 	render() {
-		const { width, height, aimScale, pointer, stagePointer, stagePosition, dragTarget, mouseDown, wireFrom, wireTo, wireToValid, selectedWire } = this.state;
+		const { width, height, aimScale, pointer, stagePointer, stagePosition, dragTarget, mouseDown, wireFrom, wireTo, wireToValid, selectedWire, selectedDeskItem } = this.state;
 		const { gui, fx, synths, desk } = this.props;
 
 		const connections = this.getDeskConnections(); // todo only update on desk updates
@@ -324,7 +344,7 @@ class DeskInterface extends Component {
 							from={wire.from}
 							to={wire.to}
 							selected={selectedWire && selectedWire.id == wire.id}
-							onSelect={event => this.setState({selectedWire: wire})} />
+							onSelect={event => this.setState({selectedWire: wire, selectedDeskItem: null})} />
 					)}
 
 					{wireFrom && 
@@ -350,13 +370,14 @@ class DeskInterface extends Component {
 						}
 						return (
 							<DeskItem 
-								key={i} 
+								key={deskItem.id} 
 								{...deskItem}
 								owner={owner}
 								params={params}
+								selected={!!(selectedDeskItem && selectedDeskItem.id === deskItem.id)}
 								onRename={() => this.handleRename(deskItem)}
 								onPointerDown={event => this.handleItemPointerDown(event, deskItem)}
-								onPointerUp={event => null/*this.handleItemPointerUp(deskItem)*/}
+								onPointerUp={event => this.handleItemPointerUp(event, deskItem)}
 								onOutIO={event => this.handleOutIO(event)}
 								onOverIO={(event, wireType, ioType) => this.handleOverIO(event, deskItem, wireType, ioType)} 
 								onPointerDownIO={(event, wireType, ioType) => this.handlePointerDownIO(event, deskItem, wireType, ioType)} />

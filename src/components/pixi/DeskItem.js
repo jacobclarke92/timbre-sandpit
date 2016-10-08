@@ -28,6 +28,7 @@ export default class DeskItem extends Component {
 		width: 200,
 		height: 200,
 		padding: 30,
+		selected: false,
 	};
 
 	constructor(props) {
@@ -60,7 +61,11 @@ export default class DeskItem extends Component {
 		this.node.icon = icon;
 		this.node.graphic = graphic;
 		this.node.label = label;
-		this.drawDeskMaster(props);
+
+		this.drawDeskItemShape(props);
+		this.drawDeskItemIcon(props);
+		this.node.label.text = props.name || 'Master';
+
 		this.node.addChild(graphic);
 		this.node.addChild(icon);
 		this.node.addChild(label);
@@ -136,25 +141,27 @@ export default class DeskItem extends Component {
 		return ioNode;
 	}
 
-	drawDeskMaster(props = this.props) {
-
+	drawDeskItemShape(props = this.props) {		
 		this.node.graphic.cacheAsBitmap = false;
 		this.node.graphic.clear();
-		this.node.graphic.beginFill(eval(props.backgroundColor.replace('#', '0x')));
+		if(props.selected) this.node.graphic.lineStyle(4, hexToDec(Style.primary));
+		this.node.graphic.beginFill(hexToDec(props.backgroundColor));
 		this.node.graphic.drawRoundedRect(0, 0, props.width, props.height, props.borderRadius);
 		this.node.graphic.cacheAsBitmap = true;
+	}
 
+	drawDeskItemIcon(props = this.props) {
+		this.node.icon.clear();
 		this.node.icon.scale.set(6);
 		SVGGraphics.drawSVG(this.node.icon, this.$icon[0]);
 		const iconBounds = this.node.icon.getBounds();
 		this.node.icon.scale.set(100/iconBounds.height);
 		this.node.icon.position.x = 50;
-
-		this.node.label.text = props.name || 'Master';
 	}
 
 	componentWillReceiveProps(nextProps) {
-		if(nextProps.name != this.props.name) this.drawDeskMaster(nextProps);
+		if(nextProps.name != this.props.name) this.node.label.text = nextProps.name || 'Master';
+		if(nextProps.selected != this.props.selected) this.drawDeskItemShape(nextProps);
 	}
 
 	render() {

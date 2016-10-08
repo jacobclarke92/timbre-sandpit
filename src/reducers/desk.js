@@ -150,8 +150,23 @@ export default function(state = localStore.get('desk') || initialState, action) 
 			break;
 
 		case ActionTypes.REMOVE_FX:
-			return state.filter(item => item.ownerId != action.id);
+		case ActionTypes.REMOVE_SYNTH:
+		case ActionTypes.REMOVE_OSCILLATOR:
+			return state.filter(item => item.ownerId != action.id).map(item => {
+				if(item.audioOutput && action.id in item.audioOutputs) {
+					const audioOutputs = {...item.audioOutputs};
+					delete audioOutputs[action.id];
+					return {...item, audioOutputs};
+				}
+				if(item.dataOutput && action.id in item.dataOutputs) {
+					const dataOutputs = {...item.dataOutputs};
+					delete dataOutputs[action.id];
+					return {...item, dataOutputs};
+				}
+				return item;
+			});
 			break;
+
 	}
 	return state;
 }
