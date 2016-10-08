@@ -252,6 +252,7 @@ class PrimaryInterface extends Component {
 
 	// for setting active node selection
 	setActiveNode(nodeInstance) {
+		if(!this.props.gui.activeNode) return;
 		if(!nodeInstance) return;
 		const key = nodeTypeLookup[nodeInstance.nodeType];
 		const actualNode = getValueById(this.props.stage[key], nodeInstance.id);
@@ -261,6 +262,7 @@ class PrimaryInterface extends Component {
 
 	// for clearing active node selection
 	clearActiveNode() {
+		if(!this.props.gui.activeNode) return;
 		console.log('clearing active node');
 		if(this.props.gui.activeNode) {
 			this.props.dispatch({type: ActionTypes.CLEAR_ACTIVE_NODE})

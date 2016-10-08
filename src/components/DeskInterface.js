@@ -5,6 +5,7 @@ import $ from 'jquery'
 
 import Point from '../Point'
 import { addResizeCallback, removeResizeCallback, getScreenWidth, getScreenHeight, getPixelDensity } from '../utils/screenUtils'
+import { addKeyListener, removeKeyListener } from '../utils/keyUtils'
 import { clamp, inBounds } from '../utils/mathUtils'
 import { getByKey } from '../utils/arrayUtils'
 
@@ -37,6 +38,8 @@ class DeskInterface extends Component {
 		this.handleMousewheel = _throttle(this.handleMousewheel.bind(this), scrollwheelThrottle);
 		this.handlePointerUp = this.handlePointerUp.bind(this);
 		this.handlePointerDown = this.handlePointerDown.bind(this);
+		this.removeActiveItem = this.removeActiveItem.bind(this);
+		this.clearActiveItem = this.clearActiveItem.bind(this);
 		this.state = {
 			width: 800,
 			height: 450,
@@ -57,7 +60,6 @@ class DeskInterface extends Component {
 			wireType: null,
 			selectedWire: null,
 			dragTarget: null,
-			activeTarget: null,
 		};
 	}
 
@@ -71,11 +73,19 @@ class DeskInterface extends Component {
 		// bind window resize
 		addResizeCallback(this.handleResize);
 		this.handleResize();
+
+		// bind key listeners
+		addKeyListener('backspace', this.removeActiveItem);
+		addKeyListener('delete', this.removeActiveItem);
+		addKeyListener('esc', this.clearActiveItem);
 	}
 
 	componentWillUnmount() {
 		$(window).off('mousewheel DOMMouseScroll', this.handleMousewheel);
 		removeResizeCallback(this.handleResize);
+		removeKeyListener('backspace', this.removeActiveItem);
+		removeKeyListener('delete', this.removeActiveItem);
+		removeKeyListener('esc', this.clearActiveItem);
 	}
 
 	handleResize() {
@@ -223,6 +233,29 @@ class DeskInterface extends Component {
 		if(name) this.props.dispatch({type: ActionTypes.DESK_ITEM_RENAME, id: deskItem.id, name});
 	}
 
+	clearActiveItem() {
+		this.setState({
+			selectedWire: null,
+			wireFrom: null,
+			wireTo: null,
+			wireToValid: null,
+		});
+	}
+
+	removeActiveItem() {
+		const { selectedWire } = this.state;
+		if(selectedWire) {
+			const connectionParts = selectedWire.id.split('___'); // not sure about this
+			console.log('Will delete wire', selectedWire);
+			this.props.dispatch({
+				type: ActionTypes.DESK_DISCONNECT_WIRE, 
+				wireType: selectedWire.type,
+				id: connectionParts[0], 
+				outputId: connectionParts[1]
+			});
+		}
+	}
+
 	getDeskConnections() {
 		const { desk } = this.props;
 		const connections = [];
@@ -280,8 +313,8 @@ class DeskInterface extends Component {
 							key={wire.id}
 							from={wire.from}
 							to={wire.to}
-							selected={selectedWire == wire.id}
-							onSelect={event => this.setState({selectedWire: wire.id})} />
+							selected={selectedWire && selectedWire.id == wire.id}
+							onSelect={event => this.setState({selectedWire: wire})} />
 					)}
 
 					{wireFrom && 

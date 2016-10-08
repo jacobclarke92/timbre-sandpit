@@ -124,6 +124,19 @@ export default function(state = localStore.get('desk') || initialState, action) 
 				return item;
 			});
 			break;
+
+		case ActionTypes.DESK_DISCONNECT_WIRE:
+			return state.map(item => {
+				if(item.ownerId === action.id) {
+					const outputs = {...item[action.wireType+'Outputs']};
+					if(action.outputId in outputs) {
+						delete outputs[action.outputId];
+						return {...item, [action.wireType+'Outputs']: outputs};
+					}
+				}
+				return item;
+			})
+			break;
 	}
 	return state;
 }
