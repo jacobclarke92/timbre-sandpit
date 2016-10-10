@@ -39,6 +39,7 @@ export default class InterfaceStage extends Component {
 
 	render() {
 		let usedIds = [];
+		let dirtyChildren = false;
 		Children.forEach(this.props.children, child => {
 			if(!child || !child.key) return;
 			usedIds.push(child.key);
@@ -50,8 +51,11 @@ export default class InterfaceStage extends Component {
 				const result = newInstance.render();
 				this.instanceResults[child.key] = result;
 				if(result instanceof PIXI.DisplayObject) {
+					result.childKey = child.key;
+					result.zIndex = child.props.zIndex || 0;
 					this.stage.addChild(result);
 				}
+				dirtyChildren = true;
 			}else{
 				if(instance.componentWillReceiveProps && !deepEqual(instance.props, child.props)) instance.componentWillReceiveProps(child.props);
 				instance.props = child.props;
@@ -67,8 +71,13 @@ export default class InterfaceStage extends Component {
 					delete this.instanceResults[key];
 					delete this.instances[key];
 				}
+				dirtyChildren = true;
 			}
 		});
+
+		if(dirtyChildren) {
+			this.stage.children = this.stage.children.sort((a,b) => (a.zIndex || 0) > (b.zIndex || 0) ? 1 : ((a.zIndex || 0) < (b.zIndex || 0) ? -1 : 0));
+		}
 
 		if(isUpKeyPressed()) this.stage.position.y += STAGE_MOVE_SPEED;
 		else if(isDownKeyPressed()) this.stage.position.y -= STAGE_MOVE_SPEED;

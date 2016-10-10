@@ -340,9 +340,10 @@ class DeskInterface extends Component {
 					onPointerDown={this.handlePointerDown} 
 					onPointerUp={this.handlePointerUp}>
 
-					{connections.map(wire => 
+					{connections.map((wire, i) => 
 						<DeskWire
 							key={wire.id}
+							zIndex={1+i}
 							from={wire.from}
 							to={wire.to}
 							selected={selectedWire && selectedWire.id == wire.id}
@@ -352,6 +353,7 @@ class DeskInterface extends Component {
 					{wireFrom && 
 						<DeskWire 
 							key="active_wire"
+							zIndex={10000}
 							isLive={true}
 							valid={wireToValid}
 							from={{x: wireFrom.parent.position.x + wireFrom.position.x, y: wireFrom.parent.position.y + wireFrom.position.y}} 
@@ -360,7 +362,7 @@ class DeskInterface extends Component {
 					}
 
 					{gui.tool == ToolTypes.DESK_FX_EDIT && 
-						<DeskItemOutline key="fx_outline" position={stagePointer} lineWidth={aimScale} />
+						<DeskItemOutline key="fx_outline" zIndex={2000} position={stagePointer} lineWidth={aimScale} />
 					}
 
 					{desk.map((deskItem, i) => {
@@ -372,7 +374,8 @@ class DeskInterface extends Component {
 						}
 						return (
 							<DeskItem 
-								key={deskItem.id} 
+								key={deskItem.id}
+								zIndex={2000+i}
 								{...deskItem}
 								owner={owner}
 								params={params}
