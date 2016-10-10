@@ -271,6 +271,7 @@ class PrimaryInterface extends Component {
 	
 	// for actually deleting the active node
 	removeActiveNode() {
+		if(this.props.gui.view != UiViews.STAGE) return;
 		if(!this.props.gui.activeNode) return;
 		this.removeNode(this.state.activeNode);
 		this.clearActiveNode();
