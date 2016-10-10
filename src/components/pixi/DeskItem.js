@@ -114,7 +114,7 @@ export default class DeskItem extends Component {
 		this.node.on('touchstart', props.onPointerDown);
 		this.node.on('mouseup', props.onPointerUp);
 		this.node.on('touchend', props.onPointerUp);
-		label.on('mousedown', event => { props.onRename(); event.stopPropagation(); });
+		label.on('mouseup', event => { props.onRename(); event.stopPropagation(); });
 	}
 
 	createNodeIO(label, type, io, x, y) {
