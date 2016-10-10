@@ -197,10 +197,9 @@ class PrimaryInterface extends Component {
 	}
 
 	handleNodePointerUp(event) {
-		console.log('mouse up');
+		console.log('node mouse up');
 		event.stopPropagation();
 		if(event.target) {
-			event.stopPropagation();
 			if(!this.state.mouseMoved) {
 				this.setActiveNode(event.target);
 			}else if(this.state.dragTarget) {
@@ -252,7 +251,7 @@ class PrimaryInterface extends Component {
 
 	// for setting active node selection
 	setActiveNode(nodeInstance) {
-		if(!this.props.gui.activeNode) return;
+		if(this.props.gui.activeNode) return;
 		if(!nodeInstance) return;
 		const key = nodeTypeLookup[nodeInstance.nodeType];
 		const actualNode = getValueById(this.props.stage[key], nodeInstance.id);
