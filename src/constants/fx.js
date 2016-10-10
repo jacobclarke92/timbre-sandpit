@@ -12,7 +12,31 @@ const FX = {
 		title: 'Auto Filter',
 		icon: 'ring',
 		params: [
-
+			{
+				key: 'frequency',
+				title: 'Frequency',
+				description: 'The rate of the LFO',
+				defaultValue: 1,
+				min: 1,
+				max: 10000,
+				step: 1,
+			},{
+				key: 'baseFrequency',
+				title: 'Base Frequency',
+				description: 'The lower value of the LFOs oscillation',
+				defaultValue: 200,
+				min: 1,
+				max: 10000,
+				step: 1,
+			},{
+				key: 'octaves',
+				title: 'Octaves',
+				description: 'The number of octaves above the baseFrequency',
+				defaultValue: 2.6,
+				min: 0,
+				max: 10,
+				step: 0.2,
+			}
 		]
 	},
 	AutoPanner: {
@@ -24,6 +48,9 @@ const FX = {
 				title: 'Frequency',
 				description: 'How fast the panner modulates between left and right.',
 				defaultValue: 1,
+				min: 1,
+				max: 10000,
+				step: 1,
 			},{
 				key: 'type',
 				title: 'Waveform',
@@ -48,7 +75,31 @@ const FX = {
 	AutoWah: {
 		title: 'Auto Wah',
 		icon: 'ring',
-		params: [
+		params: [{
+				key: 'baseFrequency',
+				title: 'Base Frequency',
+				description: 'The frequency the filter is set to at the low point of the wah',
+				defaultValue: 200,
+				min: 1,
+				max: 10000,
+				step: 1,
+			},{
+				key: 'octaves',
+				title: 'Octaves',
+				description: 'The number of octaves above the baseFrequency',
+				defaultValue: 2.6,
+				min: 0,
+				max: 10,
+				step: 0.2,
+			},{
+				key: 'sensitivity',
+				title: 'Sensitivity',
+				description: 'The decibel threshold sensitivity for the incoming signal',
+				defaultValue: 0,
+				min: -40,
+				max: 0,
+				step: 0.5,
+			}
 		]
 	},
 	BitCrusher: {
@@ -79,6 +130,29 @@ const FX = {
 		title: 'Chorus',
 		icon: 'ring',
 		params: [
+			{
+				key: 'frequency',
+				title: 'Frequency',
+				description: 'The frequency of the LFO',
+				defaultValue: 1.5,
+				min: 1,
+				max: 10000,
+				step: 1,
+			},
+			{
+				key: 'delayTime',
+				title: 'Delay Time',
+				description: 'The delay of the chorus effect in ms',
+				defaultValue: 2,
+				min: 1,
+				max: 50,
+				step: 0.5,
+			},{
+				key: 'depth',
+				title: 'Depth',
+				description: 'The depth of the chorus',
+				defaultValue: 0.7,
+			}
 
 		]
 	},
@@ -111,14 +185,29 @@ const FX = {
 		title: 'Feedback Delay',
 		icon: 'ring',
 		params: [
-
+			{
+				key: 'delayTime',
+				title: 'Delay Time',
+				description: 'The delay applied to the incoming signal',
+				defaultValue: 0.25,
+			},{
+				key: 'feedback',
+				title: 'Feedback',
+				description: 'The amount of the effected signal which is fed back through the delay',
+				defaultValue: 0.5,
+			}
 		]
 	},
 	FeedbackEffect: {
 		title: 'Feedback Effect',
 		icon: 'ring',
 		params: [
-
+			{
+				key: 'feedback',
+				title: 'Feedback',
+				description: 'The amount of signal which is fed back into the effect input',
+				defaultValue: 0.125,
+			}
 		]
 	},
 	Freeverb: {
@@ -163,14 +252,32 @@ const FX = {
 		title: 'Ping-Pong Delay',
 		icon: 'ring',
 		params: [
-
+			{
+				key: 'delayTime',
+				title: 'Delay Time',
+				description: 'The delayTime between consecutive echos',
+				defaultValue: 0.25,
+			},{
+				key: 'feedback',
+				title: 'Feedback',
+				description: 'The amount of feedback from the output back into the input of the effect (routed across left and right channels)',
+				defaultValue: 0.2,
+			}
 		]
 	},
 	PitchShift: {
 		title: 'Pitch Shift',
 		icon: 'ring',
 		params: [
-
+			{
+				key: 'pitch',
+				title: 'Pitch',
+				description: 'The interval to transpose the incoming signal by',
+				defaultValue: 12,
+				min: -48,
+				max: 48,
+				step: 1,
+			}
 		]
 	},
 	StereoEffect: {
