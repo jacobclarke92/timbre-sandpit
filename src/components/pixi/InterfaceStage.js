@@ -17,7 +17,7 @@ export default class InterfaceStage extends Component {
 		this.stage.scale.set(1/getPixelDensity());
 		this.stage.pivot.set(0, 0);
 		this.stage.interactive = true;
-		this.stage.hitArea = new PIXI.Rectangle(0,0,10000,10000);
+		this.stage.hitArea = new PIXI.Rectangle(-10000,-10000,20000,20000);
 		this.stage.on('mousemove', props.onMouseMove);
 		this.stage.on('mousedown', props.onPointerDown);
 		this.stage.on('touchstart', props.onPointerDown);
