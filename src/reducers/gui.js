@@ -28,6 +28,7 @@ const initialState = {
 	showGuides: true,
 	snapping: false,
 	chordsEnabled: false,
+	tooltip: null,
 };
 
 export default function(state = localStore.get('gui') || initialState, action) {
@@ -84,6 +85,12 @@ export default function(state = localStore.get('gui') || initialState, action) {
 
 		case ActionTypes.DISABLE_CHORDS:
 			return {...state, chordsEnabled: false};
+
+		case ActionTypes.UPDATE_TOOLTIP:
+			return {...state, tooltip: action.text};
+
+		case ActionTypes.REMOVE_TOOLTIP:
+			return {...state, tooltip: null};
 	}
 	return state;
 }

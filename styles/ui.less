@@ -181,3 +181,25 @@
         margin-bottom: 0;
     }
 }
+
+.tooltip {
+    position: fixed;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    
+    .tooltip-inner {
+        position: absolute;
+        top: @margin-medium;
+        left: 0;
+        transform: translate(-50%, 0);
+        padding: @gutter;
+        color: @white;
+        background-color: fade(@dark, 75%);
+        width: auto;
+        white-space: nowrap;
+        max-width: 200px;
+        font-size: 12px;
+        text-align: center;
+    }
+}

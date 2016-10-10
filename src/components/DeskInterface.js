@@ -223,7 +223,7 @@ class DeskInterface extends Component {
 		}
 	}
 
-	handleOverIO(event, deskItem, wireType, ioType) {
+	handleOverIO(event, deskItem, wireType, ioType, label) {
 		this.setState({overIO: true});
 		if(this.state.wireFrom) {
 			this.setState({
@@ -231,6 +231,7 @@ class DeskInterface extends Component {
 				wireToValid: (this.state.wireType == wireType && this.state.ioType != ioType),
 			});
 		}
+		this.props.dispatch({type: ActionTypes.UPDATE_TOOLTIP, text: label});
 	}
 
 	handleOutIO(event) {
@@ -238,7 +239,8 @@ class DeskInterface extends Component {
 			overIO: false,
 			wireTo: null,
 			wireToValid: null,
-		})
+		});
+		this.props.dispatch({type: ActionTypes.REMOVE_TOOLTIP});
 	}
 
 	handlePointerDownIO(event, deskItem, wireType, ioType) {
@@ -379,7 +381,7 @@ class DeskInterface extends Component {
 								onPointerDown={event => this.handleItemPointerDown(event, deskItem)}
 								onPointerUp={event => this.handleItemPointerUp(event, deskItem)}
 								onOutIO={event => this.handleOutIO(event)}
-								onOverIO={(event, wireType, ioType) => this.handleOverIO(event, deskItem, wireType, ioType)} 
+								onOverIO={(event, wireType, ioType, label) => this.handleOverIO(event, deskItem, wireType, ioType, label)} 
 								onPointerDownIO={(event, wireType, ioType) => this.handlePointerDownIO(event, deskItem, wireType, ioType)} />
 						)
 					})}

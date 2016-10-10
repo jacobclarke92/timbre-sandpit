@@ -8,6 +8,7 @@ import { STAGE, CHORDS, OSCILLATORS, MAPPINGS, DESK } from '../constants/uiViews
 import { ORIGIN_RING_NODE, ORIGIN_RADAR_NODE, POINT_NODE, ARC_NODE } from '../constants/nodeTypes'
 
 import TopUI from './TopUI'
+import Tooltip from './Tooltip'
 import BottomUI from './BottomUI'
 import ModalHost from './ModalHost'
 import PrimaryInterface from './PrimaryInterface'
@@ -32,7 +33,7 @@ class App extends Component {
 	}
 
 	render() {
-		const { view } = this.props.gui || {};
+		const { view, tooltip } = this.props.gui || {};
 		return(
 			<main className="app">
 				<ModalHost />
@@ -45,6 +46,7 @@ class App extends Component {
 					{view == DESK && <DeskInterface />}
 				</div>
 				<BottomUI />
+				<Tooltip text={tooltip} />
 			</main>
 		)
 	}

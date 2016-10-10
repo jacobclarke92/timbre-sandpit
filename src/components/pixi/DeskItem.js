@@ -91,7 +91,7 @@ export default class DeskItem extends Component {
 					case DeskItemTypes.FX: io = 'input'; break;
 					case DeskItemTypes.OSCILLATOR: io = 'output'; break;
 				}
-				const dataInputNode = this.createNodeIO(param.label, 'data', io, x, props.height);
+				const dataInputNode = this.createNodeIO(param.title, 'data', io, x, props.height);
 				dataInputNode.param = param;
 				this.node.addChild(dataInputNode);
 				this.node.dataInputNodes.push(dataInputNode);
@@ -134,7 +134,7 @@ export default class DeskItem extends Component {
 		ioNode.pivot.set(0.5);
 		ioNode.io = io;
 		ioNode.type = type;
-		ioNode.on('mouseover', event => { ioNode.alpha = 0.9; this.props.onOverIO(event, type, io) });
+		ioNode.on('mouseover', event => { ioNode.alpha = 0.9; this.props.onOverIO(event, type, io, label) });
 		ioNode.on('mouseout', event => { ioNode.alpha = 1; this.props.onOutIO(event) });
 		ioNode.on('mousedown', event => this.props.onPointerDownIO(event, type, io));
 		ioNode.on('touchstart', event => this.props.onPointerDownIO(event, type, io));
