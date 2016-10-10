@@ -184,7 +184,7 @@ class DeskInterface extends Component {
 				id: gui.toolSettings.fxType+'_'+newId(),
 				type: ActionTypes.ADD_FX, 
 				fxType: gui.toolSettings.fxType, 
-				position: stagePointer,
+				position: {x: stagePointer.x - 100, y: stagePointer.y - 100},
 			});
 		}
 
