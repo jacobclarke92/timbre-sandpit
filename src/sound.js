@@ -47,7 +47,7 @@ function receivedState() {
 		// updates waveform of synth voices if changed
 		if(prevSynth && synth.waveform != prevSynth.waveform) {
 			console.log('Updating synth '+synth.id+' waveform');
-			Synths[synth.id].forEach(voice => voice.oscillator.waveform = synth.waveform);
+			Synths[synth.id].forEach(voice => voice.oscillator.set('type', synth.waveform));
 		}
 
 		// updates envelope of synth voices if changed
