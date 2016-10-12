@@ -7,6 +7,7 @@ import Point from '../Point'
 import { addResizeCallback, removeResizeCallback, getScreenWidth, getScreenHeight, getPixelDensity } from '../utils/screenUtils'
 import { addKeyListener, removeKeyListener } from '../utils/keyUtils'
 import { clamp, inBounds } from '../utils/mathUtils'
+import { getDeskWires } from '../utils/deskUtils'
 import { getByKey } from '../utils/arrayUtils'
 import newId from '../utils/newId'
 
@@ -288,39 +289,11 @@ class DeskInterface extends Component {
 		}
 	}
 
-	getDeskConnections() {
-		const { desk } = this.props;
-		const connections = [];
-		for(let fromItem of desk) {
-			if(fromItem.audioOutput) Object.keys(fromItem.audioOutputs).forEach(outputId => {
-				const wire = fromItem.audioOutputs[outputId];
-				const toItem = getByKey(desk, outputId, 'ownerId');
-				if(toItem) connections.push({
-					type: 'audio',
-					id: fromItem.ownerId+'___'+toItem.ownerId,
-					from: {x: fromItem.position.x + wire.outputPosition.x, y: fromItem.position.y + wire.outputPosition.y},
-					to: {x: toItem.position.x + wire.inputPosition.x, y: toItem.position.y + wire.inputPosition.y},
-				});
-			});
-			if(fromItem.dataOutput) Object.keys(fromItem.dataOutputs).forEach(outputId => {
-				const wire = fromItem.dataOutputs[outputId];
-				const toItem = getByKey(desk, outputId, 'ownerId');
-				if(toItem) connections.push({
-					type: 'data',
-					id: fromItem.ownerId+'___'+toItem.ownerId,
-					from: {x: fromItem.position.x + wire.outputPosition.x, y: fromItem.position.y + wire.outputPosition.y},
-					to: {x: toItem.position.x + wire.inputPosition.x, y: toItem.position.y + wire.inputPosition.y},
-				});
-			});
-		}
-		return connections;
-	}
-
 	render() {
 		const { width, height, aimScale, pointer, stagePointer, stagePosition, dragTarget, mouseDown, wireFrom, wireTo, wireToValid, selectedWire, selectedDeskItem } = this.state;
 		const { gui, fx, synths, desk } = this.props;
 
-		const connections = this.getDeskConnections(); // todo only update on desk updates
+		const connections = getDeskWires(desk); // todo only update on desk updates
 
 		return (
 			<DeskInterfaceRenderer 

@@ -25,7 +25,7 @@ const views = [
 	{type: UiViews.STAGE, icon: 'stage', label: 'Stage'},
 	{type: UiViews.CHORDS, icon: 'piano', label: 'Chords'},
 	{type: UiViews.OSCILLATORS, icon: 'waveform', label: 'Oscs'},
-	// {type: UiViews.MAPPINGS, icon: 'list', label: 'Mappings'},
+	{type: UiViews.MAPPINGS, icon: 'list', label: 'Matrix'},
 	{type: UiViews.DESK, icon: 'note', label: 'Desk'},
 ];
 
