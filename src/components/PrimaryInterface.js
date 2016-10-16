@@ -347,6 +347,17 @@ class PrimaryInterface extends Component {
 							onPointerUp={this.handleNodePointerUp} />
 					)}
 
+					{arcNodes.map(node =>
+						<ArcNode
+							key={node.id}
+							node={node}
+							scale={scale}
+							notes={notes}
+							modeString={modeString}
+							onPointerDown={this.handleNodePointerDown}
+							onPointerUp={this.handleNodePointerUp} />
+					)}
+
 					{originRingNodes.map(node => 
 						<OriginRingNode
 							key={node.id}
