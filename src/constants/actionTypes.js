@@ -42,9 +42,9 @@ export const REMOVE_POINT_NODE = 'REMOVE_POINT_NODE'
 export const ADD_ARC_NODE = 'ADD_ARC_NODE'
 export const REMOVE_ARC_NODE = 'REMOVE_ARC_NODE'
 
-export const ADD_OSCILLATOR = 'ADD_OSCILLATOR'
-export const REMOVE_OSCILLATOR = 'REMOVE_OSCILLATOR'
-export const UPDATE_OSCILLATOR = 'UPDATE_OSCILLATOR'
+export const ADD_LFO = 'ADD_LFO'
+export const REMOVE_LFO = 'REMOVE_LFO'
+export const UPDATE_LFO = 'UPDATE_LFO'
 
 export const ADD_SYNTH = 'ADD_SYNTH'
 export const REMOVE_SYNTH = 'REMOVE_SYNTH'

@@ -24,7 +24,7 @@ const hookTheoryModes = Object.keys(modePrefixes);
 const views = [
 	{type: UiViews.STAGE, icon: 'stage', label: 'Stage'},
 	{type: UiViews.CHORDS, icon: 'piano', label: 'Chords'},
-	{type: UiViews.OSCILLATORS, icon: 'waveform', label: 'Oscs'},
+	{type: UiViews.LFOS, icon: 'waveform', label: 'LFOs'},
 	{type: UiViews.MAPPINGS, icon: 'list', label: 'Matrix'},
 	{type: UiViews.DESK, icon: 'note', label: 'Desk'},
 ];

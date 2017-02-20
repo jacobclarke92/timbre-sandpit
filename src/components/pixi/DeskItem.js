@@ -12,7 +12,7 @@ import { getPixelDensity } from '../../utils/screenUtils'
 import { hexToDec } from '../../utils/colorUtils'
 
 const icons = {
-	[DeskItemTypes.OSCILLATOR]: 'waveform',
+	[DeskItemTypes.LFO]: 'waveform',
 	[DeskItemTypes.MASTER]: 'volume-mute',
 	[DeskItemTypes.SYNTH]: 'piano',
 	[DeskItemTypes.FX]: 'sliders',
@@ -89,7 +89,7 @@ export default class DeskItem extends Component {
 				let io = null;
 				switch(props.type) {
 					case DeskItemTypes.FX: io = 'input'; break;
-					case DeskItemTypes.OSCILLATOR: io = 'output'; break;
+					case DeskItemTypes.LFO: io = 'output'; break;
 				}
 				const dataInputNode = this.createNodeIO(param.title, 'data', io, x, props.height);
 				dataInputNode.param = param;

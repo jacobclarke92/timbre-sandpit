@@ -32,7 +32,7 @@ const defaultDeskItems = {
 		dataInput: true,
 		dataOutput: false,
 	},
-	[DeskItemTypes.OSCILLATOR]: {
+	[DeskItemTypes.LFO]: {
 		audioInput: false,
 		audioOutput: false,
 		dataInput: false,
@@ -80,7 +80,7 @@ for(let i=1; i<5; i++) {
 		id: newId(),
 		name: 'Example OSC '+i,
 		ownerId: 'init_osc'+i,
-		type: DeskItemTypes.OSCILLATOR,
+		type: DeskItemTypes.LFO,
 		position: {
 			x: 250*(i-1),
 			y: 300,
@@ -151,7 +151,7 @@ export default function(state = localStore.get('desk') || initialState, action) 
 
 		case ActionTypes.REMOVE_FX:
 		case ActionTypes.REMOVE_SYNTH:
-		case ActionTypes.REMOVE_OSCILLATOR:
+		case ActionTypes.REMOVE_LFO:
 			return state.filter(item => item.ownerId != action.id).map(item => {
 				if(item.audioOutput && action.id in item.audioOutputs) {
 					const audioOutputs = {...item.audioOutputs};
@@ -171,6 +171,14 @@ export default function(state = localStore.get('desk') || initialState, action) 
 	return state;
 }
 
+/**
+ * @param  {String} wireType 	- either 'audio' or 'data'
+ * @param  {Object} output 		- reference to item in desk store
+ * @param  {Object} input 		- reference to item in desk store
+ * @param  {PIXI} outputNode 	- reference to PIXI DeskItem wire 'node'
+ * @param  {PIXI} inputNode		- reference to PIXI DeskItem wire 'node'
+ * @return {Object} 			Returns reducer action
+ */
 export function connectWire(wireType, output, input, outputNode, inputNode) {
 	return {
 		type: ActionTypes.DESK_CONNECT_WIRE, 

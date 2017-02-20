@@ -4,7 +4,7 @@ import $ from 'jquery'
 
 import { changeView, changeTool } from '../reducers/gui'
 import { addKeyListener, isCommandKeyPressed } from '../utils/keyUtils'
-import { STAGE, CHORDS, OSCILLATORS, MAPPINGS, DESK } from '../constants/uiViews'
+import { STAGE, CHORDS, LFOS, MAPPINGS, DESK } from '../constants/uiViews'
 import { ORIGIN_RING_NODE, ORIGIN_RADAR_NODE, POINT_NODE, ARC_NODE } from '../constants/nodeTypes'
 
 import TopUI from './TopUI'
@@ -13,7 +13,7 @@ import BottomUI from './BottomUI'
 import ModalHost from './ModalHost'
 import PrimaryInterface from './PrimaryInterface'
 import ChordsInterface from './ChordsInterface'
-import OscillatorsInterface from './OscillatorsInterface'
+import LfosInterface from './LfosInterface'
 import MappingsInterface from './MappingsInterface'
 import DeskInterface from './DeskInterface'
 
@@ -22,7 +22,7 @@ class App extends Component {
 	componentDidMount() {
 		addKeyListener('q', () => { if(!isCommandKeyPressed()) this.props.dispatch(changeView(STAGE)) });
 		addKeyListener('w', () => { if(!isCommandKeyPressed()) this.props.dispatch(changeView(CHORDS)) });
-		addKeyListener('e', () => { if(!isCommandKeyPressed()) this.props.dispatch(changeView(OSCILLATORS)) });
+		addKeyListener('e', () => { if(!isCommandKeyPressed()) this.props.dispatch(changeView(LFOS)) });
 		addKeyListener('r', () => { if(!isCommandKeyPressed()) this.props.dispatch(changeView(MAPPINGS)) });
 		addKeyListener('t', () => { if(!isCommandKeyPressed()) this.props.dispatch(changeView(DESK)) });
 
@@ -41,7 +41,7 @@ class App extends Component {
 				<div className="interface-container">
 					<PrimaryInterface />
 					{view == CHORDS && <ChordsInterface />}
-					{view == OSCILLATORS && <OscillatorsInterface />}
+					{view == LFOS && <LfosInterface />}
 					{view == MAPPINGS && <MappingsInterface />}
 					{view == DESK && <DeskInterface />}
 				</div>

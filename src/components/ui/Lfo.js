@@ -3,7 +3,7 @@ import Select from 'react-select'
 
 import timeSyntax from '../../constants/timeSyntax'
 import { SINE, SQUARE, TRIANGLE, SAWTOOTH } from '../../constants/waveTypes'
-import OscillatorDisplay from './OscillatorDisplay'
+import LfoDisplay from './LfoDisplay'
 import NumberInput from './NumberInput'
 import Icon from './Icon'
 import Button from './Button'
@@ -11,35 +11,35 @@ import ButtonIcon from './ButtonIcon'
 
 const waveforms = [SINE, SQUARE, TRIANGLE, SAWTOOTH].map(value => ({value, label: value}));
 
-export default class Oscillator extends Component {
+export default class Lfo extends Component {
 
 	constructor(props) {
 		super(props);
-		this.state = { timeMode: this.props.oscillator.freqNote ? 'note' : 'hz' };
+		this.state = { timeMode: this.props.lfo.freqNote ? 'note' : 'hz' };
 	}
 
 	handleWaveformChange(waveform) {
-		this.props.onChange({...this.props.oscillator, waveform});
+		this.props.onChange({...this.props.lfo, waveform});
 	}
 
 	handleFrequencyChange(frequency) {
-		this.props.onChange({...this.props.oscillator, frequency, freqNote: null});
+		this.props.onChange({...this.props.lfo, frequency, freqNote: null});
 	}
 
 	handleAmplitudeChange(amplitude) {
-		this.props.onChange({...this.props.oscillator, amplitude});
+		this.props.onChange({...this.props.lfo, amplitude});
 	}
 
 	handleFreqNoteChange(freqNote) {
-		this.props.onChange({...this.props.oscillator, freqNote});
+		this.props.onChange({...this.props.lfo, freqNote});
 	}
 
 	render() {
 		const { timeMode } = this.state;
-		const { oscillator, onRemove } = this.props;
-		const { frequency, amplitude, waveform, freqNote } = this.props.oscillator;
+		const { lfo, onRemove } = this.props;
+		const { frequency, amplitude, waveform, freqNote } = this.props.lfo;
 		return (
-			<div className="oscillator">
+			<div className="lfo">
 				<label>
 					Waveform: 
 					<Select value={waveform} onChange={({value}) => this.handleWaveformChange(value)} clearable={false} options={waveforms} style={{width: 100}} />
@@ -62,7 +62,7 @@ export default class Oscillator extends Component {
 					</label>
 				)}
 				<NumberInput label="Amplitude" min={0} max={1} step={0.05} value={amplitude} onChange={::this.handleAmplitudeChange} />
-				<OscillatorDisplay {...oscillator} />
+				<LfoDisplay {...lfo} />
 				<Button label="Remove" icon="remove" onClick={onRemove} />
 			</div>
 		)

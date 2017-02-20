@@ -7,7 +7,7 @@ import $ from 'jquery'
 import { getPixelDensity } from '../../utils/screenUtils'
 import { getWaveLookupArray } from '../../utils/waveUtils'
 
-class OscillatorDisplay extends Component {
+class LfoDisplay extends Component {
 
 	static defaultProps = {
 		frequency: 1, // hz,
@@ -100,9 +100,9 @@ class OscillatorDisplay extends Component {
 
 	render() {
 		return (
-			<div ref="osc_canvas" className="oscillator-display" />
+			<div ref="osc_canvas" className="lfo-display" />
 		)
 	}
 }
 
-export default connect(({transport}) => ({transport}))(OscillatorDisplay)
+export default connect(({transport}) => ({transport}))(LfoDisplay)

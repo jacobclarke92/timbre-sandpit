@@ -284,7 +284,7 @@ class DeskInterface extends Component {
 			let type = null;
 			if(selectedDeskItem.type == DeskItemTypes.FX) type = ActionTypes.REMOVE_FX;
 			if(selectedDeskItem.type == DeskItemTypes.SYNTH) type = ActionTypes.REMOVE_SYNTH;
-			if(selectedDeskItem.type == DeskItemTypes.OSCILLATOR) type = ActionTypes.REMOVE_OSCILLATOR;
+			if(selectedDeskItem.type == DeskItemTypes.LFO) type = ActionTypes.REMOVE_LFO;
 			this.props.dispatch({type, id: selectedDeskItem.ownerId});
 		}
 	}

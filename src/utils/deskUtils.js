@@ -37,7 +37,7 @@ export function getDeskMappings(desk) {
 			const toItem = getByKey(desk, outputId, 'ownerId');
 			if(!(toItem.ownerId in mappings)) mappings[toItem.ownerId] = {};
 			if(!(paramKey in mappings[toItem.ownerId])) mappings[toItem.ownerId][paramKey] = {};
-			mappings[toItem.ownerId][paramKey].oscillator = fromItem.ownerId;
+			mappings[toItem.ownerId][paramKey].lfo = fromItem.ownerId;
 			
 			console.log('from', fromItem);
 			console.log('to', toItem);

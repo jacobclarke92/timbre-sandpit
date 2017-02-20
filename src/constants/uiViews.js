@@ -1,5 +1,5 @@
 export const STAGE = 'STAGE'
 export const CHORDS = 'CHORDS'
-export const OSCILLATORS = 'OSCILLATORS'
+export const LFOS = 'LFOS'
 export const MAPPINGS = 'MAPPINGS'
 export const DESK = 'DESK'

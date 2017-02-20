@@ -3,7 +3,7 @@ import transport from './transport'
 import musicality from './musicality'
 import gui from './gui'
 import stage from './stage'
-import oscillators from './oscillators'
+import lfos from './lfos'
 import synths from './synths'
 import fx from './fx'
 import desk from './desk'
@@ -13,7 +13,7 @@ const reducers = combineReducers({
 	musicality,
 	gui,
 	stage,
-	oscillators,
+	lfos,
 	synths,
 	fx,
 	desk,

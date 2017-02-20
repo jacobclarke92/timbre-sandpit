@@ -7,7 +7,7 @@ import { getDeskMappings } from '../utils/deskUtils'
 class MappingsInterface extends Component {
 	render() {
 
-		const { fx, desk, oscillators } = this.props;
+		const { fx, desk, lfos } = this.props;
 		const connections = getDeskMappings(desk);
 
 		return (
@@ -29,13 +29,13 @@ class MappingsInterface extends Component {
 							</thead>
 							<tbody>
 								{Object.keys(connections[source]).map(param => {
-									const osc = getByKey(oscillators, connections[source][param].oscillator);
+									const lfo = getByKey(lfos, connections[source][param].lfo);
 									return (
 										<tr key={param}>
 											<td>{param}</td>
 											<td>{effect.params[param]}</td>
-											<td>{osc.id}</td>
-											<td>{osc.waveform}</td>
+											<td>{lfo.id}</td>
+											<td>{lfo.waveform}</td>
 										</tr>
 									)
 								})}
@@ -49,4 +49,4 @@ class MappingsInterface extends Component {
 	}
 }
 
-export default connect(({gui, desk, fx, oscillators}) => ({gui, desk, fx, oscillators}))(MappingsInterface)
+export default connect(({gui, desk, fx, lfos}) => ({gui, desk, fx, lfos}))(MappingsInterface)
