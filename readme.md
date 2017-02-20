@@ -1,8 +1,8 @@
-** Timbre Sandpit
+*Timbre Sandpit*
 
 `npm i && npm run watch`
 
-Open `index.html`
+Should launch a server at `http://localhost:3000/`
 
 
-Experimenting with Timbre.js + SubCollider with visuals using PIXI.js
+Experimenting with ToneJS + SubCollider under the hood and React with PIXI.js for UI
