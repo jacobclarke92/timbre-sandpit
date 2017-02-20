@@ -21,8 +21,8 @@ const FXs = {};
 const LFOs = {};
 
 const Submaster = new Gain({gain: 0.5}).toMaster();
-const Bus2 = new BitCrusher({bits: 4}).connect(Submaster);
-const Bus1 = new Vibrato({depth: 0.3}).connect(Bus2);
+// const Bus2 = new BitCrusher({bits: 4}).connect(Submaster);
+// const Bus1 = new Vibrato({depth: 0.3}).connect(Bus2);
 
 export function receiveStore(_store) {
 	store = _store;
@@ -197,7 +197,7 @@ export function connectAudioWires(source, id, disconnectFirst = false) {
 	const fxKeys = Object.keys(FXs);
 	Object.keys(deskItem.audioOutputs).forEach(connectToId => {
 		if(connectToId == 'master') {
-			connections.push(Tone.Master);
+			connections.push(/*Tone.Master*/Submaster);
 		}else{
 			if(fxKeys.indexOf(connectToId) >= 0) {
 				connections.push(FXs[connectToId]);
