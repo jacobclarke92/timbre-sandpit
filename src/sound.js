@@ -1,4 +1,4 @@
-import Tone, { Gain, BitCrusher, Vibrato, Synth, Transport } from 'tone'
+import Tone, { Gain, BitCrusher, Vibrato, Synth, LFO, Transport } from 'tone'
 import _get from 'lodash/get'
 import _isEqual from 'lodash/isEqual'
 import _cloneDeep from 'lodash/cloneDeep'
@@ -13,10 +13,12 @@ let store = null;
 let oldDesk = null;
 let oldSynths = null;
 let oldFXs = null;
+let oldLfos = null;
 let lastNote = 0;
 
 const Synths = {};
 const FXs = {};
+const LFOs = {};
 
 const Submaster = new Gain({gain: 0.5}).toMaster();
 const Bus2 = new BitCrusher({bits: 4}).connect(Submaster);
@@ -26,18 +28,20 @@ export function receiveStore(_store) {
 	store = _store;
 	store.subscribe(receivedState);
 
-	const { synths, fx, desk } = store.getState();
+	const { synths, fx, lfos, desk } = store.getState();
 	oldFXs = _cloneDeep(fx);
+	oldLfos = _cloneDeep(lfos);
 	oldDesk = _cloneDeep(desk);
 	oldSynths = _cloneDeep(synths);
 
 	receivedState();
 	initFx();
+	initLfos();
 	connectAllWires();
 }
 
 function receivedState() {
-	const { synths, fx, desk } = store.getState();
+	const { synths, fx, lfos, desk } = store.getState();
 
 	for(let synth of synths) {
 		// creates space for synth voices
@@ -56,22 +60,60 @@ function receivedState() {
 			Synths[synth.id].forEach(voice => voice.envelope = synth.envelope);
 		}
 	}
-	// todo: clean up old synth instances -- e.g. if deleted
+	// TODO: clean up old synth instances -- e.g. if deleted
 	
 	// init any new effects
 	for(let effect of fx) {
 		if(!FXs[effect.id] && effect.type in Tone) {
-			const deskEffect = getByKey(desk, effect.id, 'ownerId');
+			// const deskEffect = getByKey(desk, effect.id, 'ownerId');
 			FXs[effect.id] = new Tone[effect.type](effect.params);
 			connectAudioWires(FXs[effect.id], effect.id);
 		}
 	}
 
+	// init any new LFOs
+	for (let lfo of lfos) {
+		// ideally multiple LFOs need to created for each mapping, similar to synth 'voices'
+		// reason being .. fx params have different min/max requirements and i don't know how to map an LFO to multiple scales
+		if(!LFOs[lfo.id]) {
+			// shipped off to another function because unlike synths LFOs also have to be inited on app load
+			createLfo(lfo);
+		}
+
+		const prevLfo = getByKey(oldLfos, lfo.id);
+		if(prevLfo) {
+			if(lfo.waveform != prevLfo.waveform) {
+				// LFOs[lfo.id].set('type', lfo.waveform);
+				LFOs[lfo.id].type = lfo.waveform;
+			}
+
+			if((lfo.freqNote && !prevLfo.freqNote) || (lfo.freqNote && prevLfo.freqNote && lfo.freqNote != prevLfo.freqNote)) {
+				console.log('LFO '+lfo.id+' syncing to transport')
+				LFOs[lfo.id].frequency.value = lfo.freqNote;
+				LFOs[lfo.id].sync().start(0);
+			}else if(!lfo.freqNote && prevLfo.freqNote) {
+				console.log('LFO '+lfo.id+' unsyncing from transport')
+				LFOs[lfo.id].unsync();
+			}
+
+			if(lfo.frequency != prevLfo.frequency) {
+				console.log('LFO changed frequency: '+lfo.frequency);
+				LFOs[lfo.id].frequency.value = lfo.frequency;
+			}
+		}
+	}
+	// TODO: clean up old LFO instances -- e.g. if deleted
+
 	// checks all connections and rewires if needed
 	for(let deskItem of desk) {
 		const prevDeskItem = getByKey(oldDesk, deskItem.id);
+
+		// check if desk item has audio output capabilities and that its audio outputs have changed
 		if(deskItem.audioOutput) {
 			if(prevDeskItem && !_isEqual(Object.keys(prevDeskItem.audioOutputs), Object.keys(deskItem.audioOutputs))) {
+
+				// the difference between synth and fx is that we can have multiple synths (voices) per 'synth'
+				// so they must be iterated over, whereas an fx is just a single 'voice'
 				if(deskItem.type == DeskItemTypes.FX) {
 					console.log('Updating fx '+deskItem.ownerId+' output connections');
 					connectAudioWires(FXs[deskItem.ownerId], deskItem.ownerId, true);	
@@ -82,18 +124,46 @@ function receivedState() {
 				
 			}
 		}
+
+		// check if desk item has data output capabilities and that its data outputs have changed
+		if(deskItem.dataOutput) {
+			if(prevDeskItem && !_isEqual(Object.keys(prevDeskItem.dataOutputs), Object.keys(deskItem.dataOutputs))) {
+				console.log('Updating LFO '+deskItem.ownerId+' output connections', deskItem.dataOutputs);
+				connectDataWires(LFOs[deskItem.ownerId], deskItem.ownerId, true)
+			}
+		}
 	}
 
 	oldFXs = _cloneDeep(fx);
+	oldLfos = _cloneDeep(lfos);
 	oldDesk = _cloneDeep(desk);
 	oldSynths = _cloneDeep(synths);
+}
+
+export function createLfo(lfo) {
+	const { id, frequency, freqNote, min, max, waveform } = lfo;
+	LFOs[id] = new LFO(frequency, min, max);
+	LFOs[id].type = waveform;
+	
+	if(freqNote) {
+		// ToneJS has a sync functionality so we leverage that
+		// "Sync the start/stop/pause to the transport and the frequency to the bpm of the transport"
+		LFOs[id].frequency.value = freqNote;
+		LFOs[id].sync().start(0);
+	}else{
+		// I don't like this. It should start based on the offset of transport position % frequency or something ..
+		// but for non-synced lfos it shouldn't matter a great deal as they're mostly going to be out of time anyway
+		LFOs[id].start(0);
+	}
+
+	return LFOs[id];
 }
 
 export function initFx() {
 	const { fx, desk } = store.getState();
 	for(let effect of fx) {
 		if(effect.type in Tone) {
-			const deskEffect = getByKey(desk, effect.id, 'ownerId');
+			// const deskEffect = getByKey(desk, effect.id, 'ownerId');
 			FXs[effect.id] = new Tone[effect.type](effect.params);
 			connectAudioWires(FXs[effect.id], effect.id);
 		}else{
@@ -102,12 +172,21 @@ export function initFx() {
 	}
 }
 
+export function initLfos() {
+	const { lfos, desk } = store.getState();
+	for(let lfo of lfos) {
+		// const deskLfo = getByKey(desk, lfo.id, 'ownerId');
+		createLfo(lfo);
+		connectDataWires(LFOs[lfo.id], lfo.id)
+	}
+}
+
 export function connectAllWires() {
 
 }
 
 export function connectAudioWires(source, id, disconnectFirst = false) {
-	if(!source) console.warn('no source to connect from', source, id, FXs);
+	if(!source) console.warn('no audio source to connect from', source, id, FXs);
 	if(!source || !id) return;
 	
 	const { desk } = store.getState();
@@ -115,11 +194,12 @@ export function connectAudioWires(source, id, disconnectFirst = false) {
 	if(!deskItem) return;
 
 	const connections = [];
+	const fxKeys = Object.keys(FXs);
 	Object.keys(deskItem.audioOutputs).forEach(connectToId => {
 		if(connectToId == 'master') {
 			connections.push(Tone.Master);
 		}else{
-			if(Object.keys(FXs).indexOf(connectToId) >= 0) {
+			if(fxKeys.indexOf(connectToId) >= 0) {
 				connections.push(FXs[connectToId]);
 			}
 			// todo: buses
@@ -127,8 +207,42 @@ export function connectAudioWires(source, id, disconnectFirst = false) {
 	});
 	
 	if(disconnectFirst) source.disconnect();
-	console.log('Connecting sound source '+id+' to', connections);
-	source.fan.apply(source, connections);
+	if(connections.length) {
+		console.log('Connecting sound source '+id+' to', connections);
+		source.fan.apply(source, connections);
+	}
+}
+
+export function connectDataWires(source, id, disconnectFirst = false) {
+	if(!source) console.warn('no data source to connect from', source, id, FXs);
+	if(!source || !id) return;
+	
+	const { desk } = store.getState();
+	const deskItem = getByKey(desk, id, 'ownerId');
+	if(!deskItem) return;
+
+	const connections = [];
+	const fxKeys = Object.keys(FXs);
+	Object.keys(deskItem.dataOutputs).forEach(connectToId => {
+		if(fxKeys.indexOf(connectToId) >= 0) {
+			const inputParam = deskItem.dataOutputs[connectToId].inputParam;
+			if(inputParam.key in FXs[connectToId]) {
+				const connection = FXs[connectToId][inputParam.key];
+				if(connection instanceof Tone.Signal) {
+					connections.push(connection);
+				}else{
+					console.warn('Param key '+inputParam.key+' for '+connectToId+' is not an instance of Tone.Signal. No way to map LFOs to non-signal generators at the moment :(');
+				}
+			}else{
+				console.warn('Couldn\'t find param '+inputParam.key+' in FX '+connectToId);
+			}
+		}
+	});
+
+	if(connections.length) {
+		console.log('Connecting data source '+id+' to', connections);
+		connections.forEach(connection => source.connect(connection));
+	}
 }
 
 export function requestSynthVoice(synth) {

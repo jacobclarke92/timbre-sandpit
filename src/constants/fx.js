@@ -245,7 +245,31 @@ const FX = {
 		title: 'Phaser',
 		icon: 'ring',
 		params: [
-
+			{
+				key: 'frequency',
+				title: 'Frequency',
+				description: 'The frequency of the effect',
+				min: 0,
+				max: 10000,
+				step: 0.01,
+				defaultValue: 0.5,
+			},{
+				key: 'octaves',
+				title: 'Octaves',
+				description: 'The octaves of the phasing',
+				min: 1,
+				max: 8,
+				step: 1,
+				defaultValue: 3,
+			},{
+				key: 'baseFrequency',
+				title: 'Base Frequency',
+				description: 'The base modulation frequency',
+				min: 20,
+				max: 10000,
+				step: 1,
+				defaultValue: 350,
+			}
 		]
 	},
 	PingPongDelay: {
