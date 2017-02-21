@@ -31,3 +31,26 @@ export function getWaveLookupArray(waveType, size, phase = 1) {
 
 	return array;
 }
+
+function getAmplitudeByWaveCycle(waveType, cycle, phase = 1) {
+	const theta = cycle * (Math.PI*2);
+	let value = 0;
+	switch(waveType) {
+		case WaveTypes.SINE:
+			value = Math.sin(theta);
+			break;
+		case WaveTypes.SQUARE:
+			value = Math.sign(Math.sin(theta));
+			break;
+		case WaveTypes.TRIANGLE:
+			if(cycle < 0.25) value = cycle/0.25;
+			else if(cycle < 0.75) value = 1 - ((cycle-0.25)/0.5)*2;
+			else value = -1 + (cycle-0.75)/0.25;
+			break;
+		case WaveTypes.SAWTOOTH:
+			if(cycle < 0.5) value = cycle/0.25;
+			else value = -1 + (cycle-0.5)/0.5;
+			break;
+	}
+	return value * phase;
+}
