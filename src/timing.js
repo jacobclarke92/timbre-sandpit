@@ -1,7 +1,7 @@
 import Tone, { Transport, Loop } from 'tone'
 
 import { METER_TICKS, BEAT_PX } from './constants/globals'
-import { getNearbyPointNodes } from './spatial'
+import { getNearbyPointNodes, getNearbyArcNodes } from './spatial'
 import { getValueById } from './utils/arrayUtils'
 import { ARC_NODE, POINT_NODE, ORIGIN_RING_NODE, ORIGIN_RADAR_NODE } from './constants/nodeTypes'
 
@@ -54,10 +54,10 @@ export function cancelLoop(nodeId) {
 	loops[nodeId].dispose();
 }
 
-export function triggerNote(originNode, node, eventId) {
+export function triggerNote(originNode, node, duration, eventId) {
 	// console.log('trigger note');
 	for(let callback of noteListeners) {
-		callback(originNode, node, eventId);
+		callback(originNode, node, duration, eventId);
 	}
 	delete scheduledNotes[originNode.id][node.id];
 }
@@ -82,9 +82,9 @@ export function createOriginLoop(node) {
 
 // called whenever a note needs to be scheduled
 // registers it to the target's scheduledNotes array under the source's id
-export function scheduleNote(originNode, node, ticks = Transport.toTicks()) {
+export function scheduleNote(originNode, node, ticks = Transport.toTicks(), duration = 0) {
 	if(!originNode || !node) return;
-	const eventId = Transport.scheduleOnce(() => triggerNote(originNode, node, eventId), ticks+'i');
+	const eventId = Transport.scheduleOnce(() => triggerNote(originNode, node, duration, eventId), ticks+'i');
 	if(!scheduledNotes[originNode.id]) scheduledNotes[originNode.id] = {};
 	scheduledNotes[originNode.id][node.id] = eventId;
 }
@@ -103,60 +103,97 @@ export function scheduleRingNodeNotes(ringNode) {
 // called by every radar node at the beginning of its loop
 export function scheduleRadarNodeNotes(radarNode) {
 	radarNode = getValueById(stage.originRadarNodes, radarNode.id);
-	// console.log('radar node loop start');
+
+	// iterate over nearby point nodes and schedule them
 	for(let nearbyPointNode of getNearbyPointNodes(radarNode)) {
 		const totalBeats = radarNode.bars * radarNode.beats;
 		const ticks = ((nearbyPointNode.angle / (Math.PI*2)) * totalBeats * METER_TICKS) / loops[radarNode.id].playbackRate;
 		const triggerTime = Transport.toTicks() + Math.floor(ticks);
 		scheduleNote(radarNode, nearbyPointNode.node, triggerTime);
 	}
+
+	// iterate over nearby arc nodes and schedule them
+	for(let nearbyArcNode of getNearbyArcNodes(radarNode)) {
+		const totalBeats = radarNode.bars * radarNode.beats;
+		const ticks = ((nearbyArcNode.angle / (Math.PI*2)) * totalBeats * METER_TICKS) / loops[radarNode.id].playbackRate;
+		const triggerTime = Transport.toTicks() + Math.floor(ticks);
+		const durationPercent = (nearbyArcNode.node.endAngle - nearbyArcNode.node.startAngle)/(Math.PI*2);
+		const durationTicks = (durationPercent * totalBeats * METER_TICKS) / loops[radarNode.id].playbackRate;
+		const durationTime = triggerTime + Math.floor(durationTicks);
+		scheduleNote(radarNode, nearbyArcNode.node, triggerTime, durationTime+'i');
+	}
 }
 
 export function checkForNoteReschedule(node) {
 	switch(node.nodeType) {
+
 		case ORIGIN_RING_NODE:
 		case ORIGIN_RADAR_NODE:
 			clearScheduledNotesFromSource(node);
 			const nearbyPointNodes = getNearbyPointNodes(node);
+
+		case ORIGIN_RING_NODE:
 			for(let nearbyPointNode of nearbyPointNodes) {
-				rescheduleNote(node, nearbyPointNode);
+				rescheduleNote(node, nearbyPointNode, POINT_NODE);
+			}
+			break;
+
+		case ORIGIN_RADAR_NODE:
+			for(let nearbyPointNode of nearbyPointNodes) {
+				rescheduleNote(node, nearbyPointNode, POINT_NODE);
+			}
+
+			const nearbyArcNodes = getNearbyArcNodes(node);
+			for(let nearbyArcNode of nearbyArcNodes) {
+				rescheduleNote(node, nearbyArcNode, ARC_NODE);
 			}
 			break;
 
 		case ARC_NODE:
+			clearScheduledNotesFromTarget(node);
+			for(let radarNode of stage.originRadarNodes) {
+				const nearbyArcNode = getValueById(getNearbyArcNodes(radarNode), node.id);
+				if(nearbyArcNode) rescheduleNote(radarNode, nearbyArcNode, ARC_NODE);
+			}
+			break;
+
 		case POINT_NODE:
 			clearScheduledNotesFromTarget(node);
 			const originNodes = [...stage.originRingNodes, ...stage.originRadarNodes];
 			for(let originNode of originNodes) {
 				const nearbyPointNode = getValueById(getNearbyPointNodes(originNode), node.id);
-				if(nearbyPointNode) rescheduleNote(originNode, nearbyPointNode);
+				if(nearbyPointNode) rescheduleNote(originNode, nearbyPointNode, POINT_NODE);
 			}
 			break;
 	}
 }
 
-export function rescheduleNote(originNode, nearbyPointNode) {
-	switch(originNode.nodeType) {
-		case ORIGIN_RING_NODE:
-			console.log('rescheduling ring node note');
-			const ringSize = BEAT_PX * (loops[originNode.id].progress * (originNode.bars * originNode.beats));
-			if(nearbyPointNode.distance > ringSize) {
-				const ticks = Math.floor(((nearbyPointNode.distance - ringSize) / BEAT_PX) * METER_TICKS);
-				const triggerTime = Transport.toTicks() + ticks;
-				scheduleNote(originNode, nearbyPointNode.node, triggerTime);
-			}
-			break;
+export function rescheduleNote(originNode, nearbyNode, nodeType) {
+	if(nodeType == POINT_NODE) {
+		switch(originNode.nodeType) {
+			case ORIGIN_RING_NODE:
+				console.log('rescheduling ring node note');
+				const ringSize = BEAT_PX * (loops[originNode.id].progress * (originNode.bars * originNode.beats));
+				if(nearbyNode.distance > ringSize) {
+					const ticks = Math.floor(((nearbyNode.distance - ringSize) / BEAT_PX) * METER_TICKS);
+					const triggerTime = Transport.toTicks() + ticks;
+					scheduleNote(originNode, nearbyNode.node, triggerTime);
+				}
+				break;
 
-		case ORIGIN_RADAR_NODE:
-			console.log('rescheduling radar node note');
-			const radarAngle = loops[originNode.id].progress * (Math.PI*2);
-			if(nearbyPointNode.angle > radarAngle) {
-				const totalBeats = originNode.bars * originNode.beats;
-				const ticks = Math.floor(((nearbyPointNode.angle / (Math.PI*2)) * totalBeats * METER_TICKS) / loops[originNode.id].playbackRate);
-				const triggerTime = Transport.toTicks() + ticks;
-				scheduleNote(originNode, nearbyPointNode.node, triggerTime);
-			}
-			break;
+			case ORIGIN_RADAR_NODE:
+				console.log('rescheduling radar node note');
+				const radarAngle = loops[originNode.id].progress * (Math.PI*2);
+				if(nearbyNode.angle > radarAngle) {
+					const totalBeats = originNode.bars * originNode.beats;
+					const ticks = Math.floor(((nearbyNode.angle / (Math.PI*2)) * totalBeats * METER_TICKS) / loops[originNode.id].playbackRate);
+					const triggerTime = Transport.toTicks() + ticks;
+					scheduleNote(originNode, nearbyNode.node, triggerTime);
+				}
+				break;
+		}
+	}else if(nodeType == ARC_NODE) {
+		console.info('RESCHEDULING ARC NODE', nearbyNode);
 	}
 }
 

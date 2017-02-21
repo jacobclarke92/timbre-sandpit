@@ -278,10 +278,10 @@ class PrimaryInterface extends Component {
 	}
 
 	// plays a note!
-	handleNoteTrigger(originNode, node, eventId) {
+	handleNoteTrigger(originNode, node, duration, eventId) {
 		const { musicality, stage, transport } = this.props;
 
-		const noteIndex = playNote(node, originNode.synthId);
+		const noteIndex = playNote(node, originNode.synthId, duration);
 		if(!transport.windowVisible) return;
 
 		const color = noteColors[(noteIndex + musicality.scale)%12];

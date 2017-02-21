@@ -293,7 +293,7 @@ export function getDescendingNote() {
 	return note;
 }
 
-export function playNote(node, synthId) {
+export function playNote(node, synthId, duration = 0) {
 	if(!store) return;
 	const volume = 1;
 	const pan = 0;
@@ -303,6 +303,10 @@ export function playNote(node, synthId) {
 	const state = store.getState();
 	const synthData = synthId ? getByKey(state.synths, synthId) : state.synths[0];
 	if(!synthData) return;
+
+	// ummm not sure about this
+	// if(duration) synthData.envelope.sustain = duration;
+	synthData.envelope.sustain = 0.9;
 
 	const synth = requestSynthVoice(synthData);
 
@@ -322,7 +326,16 @@ export function playNote(node, synthId) {
 	const mode = modes[modeString];
 	const freq = mode.degreeToFreq(note, (12*octave + scale).midicps(), 1);
 	synth.available = false;
-	synth.triggerAttackRelease(freq, 0);
+	if(duration) {
+		console.log('STARTING NOTE', duration);
+		synth.triggerAttack(freq);
+		Transport.scheduleOnce(() => {
+			synth.triggerRelease();
+			console.log('RELEASING NOTE');
+		}, duration);
+	}else{
+		synth.triggerAttackRelease(freq, duration);
+	}
 	setTimeout(() => synth.available = true, (synthData.envelope.attack + synthData.envelope.release)*1000);
 	
 	return note;

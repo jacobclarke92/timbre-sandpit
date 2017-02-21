@@ -7,12 +7,14 @@ import { getAngle, getDistance, getRadius } from './utils/mathUtils'
 let store = null;
 let stage = null;
 const nearbyPointNodes = {};
+const nearbyArcNodes = {};
 
 export function receiveStore(_store) {
 	store = _store;
 	store.subscribe(receivedState);
 	receivedState();
 	updateNearbyPointNodes();
+	updateNearbyArcNodes();
 }
 
 function receivedState() {
@@ -21,9 +23,9 @@ function receivedState() {
 	// check if length of nodes has changed if so update nearbypoints
 	const checks = Object.keys(nodeTypeLookup).map(key => nodeTypeLookup[key]+'.length');
 	if(stage && checkDifferenceAny(stage, newStage, checks)) {
-		console.log('updating nearby points');
 		stage = newStage;
 		updateNearbyPointNodes();
+		updateNearbyArcNodes();
 		return;
 	}
 
@@ -99,8 +101,44 @@ export function fetchNearbyPointNodes(node, pointNodes = stage.pointNodes) {
 	return nearbyPointNodes;
 }
 
+export function getNearbyArcNodes(node) {
+	if(!nearbyArcNodes[node.id]) nearbyArcNodes[node.id] = fetchNearbyArcNodes(node);
+	return nearbyArcNodes[node.id];
+}
+
 export function updateNearbyPointNodes(nodes = [...stage.originRingNodes, ...stage.originRadarNodes]) {
+	console.log('updating nearby nodes (point & arc) for origin nodes (radar & ring)');
 	for(let node of nodes) {
 		nearbyPointNodes[node.id] = fetchNearbyPointNodes(node);
+	}
+}
+
+/**
+ * @param  {PIXI.Container} node 		- origin node
+ * @param  {Array} arcNodes 			- arc node from store
+ * @return {Array} returns an array of arc node near to origin node
+ */
+export function fetchNearbyArcNodes(node, arcNodes = stage.arcNodes) {
+	const nearbyArcNodes = [];
+	for(let arcNode of arcNodes) {
+		const distance = getDistance(node.position, arcNode.position);
+		const angle = getAngle(node.position, arcNode.position) + Math.PI;
+		const radius = getRadius(node);
+		if(distance <= radius) {
+			nearbyArcNodes.push({
+				id: arcNode.id,
+				node: arcNode,
+				distance,
+				angle,
+			});
+		}
+	}
+	return nearbyArcNodes;
+}
+
+export function updateNearbyArcNodes(nodes = [...stage.originRadarNodes]) {
+	console.log('updating nearby nodes (arc) for origin radar nodes');
+	for(let node of nodes) {
+		nearbyArcNodes[node.id] = fetchNearbyArcNodes(node);
 	}
 }
