@@ -221,7 +221,6 @@ export function connectDataWires(source, id, disconnectFirst = false) {
 	const deskItem = getByKey(desk, id, 'ownerId');
 	if(!deskItem) return;
 
-	const connections = [];
 	const fxKeys = Object.keys(FXs);
 	Object.keys(deskItem.dataOutputs).forEach(connectToId => {
 		if(fxKeys.indexOf(connectToId) >= 0) {
@@ -229,7 +228,8 @@ export function connectDataWires(source, id, disconnectFirst = false) {
 			if(inputParam.key in FXs[connectToId]) {
 				const connection = FXs[connectToId][inputParam.key];
 				if(connection instanceof Tone.Signal) {
-					connections.push(connection);
+					console.log('Connecting data source '+id+' to', connection);
+					source.connect(connection);
 				}else{
 					console.warn('Param key '+inputParam.key+' for '+connectToId+' is not an instance of Tone.Signal. No way to map LFOs to non-signal generators at the moment :(');
 				}
@@ -238,11 +238,6 @@ export function connectDataWires(source, id, disconnectFirst = false) {
 			}
 		}
 	});
-
-	if(connections.length) {
-		console.log('Connecting data source '+id+' to', connections);
-		connections.forEach(connection => source.connect(connection));
-	}
 }
 
 export function requestSynthVoice(synth) {
