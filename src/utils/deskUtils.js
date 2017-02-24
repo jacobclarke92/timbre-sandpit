@@ -12,6 +12,8 @@ export function getDeskWires(desk) {
 				id: fromItem.ownerId+'___'+toItem.ownerId,
 				from: {x: fromItem.position.x + wire.outputPosition.x, y: fromItem.position.y + wire.outputPosition.y},
 				to: {x: toItem.position.x + wire.inputPosition.x, y: toItem.position.y + wire.inputPosition.y},
+				outputOwnerId: fromItem.ownerId,
+				inputOwnerId: toItem.ownerId,
 			});
 		});
 		if(fromItem.dataOutput) Object.keys(fromItem.dataOutputs).forEach(outputId => {
@@ -22,26 +24,11 @@ export function getDeskWires(desk) {
 				id: fromItem.ownerId+'___'+toItem.ownerId,
 				from: {x: fromItem.position.x + wire.outputPosition.x, y: fromItem.position.y + wire.outputPosition.y},
 				to: {x: toItem.position.x + wire.inputPosition.x, y: toItem.position.y + wire.inputPosition.y},
+				outputOwnerId: fromItem.ownerId,
+				inputOwnerId: toItem.ownerId,
+				inputParamKey: wire.inputParam.key,
 			});
 		});
 	}
 	return connections;
-}
-
-export function getDeskMappings(desk) {
-	if(!desk) return;
-	const mappings = {};
-	for(let fromItem of desk) {
-		if(fromItem.dataOutput) Object.keys(fromItem.dataOutputs).forEach(outputId => {
-			const paramKey = fromItem.dataOutputs[outputId].inputParam.key;
-			const toItem = getByKey(desk, outputId, 'ownerId');
-			if(!(toItem.ownerId in mappings)) mappings[toItem.ownerId] = {};
-			if(!(paramKey in mappings[toItem.ownerId])) mappings[toItem.ownerId][paramKey] = {};
-			mappings[toItem.ownerId][paramKey].lfo = fromItem.ownerId;
-			
-			console.log('from', fromItem);
-			console.log('to', toItem);
-		});
-	}
-	return mappings;
 }

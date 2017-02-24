@@ -65,7 +65,7 @@ let initialState = [
 	},
 	{
 		id: newId(),
-		name: 'Example FX',
+		name: 'Freeverb',
 		ownerId: 'init_fx',
 		type: DeskItemTypes.FX,
 		audioOutputs: {master: {outputPosition: {x: 200, y: 100}, inputPosition: {x: 0, y: 100}}},
@@ -127,10 +127,10 @@ export default function(state = localStore.get('desk') || initialState, action) 
 
 		case ActionTypes.DESK_DISCONNECT_WIRE:
 			return state.map(item => {
-				if(item.ownerId === action.id) {
+				if(item.ownerId === action.outputOwnerId) {
 					const outputs = {...item[action.wireType+'Outputs']};
-					if(action.outputId in outputs) {
-						delete outputs[action.outputId];
+					if(action.inputOwnerId in outputs) {
+						delete outputs[action.inputOwnerId];
 						return {...item, [action.wireType+'Outputs']: outputs};
 					}
 				}

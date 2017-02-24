@@ -272,13 +272,14 @@ class DeskInterface extends Component {
 	removeActiveItem() {
 		const { selectedWire, selectedDeskItem } = this.state;
 		if(selectedWire) {
-			const connectionParts = selectedWire.id.split('___'); // not sure about this
 			console.log('Will delete wire', selectedWire);
+			const { outputOwnerId, inputOwnerId, inputParamKey } = selectedWire;
 			this.props.dispatch({
 				type: ActionTypes.DESK_DISCONNECT_WIRE, 
 				wireType: selectedWire.type,
-				id: connectionParts[0], 
-				outputId: connectionParts[1]
+				outputOwnerId,
+				inputOwnerId,
+				inputParamKey,
 			});
 		}else if(selectedDeskItem) {
 			let type = null;

@@ -2,51 +2,52 @@ import React, { Component } from 'react'
 import { connect } from 'react-redux'
 
 import { getByKey } from '../utils/arrayUtils'
-import { getDeskMappings } from '../utils/deskUtils'
 
 class MappingsInterface extends Component {
 	render() {
 
-		const { fx, desk, lfos } = this.props;
-		const connections = getDeskMappings(desk);
+		const { fx, desk, lfos, matrix } = this.props;
 
 		return (
 			<div className="mappings-interface">
-				{Object.keys(connections).map(source => {
-					const deskItem = getByKey(desk, source, 'ownerId');
-					const effect = getByKey(fx, source);
-					return (
-						<div key={source} style={{border: '1px solid black', padding: '10px'}}>
-							<b>{deskItem.name + ' (' + effect.type + ')'}</b>
-							<table width="600">
-							<thead>
-								<tr>
-									<td>Param</td>
-									<td>Value</td>
-									<td>Osc</td>
-									<td>Osc Type</td>
+				<table width="800" style={{border: '1px solid black', padding: '10px'}}>
+					<thead>
+						<tr style={{fontWeight: 'bolder'}}>
+							<td>Output</td>
+							<td>Out Min</td>
+							<td>Out Max</td>
+							<td>Input</td>
+							<td>Param</td>
+							<td>In Min</td>
+							<td>In Max</td>
+							<td>Map Curve</td>
+							<td>Inverted</td>
+						</tr>
+					</thead>
+					<tbody>
+						{matrix.map((connection, i) => {
+							const outputItem = getByKey(desk, connection.outputOwnerId, 'ownerId');
+							const inputItem = getByKey(desk, connection.inputOwnerId, 'ownerId');
+							const inputParam = outputItem.dataOutputs[inputItem.ownerId].inputParam;
+							return (
+								<tr key={i}>
+									<td>{outputItem.name}</td>
+									<td>{connection.min}</td>
+									<td>{connection.max}</td>
+									<td>{inputItem.name}</td>
+									<td>{inputParam.title}</td>
+									<td>{inputParam.min}</td>
+									<td>{inputParam.max}</td>
+									<td>{connection.mapType}</td>
+									<td>{connection.inverted ? 'true' : 'false'}</td>
 								</tr>
-							</thead>
-							<tbody>
-								{Object.keys(connections[source]).map(param => {
-									const lfo = getByKey(lfos, connections[source][param].lfo);
-									return (
-										<tr key={param}>
-											<td>{param}</td>
-											<td>{effect.params[param]}</td>
-											<td>{lfo.id}</td>
-											<td>{lfo.waveform}</td>
-										</tr>
-									)
-								})}
-							</tbody>
-							</table>
-						</div>
-					)
-				})}
+							)
+						})}
+					</tbody>
+				</table>
 			</div>
 		)
 	}
 }
 
-export default connect(({gui, desk, fx, lfos}) => ({gui, desk, fx, lfos}))(MappingsInterface)
+export default connect(({gui, desk, fx, lfos, matrix}) => ({gui, desk, fx, lfos, matrix}))(MappingsInterface)

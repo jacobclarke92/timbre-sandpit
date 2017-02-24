@@ -7,6 +7,7 @@ import lfos from './lfos'
 import synths from './synths'
 import fx from './fx'
 import desk from './desk'
+import matrix from './matrix'
 
 const reducers = combineReducers({
 	transport,
@@ -17,6 +18,7 @@ const reducers = combineReducers({
 	synths,
 	fx,
 	desk,
+	matrix,
 });
 
 export default reducers
